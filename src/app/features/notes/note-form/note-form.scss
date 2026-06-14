@@ -1,3 +1,5 @@
+@use './note-form-editor';
+
 .form-page {
   max-width: 990px;
   margin: 0 auto;
@@ -183,88 +185,6 @@
   font-size: var(--font-xs);
   color: var(--color-text-muted);
   padding: var(--spacing-xs) 0;
-}
-
-.form__blocks {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-}
-
-.form__block {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
-  overflow: hidden;
-}
-
-.form__block-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: color-mix(in srgb, var(--color-background) 50%, transparent);
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.form__block-type {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: var(--font-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.form__block-actions {
-  display: flex;
-  gap: 2px;
-}
-
-.form__block-btn {
-  background: none;
-  border: none;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  font-size: 0.85rem;
-
-  &:hover:not(:disabled) {
-    color: var(--color-text);
-    background: var(--color-surface-hover);
-  }
-
-  &:disabled {
-    opacity: 0.3;
-    cursor: default;
-  }
-
-  &--danger:hover {
-    color: var(--color-danger);
-    background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-  }
-}
-
-.form__code-fields {
-  display: grid;
-  grid-template-columns: 1fr 140px;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm) var(--spacing-sm) 0;
-}
-
-.form__link-fields {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-sm);
 }
 
 .form__add-bar {

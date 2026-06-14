@@ -40,34 +40,65 @@
         <label class="form__label">Content</label>
         <div class="form__blocks" formArrayName="content_blocks">
           @for (block of contentBlocks.controls; track idx; let idx = $index) {
-            <div class="form__block" [formGroupName]="idx">
-              <div class="form__block-bar">
-                <span class="form__block-type">
-                  @if (block.value.type === 'text') {
-                    <svg lucideType></svg> Text
-                  } @else if (block.value.type === 'code') {
-                    <svg lucideFileCode></svg> Code
-                  } @else if (block.value.type === 'link') {
-                    <svg lucideLink></svg> Link
-                  }
-                </span>
-                <div class="form__block-actions">
-                  <button type="button" class="form__block-btn" (click)="moveBlock(idx, -1)" [disabled]="idx === 0">
-                    <svg lucideMoveUp></svg>
-                  </button>
-                  <button type="button" class="form__block-btn" (click)="moveBlock(idx, 1)" [disabled]="idx === contentBlocks.length - 1">
-                    <svg lucideMoveDown></svg>
-                  </button>
-                  <button type="button" class="form__block-btn form__block-btn--danger" (click)="removeBlock(idx)">
-                    <svg lucideX></svg>
-                  </button>
+            <div class="form__block" [class.form__block--fullscreen]="isFullscreenBlock(idx)" [formGroupName]="idx">
+                <div class="form__block-bar">
+                  <div class="form__block-bar-left">
+                    <span class="form__block-type">
+                      @if (block.value.type === 'text') {
+                        <svg lucideType></svg> Text
+                      } @else if (block.value.type === 'code') {
+                        <svg lucideFileCode></svg> Code
+                      } @else if (block.value.type === 'link') {
+                        <svg lucideLink></svg> Link
+                      }
+                    </span>
+                    @if (isFullscreenBlock(idx)) {
+                      <div class="form__fs-controls">
+                        <button type="button" class="form__fs-btn" (click)="adjustFontSize(idx, -FS_FONT_STEP)" title="Decrease font size">A−</button>
+                        <button type="button" class="form__fs-btn" (click)="resetFontSize(idx)" title="Reset font size">A</button>
+                        <button type="button" class="form__fs-btn" (click)="adjustFontSize(idx, FS_FONT_STEP)" title="Increase font size">A+</button>
+                      </div>
+                    }
+                  </div>
+                  <div class="form__block-actions">
+                    @if (canUseFullscreen(block.value.type)) {
+                      <button type="button" class="form__block-action" (click)="clearBlock(idx)" title="Clear content">
+                        <svg lucideEraser></svg>
+                        <span>Clear</span>
+                      </button>
+                      @if (isFullscreenBlock(idx)) {
+                        <button type="button" class="form__block-action form__block-action--primary" (click)="submitInFullscreen()" [disabled]="form.invalid || submitting">
+                          <svg lucideSave></svg>
+                          <span>{{ submitting ? 'Saving...' : 'Save' }}</span>
+                        </button>
+                        <button type="button" class="form__block-btn" (click)="closeFullscreenBlock()" title="Exit full screen">
+                          <svg lucideMinimize2></svg>
+                        </button>
+                      } @else {
+                        <button type="button" class="form__block-btn" (click)="openFullscreenBlock(idx)" title="Full screen">
+                          <svg lucideMaximize2></svg>
+                        </button>
+                      }
+                    }
+                    @if (!isFullscreenBlock(idx)) {
+                      <button type="button" class="form__block-btn" (click)="moveBlock(idx, -1)" [disabled]="idx === 0" title="Move up">
+                        <svg lucideMoveUp></svg>
+                      </button>
+                      <button type="button" class="form__block-btn" (click)="moveBlock(idx, 1)" [disabled]="idx === contentBlocks.length - 1" title="Move down">
+                        <svg lucideMoveDown></svg>
+                      </button>
+                      <button type="button" class="form__block-btn form__block-btn--danger" (click)="removeBlock(idx)" title="Remove block">
+                        <svg lucideX></svg>
+                      </button>
+                    }
+                  </div>
                 </div>
-              </div>
 
               @switch (block.value.type) {
                 @case ('text') {
                   <textarea
                     class="form__textarea"
+                    [style.font-size.px]="getFullscreenFontSize(idx)"
                     formControlName="content"
                     placeholder="Write your notes here..."
                     rows="4"
@@ -99,6 +130,7 @@
                   </div>
                   <textarea
                     class="form__textarea form__textarea--code"
+                    [style.font-size.px]="getFullscreenFontSize(idx)"
                     formControlName="code"
                     placeholder="Paste your code here..."
                     rows="5"
@@ -183,7 +215,7 @@
           class="form__btn form__btn--primary"
           [disabled]="form.invalid || submitting"
         >
-          {{ submitting ? 'Saving...' : isEditing ? 'Update Note' : 'Save Note' }}
+          {{ submitLabel() }}
         </button>
       </div>
     </form>

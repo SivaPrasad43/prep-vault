@@ -5,6 +5,7 @@ import { finalize } from 'rxjs/operators';
 import {
   LucideArrowLeft, LucideX, LucideChevronDown,
   LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
+  LucideMaximize2, LucideMinimize2, LucideEraser, LucideSave,
 } from '@lucide/angular';
 import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
 import { NotesService } from '../../../core/services/notes.service';
@@ -17,6 +18,7 @@ import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock }
     ReactiveFormsModule,
     LucideArrowLeft, LucideX, LucideChevronDown,
     LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
+    LucideMaximize2, LucideMinimize2, LucideEraser, LucideSave,
     CategoryIcon,
   ],
   templateUrl: './note-form.html',
@@ -35,7 +37,25 @@ export class NoteForm implements OnInit {
   protected loading = false;
   protected submitting = false;
   protected error = '';
+  protected fullscreenBlockIndex: number | null = null;
+  protected fullscreenFontSizes: Record<number, number> = {};
+  protected readonly FS_FONT_MIN = 10;
+  protected readonly FS_FONT_MAX = 32;
+  protected readonly FS_FONT_STEP = 2;
 
+  protected getFullscreenFontSize(index: number): number | null {
+    return this.fullscreenFontSizes[index] ?? null;
+  }
+
+  protected adjustFontSize(index: number, delta: number): void {
+    const current = this.fullscreenFontSizes[index] ?? 16;
+    const next = Math.max(this.FS_FONT_MIN, Math.min(this.FS_FONT_MAX, current + delta));
+    this.fullscreenFontSizes[index] = next;
+  }
+
+  protected resetFontSize(index: number): void {
+    delete this.fullscreenFontSizes[index];
+  }
 
   protected readonly confidenceLevels: { value: ConfidenceLevel; label: string }[] = [
     { value: 'need_practice', label: 'Need Practice' },
@@ -90,7 +110,6 @@ export class NoteForm implements OnInit {
     this.loadCategories();
 
     const id = this.route.snapshot.paramMap.get('id');
-    console.log("id is:",id)
     if (id) {
       this.isEditing = true;
       this.noteId = id;
@@ -166,6 +185,19 @@ export class NoteForm implements OnInit {
 
   protected removeBlock(index: number): void {
     this.contentBlocks.removeAt(index);
+    delete this.fullscreenFontSizes[index];
+    const keys = Object.keys(this.fullscreenFontSizes).map(Number);
+    for (const k of keys) {
+      if (k > index) {
+        this.fullscreenFontSizes[k - 1] = this.fullscreenFontSizes[k];
+        delete this.fullscreenFontSizes[k];
+      }
+    }
+    if (this.fullscreenBlockIndex === index) {
+      this.closeFullscreenBlock();
+    } else if (this.fullscreenBlockIndex !== null && this.fullscreenBlockIndex > index) {
+      this.fullscreenBlockIndex -= 1;
+    }
   }
 
   protected moveBlock(index: number, direction: -1 | 1): void {
@@ -184,11 +216,41 @@ export class NoteForm implements OnInit {
     this.form.patchValue({ category_id: catId });
   }
 
-  protected onSubmit(): void {
-    if (this.form.invalid) return;
-    this.submitting = true;
-    this.error = '';
+  protected canUseFullscreen(type: ContentBlock['type'] | undefined): boolean {
+    return type === 'text' || type === 'code';
+  }
 
+  protected isFullscreenBlock(index: number): boolean {
+    return this.fullscreenBlockIndex === index;
+  }
+
+  protected openFullscreenBlock(index: number): void {
+    this.fullscreenBlockIndex = index;
+  }
+
+  protected closeFullscreenBlock(): void {
+    if (this.fullscreenBlockIndex !== null) {
+      delete this.fullscreenFontSizes[this.fullscreenBlockIndex];
+    }
+    this.fullscreenBlockIndex = null;
+  }
+
+  protected clearBlock(index: number): void {
+    const block = this.contentBlocks.at(index);
+    const type = block.value.type;
+    if (type === 'text') {
+      block.get('content')?.setValue('');
+    } else if (type === 'code') {
+      block.get('code')?.setValue('');
+    }
+  }
+
+  protected submitLabel(): string {
+    if (this.submitting) return 'Saving...';
+    return this.isEditing ? 'Update Note' : 'Save Note';
+  }
+
+  private buildPayload(): { payload: CreateNotePayload; contentBlocks: ContentBlock[] } {
     const raw = this.form.value;
     const contentBlocks = ((raw.content_blocks ?? []) as ContentBlock[]).filter((b) => {
       if (b.type === 'text') return b.content?.trim();
@@ -222,6 +284,16 @@ export class NoteForm implements OnInit {
       is_pinned: raw.is_pinned ?? false,
     };
 
+    return { payload, contentBlocks };
+  }
+
+  protected onSubmit(): void {
+    if (this.form.invalid) return;
+    this.submitting = true;
+    this.error = '';
+
+    const { payload } = this.buildPayload();
+
     const obs = this.isEditing && this.noteId
       ? this.notesService.update(this.noteId, payload)
       : this.notesService.create(payload);
@@ -235,6 +307,10 @@ export class NoteForm implements OnInit {
         this.error = err.message || 'Failed to save note';
       },
     });
+  }
+
+  protected submitInFullscreen(): void {
+    this.closeFullscreenBlock();
   }
 
   protected goBack(): void {
