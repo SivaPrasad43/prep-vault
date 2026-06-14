@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { from, Observable, of } from 'rxjs';
+import { from, Observable } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
@@ -48,47 +48,6 @@ export class CategoriesService {
       map(({ data, error }) => {
         if (error) throw error;
         return data;
-      }),
-    );
-  }
-
-  create(name: string, icon: string, color: string): Observable<Category> {
-    return from(
-      this.supabase.client
-        .from('categories')
-        .insert({ name, icon, color, user_id: this.auth.userId })
-        .select()
-        .single(),
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        return data;
-      }),
-    );
-  }
-
-  update(id: string, payload: Partial<Category>): Observable<Category> {
-    return from(
-      this.supabase.client
-        .from('categories')
-        .update(payload)
-        .eq('id', id)
-        .select()
-        .single(),
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        return data;
-      }),
-    );
-  }
-
-  delete(id: string): Observable<void> {
-    return from(
-      this.supabase.client.from('categories').delete().eq('id', id),
-    ).pipe(
-      map(({ error }) => {
-        if (error) throw error;
       }),
     );
   }

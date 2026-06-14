@@ -1,5 +1,7 @@
-import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { Component, signal, inject, DestroyRef } from '@angular/core';
+import { RouterOutlet, Router, NavigationEnd } from '@angular/router';
+import { filter } from 'rxjs/operators';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Sidebar } from './sidebar/sidebar';
 
 @Component({
@@ -10,6 +12,25 @@ import { Sidebar } from './sidebar/sidebar';
 })
 export class Layout {
   protected readonly sidebarOpen = signal(false);
+  protected readonly showSidebar = signal(true);
+
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
+
+  constructor() {
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((e) => {
+        const isDashboard = e.urlAfterRedirects === '/dashboard' || e.urlAfterRedirects === '/';
+        this.showSidebar.set(isDashboard);
+        if (!isDashboard) {
+          this.sidebarOpen.set(false);
+        }
+      });
+  }
 
   protected onToggleSidebar(): void {
     this.sidebarOpen.update((v) => !v);

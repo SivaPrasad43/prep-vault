@@ -11,6 +11,26 @@ export interface Link {
 
 export type ConfidenceLevel = 'need_practice' | 'getting_there' | 'confident';
 
+export interface TextBlock {
+  type: 'text';
+  content: string;
+}
+
+export interface CodeBlock {
+  type: 'code';
+  language: string;
+  code: string;
+  filename?: string;
+}
+
+export interface LinkBlock {
+  type: 'link';
+  label: string;
+  url: string;
+}
+
+export type ContentBlock = TextBlock | CodeBlock | LinkBlock;
+
 export interface Note {
   id: string;
   user_id: string;
@@ -19,6 +39,7 @@ export interface Note {
   description: string | null;
   code_snippets: CodeSnippet[];
   links: Link[];
+  content_blocks: ContentBlock[] | null;
   confidence_level: ConfidenceLevel;
   is_favorite: boolean;
   is_pinned: boolean;
@@ -32,6 +53,7 @@ export interface CreateNotePayload {
   description?: string;
   code_snippets?: CodeSnippet[];
   links?: Link[];
+  content_blocks?: ContentBlock[];
   confidence_level?: ConfidenceLevel;
   is_favorite?: boolean;
   is_pinned?: boolean;

@@ -7,10 +7,3 @@ export interface Category {
   sort_order: number;
   created_at: string;
 }
-
-export interface CreateCategoryPayload {
-  name: string;
-  color: string;
-  icon: string;
-  sort_order?: number;
-}

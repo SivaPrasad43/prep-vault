@@ -89,16 +89,6 @@ export class Dashboard implements OnInit {
     });
   }
 
-  protected deleteNote(note: Note): void {
-    if (confirm(`Delete "${note.title}"?`)) {
-      this.notesService.delete(note.id).subscribe({
-        next: () => {
-          this.notes.update((ns) => ns.filter((n) => n.id !== note.id));
-        },
-      });
-    }
-  }
-
   private getGreeting(): string {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';

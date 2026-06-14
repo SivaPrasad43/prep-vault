@@ -20,127 +20,119 @@
       </div>
 
       <div class="form__field">
-        <label class="form__label" for="category">Category *</label>
-        <div class="form__category-row">
-          <select
-            id="category"
-            class="form__input form__select"
-            formControlName="category_id"
-          >
-            <option value="" disabled>Select a category</option>
-            @for (cat of categories; track cat.id) {
-              <option [value]="cat.id">{{ cat.name }}</option>
-            }
-          </select>
-          <button type="button" class="form__add-cat-btn" (click)="showNewCategory = !showNewCategory">
-            <svg lucidePlus></svg>
-          </button>
-        </div>
-        @if (showNewCategory) {
-          <div class="form__new-category">
-            <input
-              class="form__input"
-              type="text"
-              placeholder="Category name"
-              [(ngModel)]="newCategoryName"
-              [ngModelOptions]="{ standalone: true }"
-            />
-            <button type="button" class="form__btn form__btn--sm" (click)="addCategory()">Create</button>
-          </div>
-        }
-      </div>
-
-      <div class="form__field">
-        <label class="form__label">Tags</label>
-        <div class="form__tags">
-          @for (tag of tags; track tag.id) {
+        <label class="form__label">Category *</label>
+        <div class="form__pills">
+          @for (cat of categories; track cat.id) {
             <button
               type="button"
-              class="form__tag"
-              [class.form__tag--active]="selectedTagIds.includes(tag.id)"
-              (click)="toggleTag(tag.id)"
+              class="form__pill form__pill--cat"
+              [class.--active]="form.value.category_id === cat.id"
+              (click)="selectCategory(cat.id)"
             >
-              {{ tag.name }}
+              <app-category-icon [icon]="cat.icon" />
+              <span>{{ cat.name }}</span>
             </button>
-          }
-          @if (tags.length === 0) {
-            <span class="form__hint">No tags yet — create them from the sidebar</span>
           }
         </div>
       </div>
 
       <div class="form__field">
-        <label class="form__label" for="description">Notes / Description</label>
-        <textarea
-          id="description"
-          class="form__textarea"
-          formControlName="description"
-          placeholder="Write your notes here..."
-          rows="6"
-        ></textarea>
-      </div>
-
-      <div class="form__section">
-        <div class="form__section-header">
-          <h3 class="form__section-title">Code Snippets</h3>
-          <button type="button" class="form__btn form__btn--sm" (click)="addSnippet()"><svg lucidePlus></svg> Add Snippet</button>
-        </div>
-        <div formArrayName="code_snippets">
-          @for (snippet of codeSnippets.controls; track idx; let idx = $index) {
-            <div class="form__snippet" [formGroupName]="idx">
-              <div class="form__snippet-header">
-                <input
-                  class="form__input form__input--sm"
-                  formControlName="filename"
-                  placeholder="Filename (optional)"
-                />
-                <select class="form__input form__input--sm form__select" formControlName="language">
-                  <option value="">Language</option>
-                  <option value="javascript">JavaScript</option>
-                  <option value="typescript">TypeScript</option>
-                  <option value="python">Python</option>
-                  <option value="java">Java</option>
-                  <option value="go">Go</option>
-                  <option value="rust">Rust</option>
-                  <option value="cpp">C++</option>
-                  <option value="sql">SQL</option>
-                  <option value="bash">Bash</option>
-                  <option value="other">Other</option>
-                </select>
-                <button type="button" class="form__remove-btn" (click)="removeSnippet(idx)"><svg lucideX></svg></button>
+        <label class="form__label">Content</label>
+        <div class="form__blocks" formArrayName="content_blocks">
+          @for (block of contentBlocks.controls; track idx; let idx = $index) {
+            <div class="form__block" [formGroupName]="idx">
+              <div class="form__block-bar">
+                <span class="form__block-type">
+                  @if (block.value.type === 'text') {
+                    <svg lucideType></svg> Text
+                  } @else if (block.value.type === 'code') {
+                    <svg lucideFileCode></svg> Code
+                  } @else if (block.value.type === 'link') {
+                    <svg lucideLink></svg> Link
+                  }
+                </span>
+                <div class="form__block-actions">
+                  <button type="button" class="form__block-btn" (click)="moveBlock(idx, -1)" [disabled]="idx === 0">
+                    <svg lucideMoveUp></svg>
+                  </button>
+                  <button type="button" class="form__block-btn" (click)="moveBlock(idx, 1)" [disabled]="idx === contentBlocks.length - 1">
+                    <svg lucideMoveDown></svg>
+                  </button>
+                  <button type="button" class="form__block-btn form__block-btn--danger" (click)="removeBlock(idx)">
+                    <svg lucideX></svg>
+                  </button>
+                </div>
               </div>
-              <textarea
-                class="form__textarea form__textarea--code"
-                formControlName="code"
-                placeholder="Paste your code here..."
-                rows="5"
-              ></textarea>
-            </div>
-          }
-        </div>
-      </div>
 
-      <div class="form__section">
-        <div class="form__section-header">
-          <h3 class="form__section-title">Links / References</h3>
-          <button type="button" class="form__btn form__btn--sm" (click)="addLink()"><svg lucidePlus></svg> Add Link</button>
-        </div>
-        <div formArrayName="links">
-          @for (link of links.controls; track idx; let idx = $index) {
-            <div class="form__link-row" [formGroupName]="idx">
-              <input
-                class="form__input form__input--sm"
-                formControlName="label"
-                placeholder="Label (e.g. YouTube)"
-              />
-              <input
-                class="form__input form__input--sm"
-                formControlName="url"
-                placeholder="URL"
-              />
-              <button type="button" class="form__remove-btn" (click)="removeLink(idx)"><svg lucideX></svg></button>
+              @switch (block.value.type) {
+                @case ('text') {
+                  <textarea
+                    class="form__textarea"
+                    formControlName="content"
+                    placeholder="Write your notes here..."
+                    rows="4"
+                  ></textarea>
+                }
+                @case ('code') {
+                  <div class="form__code-fields">
+                    <input
+                      class="form__input form__input--sm"
+                      formControlName="filename"
+                      placeholder="Filename (optional)"
+                    />
+                    <div class="form__select-wrap">
+                      <select class="form__input form__input--sm form__select" formControlName="language">
+                        <option value="">Language</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="typescript">TypeScript</option>
+                        <option value="python">Python</option>
+                        <option value="java">Java</option>
+                        <option value="go">Go</option>
+                        <option value="rust">Rust</option>
+                        <option value="cpp">C++</option>
+                        <option value="sql">SQL</option>
+                        <option value="bash">Bash</option>
+                        <option value="other">Other</option>
+                      </select>
+                      <svg lucideChevronDown class="form__select-arrow"></svg>
+                    </div>
+                  </div>
+                  <textarea
+                    class="form__textarea form__textarea--code"
+                    formControlName="code"
+                    placeholder="Paste your code here..."
+                    rows="5"
+                  ></textarea>
+                }
+                @case ('link') {
+                  <div class="form__link-fields">
+                    <input
+                      class="form__input form__input--sm"
+                      formControlName="label"
+                      placeholder="Label (e.g. YouTube)"
+                    />
+                    <input
+                      class="form__input form__input--sm"
+                      formControlName="url"
+                      placeholder="URL"
+                    />
+                  </div>
+                }
+              }
             </div>
           }
+        </div>
+
+        <div class="form__add-bar">
+          <button type="button" class="form__pill form__pill--add" (click)="addBlock('text')">
+            <svg lucideType></svg> Text
+          </button>
+          <button type="button" class="form__pill form__pill--add" (click)="addBlock('code')">
+            <svg lucideFileCode></svg> Code
+          </button>
+          <button type="button" class="form__pill form__pill--add" (click)="addBlock('link')">
+            <svg lucideLink></svg> Link
+          </button>
         </div>
       </div>
 
@@ -148,26 +140,33 @@
         <label class="form__label">Confidence Level</label>
         <div class="form__confidence">
           @for (level of confidenceLevels; track level.value) {
-            <label class="form__radio">
+            <label class="form__radio" [class.--active]="form.value.confidence_level === level.value">
               <input
                 type="radio"
                 formControlName="confidence_level"
                 [value]="level.value"
               />
-              <span>{{ level.label }}</span>
+              <span class="form__radio-dot" [style.--dot-color]="confidenceColors[level.value]"></span>
+              <span class="form__radio-label">{{ level.label }}</span>
             </label>
           }
         </div>
       </div>
 
-      <div class="form__checkboxes">
-        <label class="form__checkbox">
+      <div class="form__toggles">
+        <label class="form__toggle">
           <input type="checkbox" formControlName="is_favorite" />
-          <span>Mark as favorite</span>
+          <span class="form__toggle-track">
+            <span class="form__toggle-knob"></span>
+          </span>
+          <span class="form__toggle-label">Mark as favorite</span>
         </label>
-        <label class="form__checkbox">
+        <label class="form__toggle">
           <input type="checkbox" formControlName="is_pinned" />
-          <span>Pin this note</span>
+          <span class="form__toggle-track">
+            <span class="form__toggle-knob"></span>
+          </span>
+          <span class="form__toggle-label">Pin this note</span>
         </label>
       </div>
 

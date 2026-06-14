@@ -38,12 +38,12 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
   --font-xs: 0.75rem;
-  --font-sm: 0.875rem;
-  --font-base: 1rem;
+  --font-sm: 1rem !important;
+  --font-base: 1.2rem !important;
   --font-lg: 1.125rem;
   --font-xl: 1.25rem;
-  --font-xxl: 1.5rem;
-  --font-xxxl: 2rem;
+  --font-xxl: 2rem !important;
+  --font-xxxl: 3rem !important;
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;

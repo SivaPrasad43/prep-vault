@@ -1,4 +1,4 @@
-<aside class="sidebar" [ngClass]="{ 'sidebar--open': isOpen() }">
+<aside class="sidebar" [ngClass]="{ 'sidebar--open': isOpen(), 'sidebar--visible': sidebarVisible() }">
   <div class="sidebar__overlay" (click)="onClose()"></div>
 
   <div class="sidebar__content">
@@ -23,33 +23,11 @@
         @for (cat of categories; track cat.id) {
           <li
             class="sidebar__item"
-            [class.sidebar__item--editing]="editingCategoryId() === cat.id"
-            [ngClass]="{ 'sidebar__item--active': !editingCategoryId() && filterState.categoryId() === cat.id }"
+            (click)="selectCategory(cat.id)"
+            [ngClass]="{ 'sidebar__item--active': filterState.categoryId() === cat.id }"
           >
-            @if (editingCategoryId() === cat.id) {
-              <input
-                class="sidebar__inline-input"
-                [value]="editCategoryName"
-                #catInput
-                (input)="editCategoryName = catInput.value"
-                (keyup.enter)="saveCategory(cat)"
-                (keyup.escape)="cancelEditCategory()"
-                (click)="$event.stopPropagation()"
-              />
-              <button class="sidebar__icon-btn sidebar__icon-btn--confirm" (click)="saveCategory(cat); $event.stopPropagation()" title="Save"><svg lucideCheck></svg></button>
-              <button class="sidebar__icon-btn" (click)="cancelEditCategory(); $event.stopPropagation()" title="Cancel"><svg lucideXIcon></svg></button>
-            } @else if (deletingCategoryId() === cat.id) {
-              <span class="sidebar__delete-text">Delete "{{ cat.name }}"?</span>
-              <button class="sidebar__icon-btn sidebar__icon-btn--danger" (click)="confirmDeleteCategory(cat); $event.stopPropagation()" title="Confirm"><svg lucideCheck></svg></button>
-              <button class="sidebar__icon-btn" (click)="cancelDeleteCategory(); $event.stopPropagation()" title="Cancel"><svg lucideXIcon></svg></button>
-            } @else {
-              <span class="sidebar__item-icon" (click)="selectCategory(cat.id)"><app-category-icon [icon]="cat.icon" /></span>
-              <span class="sidebar__item-label sidebar__item-label--clickable" (click)="selectCategory(cat.id)">{{ cat.name }}</span>
-              <div class="sidebar__item-actions">
-                <button class="sidebar__icon-btn" (click)="startEditCategory(cat); $event.stopPropagation()" title="Rename"><svg lucidePencil></svg></button>
-                <button class="sidebar__icon-btn sidebar__icon-btn--danger" (click)="deleteCategory(cat); $event.stopPropagation()" title="Delete"><svg lucideTrash2></svg></button>
-              </div>
-            }
+            <span class="sidebar__item-icon"><app-category-icon [icon]="cat.icon" /></span>
+            <span class="sidebar__item-label">{{ cat.name }}</span>
           </li>
         }
       </ul>
@@ -92,52 +70,6 @@
           </li>
         }
       </ul>
-    </div>
-
-    <div class="sidebar__section sidebar__section--tags">
-      <h3 class="sidebar__section-title">Tags</h3>
-      @if (tags.length > 0) {
-        <div class="sidebar__tag-cloud">
-          @for (tag of tags; track tag.id) {
-            @if (editingTagId() === tag.id) {
-              <span class="sidebar__tag-edit">
-                <input
-                  class="sidebar__inline-input sidebar__inline-input--sm"
-                  [value]="editTagName"
-                  #tagInput
-                  (input)="editTagName = tagInput.value"
-                  (keyup.enter)="saveTag(tag)"
-                  (keyup.escape)="cancelEditTag()"
-                />
-                <button class="sidebar__icon-btn sidebar__icon-btn--confirm" (click)="saveTag(tag)" title="Save"><svg lucideCheck></svg></button>
-                <button class="sidebar__icon-btn" (click)="cancelEditTag()" title="Cancel"><svg lucideXIcon></svg></button>
-              </span>
-            } @else if (deletingTagId() === tag.id) {
-              <span class="sidebar__tag-edit">
-                <span class="sidebar__delete-text">Delete?</span>
-                <button class="sidebar__icon-btn sidebar__icon-btn--danger" (click)="confirmDeleteTag(tag)" title="Confirm"><svg lucideCheck></svg></button>
-                <button class="sidebar__icon-btn" (click)="cancelDeleteTag()" title="Cancel"><svg lucideXIcon></svg></button>
-              </span>
-            } @else {
-              <span class="sidebar__tag-wrapper">
-                <button
-                  class="sidebar__tag"
-                  [class.sidebar__tag--active]="filterState.tagIds().includes(tag.id)"
-                  (click)="selectTag(tag.id)"
-                >
-                  {{ tag.name }}
-                </button>
-                <div class="sidebar__tag-actions">
-                  <button class="sidebar__icon-btn sidebar__icon-btn--xs" (click)="startEditTag(tag)" title="Rename"><svg lucidePencil></svg></button>
-                  <button class="sidebar__icon-btn sidebar__icon-btn--xs sidebar__icon-btn--danger" (click)="deleteTag(tag)" title="Delete"><svg lucideTrash2></svg></button>
-                </div>
-              </span>
-            }
-          }
-        </div>
-      } @else {
-        <p class="sidebar__placeholder">No tags yet</p>
-      }
     </div>
 
     <div class="sidebar__footer">

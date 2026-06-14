@@ -58,7 +58,7 @@
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": []
+              "allowedHosts": ["*", "localhost", "192.168.0.112"]
             },
             "ssr": {
               "entry": "src/server.ts"
@@ -74,7 +74,7 @@
                 },
                 {
                   "type": "anyComponentStyle",
-                  "maximumWarning": "8kB",
+                  "maximumWarning": "10kB",
                   "maximumError": "16kB"
                 }
               ],

@@ -8,6 +8,5 @@ export interface NoteFilters {
   searchQuery: string;
   confidenceLevel: ConfidenceLevel | null;
   smartFilter: SmartFilter | null;
-  tagIds: string[];
   sortBy: SortOption;
 }

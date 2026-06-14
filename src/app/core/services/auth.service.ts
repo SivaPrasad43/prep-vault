@@ -37,21 +37,48 @@ export class AuthService {
   }
 
   private initializeAuth(): void {
-    this.supabase.client.auth.getSession().then(({ data: { session } }) => {
-      if (session && this.isExpired()) {
-        this.supabase.client.auth.signOut();
-        this.setAuthState(null);
-        this.clearLastActive();
-      } else if (session) {
-        this.setLastActive();
-      }
-      this.setAuthState(session);
-      this.authState.next({ ...this.authState.value, loading: false });
-    });
-
     this.supabase.client.auth.onAuthStateChange((_event, session) => {
       this.setAuthState(session);
     });
+
+    this.supabase.client.auth.getSession()
+      .then(({ data: { session }, error }) => {
+        if (error) {
+          this.setAuthState(null);
+          return;
+        }
+
+        return this.applyInitialSession(session);
+      })
+      .catch((error: unknown) => {
+        this.handleAuthInitializationError(error);
+      });
+  }
+
+  private async applyInitialSession(session: Session | null): Promise<void> {
+    if (!session) {
+      this.setAuthState(null);
+      return;
+    }
+
+    if (this.isExpired()) {
+      this.clearLastActive();
+      this.setAuthState(null);
+
+      const { error } = await this.supabase.client.auth.signOut();
+      if (error) {
+        throw error;
+      }
+
+      return;
+    }
+
+    this.setLastActive();
+    this.setAuthState(session);
+  }
+
+  private handleAuthInitializationError(_error: unknown): void {
+    this.setAuthState(null);
   }
 
   validateSession(): Observable<boolean> {

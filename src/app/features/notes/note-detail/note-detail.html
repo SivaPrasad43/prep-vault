@@ -26,47 +26,39 @@
 
       <h1 class="detail__title">{{ note()!.title }}</h1>
 
-      @if (note()!.description) {
-        <div class="detail__description">
-          {{ note()!.description }}
-        </div>
-      }
-
-      @if (note()!.code_snippets && note()!.code_snippets.length > 0) {
-        <section class="detail__section">
-          <h2 class="detail__section-title">Code</h2>
-          @for (snippet of note()!.code_snippets; track idx; let idx = $index) {
-            <div class="detail__code-block">
-              <div class="detail__code-header">
-                <span>{{ languageLabel(snippet.language) }}</span>
-                @if (snippet.filename) {
-                  <span class="detail__code-filename">{{ snippet.filename }}</span>
-                }
-              </div>
-              <pre class="detail__code"><code>{{ snippet.code }}</code></pre>
-            </div>
-          }
-        </section>
-      }
-
-      @if (note()!.links && note()!.links.length > 0) {
-        <section class="detail__section">
-          <h2 class="detail__section-title">Links</h2>
-          <ul class="detail__links">
-            @for (link of note()!.links; track idx; let idx = $index) {
-              <li>
+      @if (note()!.content_blocks && note()!.content_blocks!.length > 0) {
+        <div class="detail__blocks">
+          @for (block of note()!.content_blocks; track idx; let idx = $index) {
+            @switch (block.type) {
+              @case ('text') {
+                <div class="detail__description">
+                  {{ block.content }}
+                </div>
+              }
+              @case ('code') {
+                <div class="detail__code-block">
+                  <div class="detail__code-header">
+                    <span>{{ languageLabel(block.language) }}</span>
+                    @if (block.filename) {
+                      <span class="detail__code-filename">{{ block.filename }}</span>
+                    }
+                  </div>
+                  <pre class="detail__code"><code>{{ block.code }}</code></pre>
+                </div>
+              }
+              @case ('link') {
                 <a
                   class="detail__link"
-                  [href]="link.url"
+                  [href]="block.url"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  {{ link.label || link.url }}
+                  {{ block.label || block.url }}
                 </a>
-              </li>
+              }
             }
-          </ul>
-        </section>
+          }
+        </div>
       }
 
       <div class="detail__footer">

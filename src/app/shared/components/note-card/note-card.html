@@ -1,24 +1,26 @@
-<article class="card">
+<article class="card" (click)="openNote()">
   <div class="card__top">
     <div class="card__meta">
       @if (category()) {
         <app-category-badge [category]="category()!" />
       }
-      <app-confidence-indicator [level]="note().confidence_level" />
     </div>
-    <button
-      class="card__star"
-      [class.card__star--active]="note().is_favorite"
-      (click)="toggleFavorite.emit(note())"
-      [attr.aria-label]="note().is_favorite ? 'Remove from favorites' : 'Add to favorites'"
-    >
-      <svg lucideStar [style.fill]="note().is_favorite ? 'currentColor' : 'none'"></svg>
-    </button>
+    <div class="card__top-right">
+      <app-confidence-indicator [level]="note().confidence_level" />
+      <button
+        class="card__star"
+        [class.card__star--active]="note().is_favorite"
+        (click)="toggleFavorite.emit(note()); $event.stopPropagation()"
+        [attr.aria-label]="note().is_favorite ? 'Remove from favorites' : 'Add to favorites'"
+      >
+        <svg lucideStar [style.fill]="note().is_favorite ? '#facc15' : 'none'"></svg>
+      </button>
+    </div>
   </div>
 
-  <a class="card__title" [routerLink]="['/notes', note().id]">
+  <span class="card__title">
     {{ note().title }}
-  </a>
+  </span>
 
   @if (note().description) {
     <p class="card__preview">{{ note().description }}</p>
@@ -38,10 +40,5 @@
 
   <div class="card__footer">
     <span class="card__date">{{ note().updated_at | date : 'MMM d, yyyy' }}</span>
-    <div class="card__actions">
-      <a class="card__action" [routerLink]="['/notes', note().id]" title="View"><svg lucideEye></svg></a>
-      <a class="card__action" [routerLink]="['/notes', note().id, 'edit']" title="Edit"><svg lucidePencil></svg></a>
-      <button class="card__action card__action--delete" (click)="deleteNote.emit(note())" title="Delete"><svg lucideTrash2></svg></button>
-    </div>
   </div>
 </article>
