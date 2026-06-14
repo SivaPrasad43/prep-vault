@@ -1,6 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { finalize } from 'rxjs/operators';
 import {
   LucideArrowLeft, LucideX, LucideChevronDown,
   LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
@@ -27,6 +28,7 @@ export class NoteForm implements OnInit {
   private router = inject(Router);
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
+  private cdr = inject(ChangeDetectorRef);
   protected categories: Category[] = [];
   protected isEditing = false;
   private noteId: string | null = null;
@@ -88,6 +90,7 @@ export class NoteForm implements OnInit {
     this.loadCategories();
 
     const id = this.route.snapshot.paramMap.get('id');
+    console.log("id is:",id)
     if (id) {
       this.isEditing = true;
       this.noteId = id;
@@ -101,12 +104,22 @@ export class NoteForm implements OnInit {
     this.categoriesService.seedDefaults().subscribe({
       next: (cats) => {
         this.categories = cats;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.categories = [];
+        this.cdr.detectChanges();
       },
     });
   }
 
   private loadNote(id: string): void {
-    this.notesService.getById(id).subscribe({
+    this.notesService.getById(id).pipe(
+      finalize(() => {
+        this.loading = false;
+        this.cdr.detectChanges();
+      }),
+    ).subscribe({
       next: (note) => {
         this.form.patchValue({
           title: note.title,
@@ -122,12 +135,9 @@ export class NoteForm implements OnInit {
           group.patchValue(block as never);
           this.contentBlocks.push(group);
         }
-
-        this.loading = false;
       },
       error: () => {
         this.error = 'Failed to load note';
-        this.loading = false;
       },
     });
   }
