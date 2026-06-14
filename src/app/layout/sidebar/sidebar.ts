@@ -96,7 +96,10 @@ export class Sidebar implements OnInit {
   }
 
   protected handleSignOut(): void {
-    this.authService.signOut().subscribe();
+    this.authService.signOut().subscribe({
+      next: () => this.router.navigate(['/auth']),
+      error: () => this.router.navigate(['/auth']),
+    });
   }
 
   protected exportNotes(): void {
