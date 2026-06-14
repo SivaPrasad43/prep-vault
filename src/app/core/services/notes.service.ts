@@ -44,7 +44,7 @@ export class NotesService {
 
     if (filters?.searchQuery) {
       const q = filters.searchQuery;
-      query = query.or(`title.ilike.%${q}%,description.ilike.%${q}%,code_snippets::text.ilike.%${q}%`);
+      query = query.or(`title.ilike.*${q}*,description.ilike.*${q}*`);
     }
 
     if (filters?.sortBy === 'title') {
@@ -121,7 +121,7 @@ export class NotesService {
         .from('notes')
         .select('*')
         .eq('user_id', this.auth.userId)
-        .or(`title.ilike.%${query}%,description.ilike.%${query}%,code_snippets::text.ilike.%${query}%`)
+        .or(`title.ilike.*${query}*,description.ilike.*${query}*`)
         .order('updated_at', { ascending: false }),
     ).pipe(
       map(({ data, error }) => {

@@ -1,9 +1,10 @@
-import { Component, OnInit, inject, signal, effect } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucidePlus } from '@lucide/angular';
-import { debounceTime, distinctUntilChanged, switchMap, Subject } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { debounceTime, switchMap } from 'rxjs';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
@@ -29,19 +30,29 @@ export class Dashboard implements OnInit {
   protected loading = signal(true);
   protected error = '';
 
-  private searchSubject = new Subject<string>();
-
   protected greeting = this.getGreeting();
   protected today = new Date();
 
   constructor() {
-    effect(() => {
-      const filters = this.filterState.filters();
-      setTimeout(() => {
-        this.loading.set(true);
-        this.loadNotes(filters);
+    toObservable(this.filterState.filters)
+      .pipe(
+        debounceTime(300),
+        switchMap((filters) => {
+          this.loading.set(true);
+          return this.notesService.getAll(filters);
+        }),
+        takeUntilDestroyed(),
+      )
+      .subscribe({
+        next: (data) => {
+          this.notes.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error = err.message;
+          this.loading.set(false);
+        },
       });
-    });
   }
 
   ngOnInit(): void {
@@ -57,19 +68,6 @@ export class Dashboard implements OnInit {
 
     this.notesService.getStats().subscribe({
       next: (s) => setTimeout(() => this.stats.set(s)),
-    });
-  }
-
-  private loadNotes(filters?: Parameters<typeof this.notesService.getAll>[0]): void {
-    this.notesService.getAll(filters).subscribe({
-      next: (data) => {
-        this.notes.set(data);
-        this.loading.set(false);
-      },
-      error: (err) => {
-        this.error = err.message;
-        this.loading.set(false);
-      },
     });
   }
 

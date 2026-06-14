@@ -12,7 +12,6 @@ export class CategoriesService {
     { name: 'Coding & Problem Solving', icon: 'code-2', color: '#34d399', sort_order: 2 },
     { name: 'System Design', icon: 'layers', color: '#f59e0b', sort_order: 3 },
     { name: 'Interview Questions', icon: 'target', color: '#8b5cf6', sort_order: 4 },
-    { name: 'Company-Specific Prep', icon: 'building', color: '#ec4899', sort_order: 5 },
     { name: 'Resources & Links', icon: 'book-open', color: '#06b6d4', sort_order: 6 },
     { name: 'Random / Misc', icon: 'pin', color: '#6b7280', sort_order: 7 },
   ];
