@@ -1,0 +1,51 @@
+<div class="dashboard">
+  <div class="dashboard__banner">
+    <div class="dashboard__greeting">
+      <h1 class="dashboard__greeting-text">{{ greeting }}!</h1>
+      <p class="dashboard__greeting-date">{{ today | date : 'fullDate' }}</p>
+    </div>
+    @if (stats(); as s) {
+      <div class="dashboard__stats">
+        <div class="dashboard__stat">
+          <span class="dashboard__stat-value">{{ s.total }}</span>
+          <span class="dashboard__stat-label">Notes</span>
+        </div>
+        <div class="dashboard__stat">
+          <span class="dashboard__stat-value">{{ s.confident }}</span>
+          <span class="dashboard__stat-label">Confident</span>
+        </div>
+        <div class="dashboard__stat">
+          <span class="dashboard__stat-value">{{ s.needPractice }}</span>
+          <span class="dashboard__stat-label">Need Practice</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div class="dashboard__toolbar">
+    <app-search-bar (searchChange)="onSearch($event)" />
+    <a class="dashboard__add-btn" routerLink="/notes/new" title="Add Note"><svg lucidePlus></svg></a>
+  </div>
+
+  @if (loading()) {
+    <div class="dashboard__loading">Loading notes...</div>
+  } @else if (error) {
+    <div class="dashboard__error">{{ error }}</div>
+  } @else if (notes().length === 0) {
+    <app-empty-state
+      title="No notes yet"
+      message="Add your first topic, question, or resource to start preparing."
+    />
+  } @else {
+    <div class="dashboard__feed">
+      @for (note of notes(); track note.id) {
+        <app-note-card
+          [note]="note"
+          [category]="getCategory(note)"
+          (toggleFavorite)="toggleFavorite($event)"
+          (deleteNote)="deleteNote($event)"
+        />
+      }
+    </div>
+  }
+</div>

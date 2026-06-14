@@ -1,0 +1,7 @@
+<span
+  class="badge"
+  [style.--badge-color]="category().color"
+>
+  <app-category-icon class="badge__icon" [icon]="category().icon" />
+  <span class="badge__label">{{ category().name }}</span>
+</span>

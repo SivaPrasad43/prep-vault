@@ -1,0 +1,158 @@
+<aside class="sidebar" [ngClass]="{ 'sidebar--open': isOpen() }">
+  <div class="sidebar__overlay" (click)="onClose()"></div>
+
+  <div class="sidebar__content">
+    <div class="sidebar__header">
+      <h2 class="sidebar__title">PrepVault</h2>
+      <button class="sidebar__close" (click)="onClose()" aria-label="Close sidebar"><svg lucideX></svg></button>
+    </div>
+
+    <div class="sidebar__section">
+      <h3 class="sidebar__section-title">Overview</h3>
+      <ul class="sidebar__list">
+        <li class="sidebar__item" (click)="navigateTo('/dashboard')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'dashboard' }">
+          <span class="sidebar__item-icon"><svg lucideLayoutDashboard></svg></span>
+          <span class="sidebar__item-label">Dashboard</span>
+        </li>
+      </ul>
+    </div>
+
+    <nav class="sidebar__section">
+      <h3 class="sidebar__section-title">Categories</h3>
+      <ul class="sidebar__list">
+        @for (cat of categories; track cat.id) {
+          <li
+            class="sidebar__item"
+            [class.sidebar__item--editing]="editingCategoryId() === cat.id"
+            [ngClass]="{ 'sidebar__item--active': !editingCategoryId() && filterState.categoryId() === cat.id }"
+          >
+            @if (editingCategoryId() === cat.id) {
+              <input
+                class="sidebar__inline-input"
+                [value]="editCategoryName"
+                #catInput
+                (input)="editCategoryName = catInput.value"
+                (keyup.enter)="saveCategory(cat)"
+                (keyup.escape)="cancelEditCategory()"
+                (click)="$event.stopPropagation()"
+              />
+              <button class="sidebar__icon-btn sidebar__icon-btn--confirm" (click)="saveCategory(cat); $event.stopPropagation()" title="Save"><svg lucideCheck></svg></button>
+              <button class="sidebar__icon-btn" (click)="cancelEditCategory(); $event.stopPropagation()" title="Cancel"><svg lucideXIcon></svg></button>
+            } @else if (deletingCategoryId() === cat.id) {
+              <span class="sidebar__delete-text">Delete "{{ cat.name }}"?</span>
+              <button class="sidebar__icon-btn sidebar__icon-btn--danger" (click)="confirmDeleteCategory(cat); $event.stopPropagation()" title="Confirm"><svg lucideCheck></svg></button>
+              <button class="sidebar__icon-btn" (click)="cancelDeleteCategory(); $event.stopPropagation()" title="Cancel"><svg lucideXIcon></svg></button>
+            } @else {
+              <span class="sidebar__item-icon" (click)="selectCategory(cat.id)"><app-category-icon [icon]="cat.icon" /></span>
+              <span class="sidebar__item-label sidebar__item-label--clickable" (click)="selectCategory(cat.id)">{{ cat.name }}</span>
+              <div class="sidebar__item-actions">
+                <button class="sidebar__icon-btn" (click)="startEditCategory(cat); $event.stopPropagation()" title="Rename"><svg lucidePencil></svg></button>
+                <button class="sidebar__icon-btn sidebar__icon-btn--danger" (click)="deleteCategory(cat); $event.stopPropagation()" title="Delete"><svg lucideTrash2></svg></button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    </nav>
+
+    <div class="sidebar__section">
+      <h3 class="sidebar__section-title">Smart Filters</h3>
+      <ul class="sidebar__list">
+        @for (filter of smartFilters; track filter.id) {
+          <li
+            class="sidebar__item"
+            [ngClass]="{ 'sidebar__item--active': filterState.smartFilter() === filter.id }"
+            (click)="selectSmartFilter(filter.id)"
+          >
+            <span class="sidebar__item-icon">
+              @switch (filter.id) {
+                @case ('favorites') { <svg lucideStar></svg> }
+                @case ('pinned') { <svg lucidePin></svg> }
+                @case ('recently_added') { <svg lucideClock></svg> }
+                @case ('recently_edited') { <svg lucidePencil></svg> }
+              }
+            </span>
+            <span class="sidebar__item-label">{{ filter.label }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="sidebar__section">
+      <h3 class="sidebar__section-title">Confidence</h3>
+      <ul class="sidebar__list">
+        @for (level of confidenceLevels; track level.value) {
+          <li
+            class="sidebar__item"
+            [ngClass]="{ 'sidebar__item--active': filterState.confidenceLevel() === level.value }"
+            (click)="selectConfidence(level.value)"
+          >
+            <span class="sidebar__item-dot" [style.background]="level.color"></span>
+            <span class="sidebar__item-label">{{ level.label }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <div class="sidebar__section sidebar__section--tags">
+      <h3 class="sidebar__section-title">Tags</h3>
+      @if (tags.length > 0) {
+        <div class="sidebar__tag-cloud">
+          @for (tag of tags; track tag.id) {
+            @if (editingTagId() === tag.id) {
+              <span class="sidebar__tag-edit">
+                <input
+                  class="sidebar__inline-input sidebar__inline-input--sm"
+                  [value]="editTagName"
+                  #tagInput
+                  (input)="editTagName = tagInput.value"
+                  (keyup.enter)="saveTag(tag)"
+                  (keyup.escape)="cancelEditTag()"
+                />
+                <button class="sidebar__icon-btn sidebar__icon-btn--confirm" (click)="saveTag(tag)" title="Save"><svg lucideCheck></svg></button>
+                <button class="sidebar__icon-btn" (click)="cancelEditTag()" title="Cancel"><svg lucideXIcon></svg></button>
+              </span>
+            } @else if (deletingTagId() === tag.id) {
+              <span class="sidebar__tag-edit">
+                <span class="sidebar__delete-text">Delete?</span>
+                <button class="sidebar__icon-btn sidebar__icon-btn--danger" (click)="confirmDeleteTag(tag)" title="Confirm"><svg lucideCheck></svg></button>
+                <button class="sidebar__icon-btn" (click)="cancelDeleteTag()" title="Cancel"><svg lucideXIcon></svg></button>
+              </span>
+            } @else {
+              <span class="sidebar__tag-wrapper">
+                <button
+                  class="sidebar__tag"
+                  [class.sidebar__tag--active]="filterState.tagIds().includes(tag.id)"
+                  (click)="selectTag(tag.id)"
+                >
+                  {{ tag.name }}
+                </button>
+                <div class="sidebar__tag-actions">
+                  <button class="sidebar__icon-btn sidebar__icon-btn--xs" (click)="startEditTag(tag)" title="Rename"><svg lucidePencil></svg></button>
+                  <button class="sidebar__icon-btn sidebar__icon-btn--xs sidebar__icon-btn--danger" (click)="deleteTag(tag)" title="Delete"><svg lucideTrash2></svg></button>
+                </div>
+              </span>
+            }
+          }
+        </div>
+      } @else {
+        <p class="sidebar__placeholder">No tags yet</p>
+      }
+    </div>
+
+    <div class="sidebar__footer">
+      <button class="sidebar__clear-btn" (click)="resetFilters()"><svg lucideFilterX></svg> Clear Filters</button>
+      <button class="sidebar__theme-btn" (click)="themeService.toggle()">
+        @if (themeService.isDark()) {
+          <svg lucideSun></svg> Light
+        } @else {
+          <svg lucideMoon></svg> Dark
+        } Mode
+      </button>
+      <button class="sidebar__clear-btn" (click)="exportNotes()"><svg lucideDownload></svg> Export</button>
+      <button class="sidebar__clear-btn" (click)="fileInput.click()"><svg lucideUpload></svg> Import</button>
+      <input #fileInput type="file" accept=".json" (change)="importNotes($event)" hidden />
+      <button class="sidebar__signout-btn" (click)="handleSignOut()"><svg lucideLogOut></svg> Sign Out</button>
+    </div>
+  </div>
+</aside>

@@ -1,0 +1,192 @@
+<div class="form-page">
+  <div class="form-page__header">
+    <button class="form-page__back" (click)="goBack()"><svg lucideArrowLeft></svg> Back</button>
+    <h1 class="form-page__title">{{ isEditing ? 'Edit Note' : 'Add Note' }}</h1>
+  </div>
+
+  @if (loading) {
+    <p class="form-page__loading">Loading...</p>
+  } @else {
+    <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="form__field">
+        <label class="form__label" for="title">Title *</label>
+        <input
+          id="title"
+          class="form__input"
+          type="text"
+          formControlName="title"
+          placeholder="Give your note a title"
+        />
+      </div>
+
+      <div class="form__field">
+        <label class="form__label" for="category">Category *</label>
+        <div class="form__category-row">
+          <select
+            id="category"
+            class="form__input form__select"
+            formControlName="category_id"
+          >
+            <option value="" disabled>Select a category</option>
+            @for (cat of categories; track cat.id) {
+              <option [value]="cat.id">{{ cat.name }}</option>
+            }
+          </select>
+          <button type="button" class="form__add-cat-btn" (click)="showNewCategory = !showNewCategory">
+            <svg lucidePlus></svg>
+          </button>
+        </div>
+        @if (showNewCategory) {
+          <div class="form__new-category">
+            <input
+              class="form__input"
+              type="text"
+              placeholder="Category name"
+              [(ngModel)]="newCategoryName"
+              [ngModelOptions]="{ standalone: true }"
+            />
+            <button type="button" class="form__btn form__btn--sm" (click)="addCategory()">Create</button>
+          </div>
+        }
+      </div>
+
+      <div class="form__field">
+        <label class="form__label">Tags</label>
+        <div class="form__tags">
+          @for (tag of tags; track tag.id) {
+            <button
+              type="button"
+              class="form__tag"
+              [class.form__tag--active]="selectedTagIds.includes(tag.id)"
+              (click)="toggleTag(tag.id)"
+            >
+              {{ tag.name }}
+            </button>
+          }
+          @if (tags.length === 0) {
+            <span class="form__hint">No tags yet — create them from the sidebar</span>
+          }
+        </div>
+      </div>
+
+      <div class="form__field">
+        <label class="form__label" for="description">Notes / Description</label>
+        <textarea
+          id="description"
+          class="form__textarea"
+          formControlName="description"
+          placeholder="Write your notes here..."
+          rows="6"
+        ></textarea>
+      </div>
+
+      <div class="form__section">
+        <div class="form__section-header">
+          <h3 class="form__section-title">Code Snippets</h3>
+          <button type="button" class="form__btn form__btn--sm" (click)="addSnippet()"><svg lucidePlus></svg> Add Snippet</button>
+        </div>
+        <div formArrayName="code_snippets">
+          @for (snippet of codeSnippets.controls; track idx; let idx = $index) {
+            <div class="form__snippet" [formGroupName]="idx">
+              <div class="form__snippet-header">
+                <input
+                  class="form__input form__input--sm"
+                  formControlName="filename"
+                  placeholder="Filename (optional)"
+                />
+                <select class="form__input form__input--sm form__select" formControlName="language">
+                  <option value="">Language</option>
+                  <option value="javascript">JavaScript</option>
+                  <option value="typescript">TypeScript</option>
+                  <option value="python">Python</option>
+                  <option value="java">Java</option>
+                  <option value="go">Go</option>
+                  <option value="rust">Rust</option>
+                  <option value="cpp">C++</option>
+                  <option value="sql">SQL</option>
+                  <option value="bash">Bash</option>
+                  <option value="other">Other</option>
+                </select>
+                <button type="button" class="form__remove-btn" (click)="removeSnippet(idx)"><svg lucideX></svg></button>
+              </div>
+              <textarea
+                class="form__textarea form__textarea--code"
+                formControlName="code"
+                placeholder="Paste your code here..."
+                rows="5"
+              ></textarea>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form__section">
+        <div class="form__section-header">
+          <h3 class="form__section-title">Links / References</h3>
+          <button type="button" class="form__btn form__btn--sm" (click)="addLink()"><svg lucidePlus></svg> Add Link</button>
+        </div>
+        <div formArrayName="links">
+          @for (link of links.controls; track idx; let idx = $index) {
+            <div class="form__link-row" [formGroupName]="idx">
+              <input
+                class="form__input form__input--sm"
+                formControlName="label"
+                placeholder="Label (e.g. YouTube)"
+              />
+              <input
+                class="form__input form__input--sm"
+                formControlName="url"
+                placeholder="URL"
+              />
+              <button type="button" class="form__remove-btn" (click)="removeLink(idx)"><svg lucideX></svg></button>
+            </div>
+          }
+        </div>
+      </div>
+
+      <div class="form__field">
+        <label class="form__label">Confidence Level</label>
+        <div class="form__confidence">
+          @for (level of confidenceLevels; track level.value) {
+            <label class="form__radio">
+              <input
+                type="radio"
+                formControlName="confidence_level"
+                [value]="level.value"
+              />
+              <span>{{ level.label }}</span>
+            </label>
+          }
+        </div>
+      </div>
+
+      <div class="form__checkboxes">
+        <label class="form__checkbox">
+          <input type="checkbox" formControlName="is_favorite" />
+          <span>Mark as favorite</span>
+        </label>
+        <label class="form__checkbox">
+          <input type="checkbox" formControlName="is_pinned" />
+          <span>Pin this note</span>
+        </label>
+      </div>
+
+      @if (error) {
+        <div class="form__error">{{ error }}</div>
+      }
+
+      <div class="form__actions">
+        <button type="button" class="form__btn form__btn--secondary" (click)="goBack()">
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="form__btn form__btn--primary"
+          [disabled]="form.invalid || submitting"
+        >
+          {{ submitting ? 'Saving...' : isEditing ? 'Update Note' : 'Save Note' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

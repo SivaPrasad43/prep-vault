@@ -1,0 +1,48 @@
+export interface CodeSnippet {
+  language: string;
+  code: string;
+  filename?: string;
+}
+
+export interface Link {
+  label: string;
+  url: string;
+}
+
+export type ConfidenceLevel = 'need_practice' | 'getting_there' | 'confident';
+
+export interface Note {
+  id: string;
+  user_id: string;
+  title: string;
+  category_id: string;
+  description: string | null;
+  code_snippets: CodeSnippet[];
+  links: Link[];
+  confidence_level: ConfidenceLevel;
+  is_favorite: boolean;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateNotePayload {
+  title: string;
+  category_id: string;
+  description?: string;
+  code_snippets?: CodeSnippet[];
+  links?: Link[];
+  confidence_level?: ConfidenceLevel;
+  is_favorite?: boolean;
+  is_pinned?: boolean;
+}
+
+export interface UpdateNotePayload extends Partial<CreateNotePayload> {}
+
+export interface NoteStats {
+  total: number;
+  revisedToday: number;
+  confident: number;
+  needPractice: number;
+  gettingThere: number;
+}

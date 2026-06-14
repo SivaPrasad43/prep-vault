@@ -1,0 +1,37 @@
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.indicator__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+}
+
+.indicator--need_practice {
+  color: var(--color-confidence-need-practice);
+
+  .indicator__dot {
+    background: var(--color-confidence-need-practice);
+  }
+}
+
+.indicator--getting_there {
+  color: var(--color-confidence-getting-there);
+
+  .indicator__dot {
+    background: var(--color-confidence-getting-there);
+  }
+}
+
+.indicator--confident {
+  color: var(--color-confidence-confident);
+
+  .indicator__dot {
+    background: var(--color-confidence-confident);
+  }
+}

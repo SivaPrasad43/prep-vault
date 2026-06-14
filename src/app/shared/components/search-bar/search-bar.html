@@ -1,0 +1,13 @@
+<div class="search">
+  <span class="search__icon"><svg lucideSearch></svg></span>
+  <input
+    class="search__input"
+    type="text"
+    placeholder="Search notes by title, content, or code..."
+    [ngModel]="query()"
+    (ngModelChange)="onInput($event)"
+  />
+  @if (query()) {
+    <button class="search__clear" (click)="clear()"><svg lucideX></svg></button>
+  }
+</div>

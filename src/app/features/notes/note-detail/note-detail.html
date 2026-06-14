@@ -1,0 +1,93 @@
+<div class="detail">
+  @if (loading()) {
+    <p class="detail__loading">Loading...</p>
+  } @else if (note()) {
+    <div class="detail__topbar">
+      <button class="detail__back" (click)="goBack()"><svg lucideArrowLeft></svg> Back to Dashboard</button>
+      <div class="detail__actions">
+        <a class="detail__action-btn" [routerLink]="['/notes', note()!.id, 'edit']"><svg lucidePencil></svg> Edit</a>
+        <button class="detail__action-btn detail__action-btn--danger" (click)="showDeleteConfirm = true"><svg lucideTrash2></svg> Delete</button>
+      </div>
+    </div>
+
+    <article class="detail__card">
+      <div class="detail__header">
+        <div class="detail__meta">
+          @if (category()) {
+            <app-category-badge [category]="category()!" />
+          }
+          <app-confidence-indicator [level]="note()!.confidence_level" />
+        </div>
+        <div class="detail__icons">
+          @if (note()!.is_favorite) { <span class="detail__icon" title="Favorite"><svg lucideStar></svg></span> }
+          @if (note()!.is_pinned) { <span class="detail__icon" title="Pinned"><svg lucidePin></svg></span> }
+        </div>
+      </div>
+
+      <h1 class="detail__title">{{ note()!.title }}</h1>
+
+      @if (note()!.description) {
+        <div class="detail__description">
+          {{ note()!.description }}
+        </div>
+      }
+
+      @if (note()!.code_snippets && note()!.code_snippets.length > 0) {
+        <section class="detail__section">
+          <h2 class="detail__section-title">Code</h2>
+          @for (snippet of note()!.code_snippets; track idx; let idx = $index) {
+            <div class="detail__code-block">
+              <div class="detail__code-header">
+                <span>{{ languageLabel(snippet.language) }}</span>
+                @if (snippet.filename) {
+                  <span class="detail__code-filename">{{ snippet.filename }}</span>
+                }
+              </div>
+              <pre class="detail__code"><code>{{ snippet.code }}</code></pre>
+            </div>
+          }
+        </section>
+      }
+
+      @if (note()!.links && note()!.links.length > 0) {
+        <section class="detail__section">
+          <h2 class="detail__section-title">Links</h2>
+          <ul class="detail__links">
+            @for (link of note()!.links; track idx; let idx = $index) {
+              <li>
+                <a
+                  class="detail__link"
+                  [href]="link.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ link.label || link.url }}
+                </a>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+
+      <div class="detail__footer">
+        <span>Created: {{ note()!.created_at | date : 'MMM d, yyyy' }}</span>
+        <span>Updated: {{ note()!.updated_at | date : 'MMM d, yyyy' }}</span>
+      </div>
+    </article>
+
+    @if (showDeleteConfirm) {
+      <div class="detail__confirm-overlay" (click)="showDeleteConfirm = false">
+        <div class="detail__confirm" (click)="$event.stopPropagation()">
+          <h3>Delete this note?</h3>
+          <p>This action cannot be undone.</p>
+          <div class="detail__confirm-actions">
+            <button class="detail__action-btn" (click)="showDeleteConfirm = false">Cancel</button>
+            <button class="detail__action-btn detail__action-btn--danger" (click)="onDelete()" [disabled]="deleting">
+              {{ deleting ? 'Deleting...' : 'Delete' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+</div>
