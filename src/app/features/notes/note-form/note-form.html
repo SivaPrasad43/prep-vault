@@ -67,10 +67,6 @@
                         <span>Clear</span>
                       </button>
                       @if (isFullscreenBlock(idx)) {
-                        <button type="button" class="form__block-action form__block-action--primary" (click)="submitInFullscreen()" [disabled]="form.invalid || submitting">
-                          <svg lucideSave></svg>
-                          <span>{{ submitting ? 'Saving...' : 'Save' }}</span>
-                        </button>
                         <button type="button" class="form__block-btn" (click)="closeFullscreenBlock()" title="Exit full screen">
                           <svg lucideMinimize2></svg>
                         </button>
@@ -105,36 +101,26 @@
                   ></textarea>
                 }
                 @case ('code') {
-                  <div class="form__code-fields">
-                    <input
-                      class="form__input form__input--sm"
-                      formControlName="filename"
-                      placeholder="Filename (optional)"
-                    />
-                    <div class="form__select-wrap">
-                      <select class="form__input form__input--sm form__select" formControlName="language">
-                        <option value="">Language</option>
-                        <option value="javascript">JavaScript</option>
-                        <option value="typescript">TypeScript</option>
-                        <option value="python">Python</option>
-                        <option value="java">Java</option>
-                        <option value="go">Go</option>
-                        <option value="rust">Rust</option>
-                        <option value="cpp">C++</option>
-                        <option value="sql">SQL</option>
-                        <option value="bash">Bash</option>
-                        <option value="other">Other</option>
-                      </select>
-                      <svg lucideChevronDown class="form__select-arrow"></svg>
-                    </div>
+                  <div class="form__lang-pills">
+                    @for (lang of languages; track lang.value) {
+                      <button
+                        type="button"
+                        class="form__pill form__pill--lang"
+                        [class.--active]="block.get('language')?.value === lang.value"
+                        (click)="block.get('language')?.setValue(lang.value)"
+                      >
+                        {{ lang.label }}
+                      </button>
+                    }
                   </div>
-                  <textarea
-                    class="form__textarea form__textarea--code"
-                    [style.font-size.px]="getFullscreenFontSize(idx)"
-                    formControlName="code"
-                    placeholder="Paste your code here..."
-                    rows="5"
-                  ></textarea>
+                  <app-monaco-code-editor
+                    [code]="block.get('code')?.value ?? ''"
+                    [language]="block.get('language')?.value ?? ''"
+                    [readonly]="false"
+                    [fontSize]="getFullscreenFontSize(idx) ?? 13"
+                    [fullscreen]="isFullscreenBlock(idx)"
+                    (codeChange)="onCodeChange(idx, $event)"
+                  />
                 }
                 @case ('link') {
                   <div class="form__link-fields">

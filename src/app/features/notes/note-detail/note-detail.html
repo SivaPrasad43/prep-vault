@@ -39,11 +39,11 @@
                 <div class="detail__code-block">
                   <div class="detail__code-header">
                     <span>{{ languageLabel(block.language) }}</span>
-                    @if (block.filename) {
-                      <span class="detail__code-filename">{{ block.filename }}</span>
-                    }
                   </div>
-                  <pre class="detail__code"><code>{{ block.code }}</code></pre>
+                  <app-monaco-code-editor
+                    [code]="block.code"
+                    [language]="block.language"
+                  />
                 </div>
               }
               @case ('link') {

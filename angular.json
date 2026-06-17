@@ -62,6 +62,10 @@
             },
             "ssr": {
               "entry": "src/server.ts"
+            },
+            "loader": {
+              ".ttf": "file",
+              ".woff2": "file"
             }
           },
           "configurations": {

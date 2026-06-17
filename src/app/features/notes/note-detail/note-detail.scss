@@ -129,7 +129,6 @@
 }
 
 .detail__code-block {
-  background: var(--color-background);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   overflow: hidden;
@@ -149,21 +148,6 @@
   font-size: var(--font-lg);
   color: var(--color-text-secondary);
   border-bottom: 1px solid var(--color-border);
-}
-
-.detail__code-filename {
-  font-style: italic;
-}
-
-.detail__code {
-  padding: var(--spacing-md);
-  margin: 0;
-  overflow-x: auto;
-  font-family: 'SF Mono', 'Fira Code', 'Fira Mono', monospace;
-  font-size: var(--font-sm);
-  line-height: 1.6;
-  color: var(--color-text);
-  white-space: pre;
 }
 
 .detail__links {

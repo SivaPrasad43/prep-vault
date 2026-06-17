@@ -3,11 +3,12 @@ import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angula
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
 import {
-  LucideArrowLeft, LucideX, LucideChevronDown,
+  LucideArrowLeft, LucideX,
   LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
   LucideMaximize2, LucideMinimize2, LucideEraser, LucideSave,
 } from '@lucide/angular';
 import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
+import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock } from '../../../core/models';
@@ -16,10 +17,11 @@ import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock }
   selector: 'app-note-form',
   imports: [
     ReactiveFormsModule,
-    LucideArrowLeft, LucideX, LucideChevronDown,
+    LucideArrowLeft, LucideX,
     LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
     LucideMaximize2, LucideMinimize2, LucideEraser, LucideSave,
     CategoryIcon,
+    MonacoCodeEditor,
   ],
   templateUrl: './note-form.html',
   styleUrl: './note-form.scss',
@@ -82,6 +84,27 @@ export class NoteForm implements OnInit {
     return this.form.get('content_blocks') as FormArray;
   }
 
+  protected readonly languages: { value: string; label: string }[] = [
+    { value: '', label: 'Auto' },
+    { value: 'javascript', label: 'JavaScript' },
+    { value: 'typescript', label: 'TypeScript' },
+    { value: 'python', label: 'Python' },
+    { value: 'java', label: 'Java' },
+    { value: 'go', label: 'Go' },
+    { value: 'rust', label: 'Rust' },
+    { value: 'cpp', label: 'C++' },
+    { value: 'c', label: 'C' },
+    { value: 'sql', label: 'SQL' },
+    { value: 'bash', label: 'Bash' },
+    { value: 'html', label: 'HTML' },
+    { value: 'css', label: 'CSS' },
+    { value: 'json', label: 'JSON' },
+    { value: 'yaml', label: 'YAML' },
+    { value: 'markdown', label: 'Markdown' },
+    { value: 'ruby', label: 'Ruby' },
+    { value: 'php', label: 'PHP' },
+  ];
+
   private createBlockGroup(type: ContentBlock['type'] = 'text') {
     switch (type) {
       case 'code':
@@ -89,7 +112,6 @@ export class NoteForm implements OnInit {
           type: ['code' as const],
           language: [''],
           code: [''],
-          filename: [''],
         });
       case 'link':
         return this.fb.group({
@@ -235,6 +257,11 @@ export class NoteForm implements OnInit {
     this.fullscreenBlockIndex = null;
   }
 
+  protected onCodeChange(blockIndex: number, code: string): void {
+    const block = this.contentBlocks.at(blockIndex);
+    block.get('code')?.setValue(code, { emitEvent: false });
+  }
+
   protected clearBlock(index: number): void {
     const block = this.contentBlocks.at(index);
     const type = block.value.type;
@@ -265,8 +292,8 @@ export class NoteForm implements OnInit {
       .join('\n\n');
 
     const codeSnippets = contentBlocks
-      .filter((b): b is { type: 'code'; language: string; code: string; filename?: string } => b.type === 'code')
-      .map((b) => ({ language: b.language || '', code: b.code, filename: b.filename }));
+      .filter((b): b is { type: 'code'; language: string; code: string } => b.type === 'code')
+      .map((b) => ({ language: b.language || '', code: b.code }));
 
     const links = contentBlocks
       .filter((b): b is { type: 'link'; label: string; url: string } => b.type === 'link')

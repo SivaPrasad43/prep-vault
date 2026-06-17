@@ -2,7 +2,7 @@ import type { Theme } from './theme';
 
 export const darkTheme: Theme = {
   colors: {
-    primary: '#1d9bf0',
+    primary: '#0059ff',
     primaryLight: '#4ab3f4',
     primaryDark: '#1a8cd8',
     success: '#00ba7c',

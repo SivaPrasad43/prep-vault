@@ -105,11 +105,32 @@
   }
 }
 
-.form__code-fields {
-  display: grid;
-  grid-template-columns: 1fr 140px;
-  gap: var(--spacing-xs);
+.form__lang-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
   padding: var(--spacing-sm) var(--spacing-sm) 0;
+  background: #1e1e1e;
+
+  .form__pill--lang {
+    padding: 4px 10px;
+    font-size: 11px;
+    gap: 0;
+    border-color: #3c3c3c;
+    background: transparent;
+    color: #858585;
+
+    &:hover {
+      border-color: #5a5a5a;
+      color: #d4d4d4;
+    }
+
+    &.--active {
+      background: #2a2d2e;
+      border-color: #007acc;
+      color: #d4d4d4;
+    }
+  }
 }
 
 .form__link-fields {
@@ -173,22 +194,26 @@
     border-radius: 0;
     resize: none;
     padding: var(--spacing-lg) var(--spacing-xl);
-  }
-
-  .form__textarea:not(.form__textarea--code) {
     font-size: var(--font-base);
     line-height: 1.8;
   }
 
-  .form__textarea--code {
-    font-size: var(--font-sm);
-    line-height: 1.7;
+  app-monaco-code-editor {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+
+    .monaco-editor-container {
+      flex: 1;
+      min-height: 200px;
+    }
   }
 
-  .form__code-fields {
+  .form__lang-pills {
     padding: var(--spacing-md) var(--spacing-xl);
-    background: var(--color-surface);
-    border-bottom: 1px solid var(--color-border-light);
+    background: #1e1e1e;
+    border-bottom: 1px solid #2d2d2d;
   }
 }
 
@@ -259,7 +284,7 @@
       padding: var(--spacing-md);
     }
 
-    .form__code-fields {
+    .form__lang-pills {
       padding: var(--spacing-sm) var(--spacing-md);
     }
   }
