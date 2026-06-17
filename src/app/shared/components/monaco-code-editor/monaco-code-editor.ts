@@ -1,4 +1,4 @@
-import { Component, input, output, viewChild, AfterViewInit, OnDestroy, effect, PLATFORM_ID, ElementRef, inject } from '@angular/core';
+import { Component, input, output, viewChild, AfterViewInit, OnDestroy, effect, PLATFORM_ID, ElementRef, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import type * as monacoType from 'monaco-editor';
 
@@ -21,6 +21,8 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
   readonly fullscreen = input(false);
 
   readonly codeChange = output<string>();
+
+  protected loading = signal(true);
 
   private editorContainer = viewChild.required<ElementRef<HTMLDivElement>>('editorContainer');
   private editor: monacoType.editor.IStandaloneCodeEditor | null = null;
@@ -58,7 +60,7 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
           this.editor.updateOptions({
             scrollbar: { vertical: 'auto' },
           });
-          this.editor.layout();
+          requestAnimationFrame(() => this.editor?.layout());
         } else {
           this.editor.updateOptions({
             scrollbar: { vertical: 'hidden' },
@@ -73,8 +75,11 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
     if (!isPlatformBrowser(this.platformId)) return;
     this.monaco = await import('monaco-editor');
     this.configureMonacoWorkers();
-    this.initEditor();
-    this.editorInitialized = true;
+    requestAnimationFrame(() => {
+      this.initEditor();
+      this.editorInitialized = true;
+      this.loading.set(false);
+    });
   }
 
   ngOnDestroy(): void {
@@ -140,7 +145,7 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
     const contentHeight = Math.max(minHeight, Math.min(this.editor.getContentHeight(), 600));
     const container = this.editorContainer().nativeElement;
     container.style.height = `${contentHeight}px`;
-    this.editor.layout();
+    requestAnimationFrame(() => this.editor?.layout());
   }
 
   private mapLanguage(lang: string): string {
