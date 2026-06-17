@@ -1,12 +1,17 @@
-<article class="card" (click)="openNote()">
+<article class="card" [class.card--pinned]="note().is_pinned" (click)="openNote()">
   <div class="card__top">
     <div class="card__meta">
       @if (category()) {
         <app-category-badge [category]="category()!" />
       }
-    </div>
-    <div class="card__top-right">
       <app-confidence-indicator [level]="note().confidence_level" />
+    </div>
+    <div class="card__actions">
+      @if (note().is_pinned) {
+        <span class="card__pin-pill">
+          <svg lucidePin></svg> Pinned
+        </span>
+      }
       <button
         class="card__star"
         [class.card__star--active]="note().is_favorite"
@@ -25,18 +30,6 @@
   @if (note().description) {
     <p class="card__preview">{{ note().description }}</p>
   }
-
-  <div class="card__indicators">
-    @if (hasCode(note())) {
-      <span class="card__indicator" title="Contains code"><svg lucideCode></svg></span>
-    }
-    @if (hasLinks(note())) {
-      <span class="card__indicator" title="Contains links"><svg lucideLink></svg></span>
-    }
-    @if (note().is_pinned) {
-      <span class="card__indicator" title="Pinned"><svg lucidePin></svg></span>
-    }
-  </div>
 
   <div class="card__footer">
     <span class="card__date">{{ note().updated_at | date : 'MMM d, yyyy' }}</span>
