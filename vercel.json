@@ -1,0 +1,19 @@
+{
+  "rewrites": [
+    {
+      "source": "/monaco-workers/(.*)",
+      "destination": "/monaco-workers/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/monaco-workers/(.*)",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        }
+      ]
+    }
+  ]
+}
