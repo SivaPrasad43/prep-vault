@@ -13,9 +13,6 @@
           <svg lucideMoon></svg>
           }
         </button>
-        <button class="sidebar__icon-btn" (click)="handleSignOut()" title="Sign out">
-          <svg lucideLogOut></svg>
-        </button>
       </div>
       <button class="sidebar__close" (click)="onClose()" aria-label="Close sidebar"><svg lucideX></svg></button>
     </div>
@@ -71,6 +68,17 @@
           }
         </ul>
       </div>
+    </div>
+
+    <div class="sidebar__user">
+      <div class="sidebar__user-avatar">{{ getUserInitial() }}</div>
+      <div class="sidebar__user-info">
+        <span class="sidebar__user-name">{{ getUserName() }}</span>
+        <span class="sidebar__user-email">{{ getUserEmail() }}</span>
+      </div>
+      <button class="sidebar__sign-out" (click)="handleSignOut()" title="Sign out">
+        <svg lucideLogOut></svg>
+      </button>
     </div>
   </div>
 </aside>

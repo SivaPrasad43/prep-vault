@@ -73,5 +73,19 @@ export class Sidebar {
     });
   }
 
+  protected getUserName(): string {
+    const u = this.authService.user;
+    if (!u) return 'User';
+    return u.display_name || u.email?.split('@')[0] || 'User';
+  }
 
+  protected getUserEmail(): string {
+    return this.authService.user?.email || '';
+  }
+
+  protected getUserInitial(): string {
+    const u = this.authService.user;
+    if (!u) return '?';
+    return (u.display_name?.[0] || u.email?.[0] || '?').toUpperCase();
+  }
 }

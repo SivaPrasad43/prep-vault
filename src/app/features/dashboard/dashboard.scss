@@ -232,6 +232,10 @@
     }
   }
 
+  :host-context(.layout--sidebar-open) .dashboard__fab {
+    display: none;
+  }
+
   .dashboard__categories {
     padding: var(--spacing-sm) 0;
     padding-left: 1rem;

@@ -132,6 +132,10 @@ export class AuthService {
     return this.authState.value.user?.id ?? null;
   }
 
+  get user(): UserProfile | null {
+    return this.authState.value.user;
+  }
+
   private setAuthState(session: Session | null): void {
     if (session?.user) {
       const profile: UserProfile = {
