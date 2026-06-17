@@ -4,6 +4,19 @@
   <div class="sidebar__content">
     <div class="sidebar__header">
       <h2 class="sidebar__title">PrepVault</h2>
+      <div class="sidebar__header-actions">
+        <button class="sidebar__icon-btn" (click)="themeService.toggle()"
+          [attr.title]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'">
+          @if (themeService.isDark()) {
+          <svg lucideSun></svg>
+          } @else {
+          <svg lucideMoon></svg>
+          }
+        </button>
+        <button class="sidebar__icon-btn" (click)="handleSignOut()" title="Sign out">
+          <svg lucideLogOut></svg>
+        </button>
+      </div>
       <button class="sidebar__close" (click)="onClose()" aria-label="Close sidebar"><svg lucideX></svg></button>
     </div>
 
@@ -18,22 +31,6 @@
         </ul>
       </div>
 
-      <nav class="sidebar__section">
-        <h3 class="sidebar__section-title">Categories</h3>
-        <ul class="sidebar__list">
-          @for (cat of categories; track cat.id) {
-            <li
-              class="sidebar__item"
-              (click)="selectCategory(cat.id)"
-              [ngClass]="{ 'sidebar__item--active': filterState.categoryId() === cat.id }"
-            >
-              <span class="sidebar__item-icon"><app-category-icon [icon]="cat.icon" /></span>
-              <span class="sidebar__item-label">{{ cat.name }}</span>
-            </li>
-          }
-        </ul>
-      </nav>
-
       <div class="sidebar__section">
         <h3 class="sidebar__section-title">Smart Filters</h3>
         <ul class="sidebar__list">
@@ -47,8 +44,6 @@
                 @switch (filter.id) {
                   @case ('favorites') { <svg lucideStar></svg> }
                   @case ('pinned') { <svg lucidePin></svg> }
-                  @case ('recently_added') { <svg lucideClock></svg> }
-                  @case ('recently_edited') { <svg lucidePencil></svg> }
                 }
               </span>
               <span class="sidebar__item-label">{{ filter.label }}</span>
@@ -72,18 +67,6 @@
           }
         </ul>
       </div>
-    </div>
-
-    <div class="sidebar__footer">
-      <button class="sidebar__clear-btn" (click)="resetFilters()"><svg lucideFilterX></svg> Clear Filters</button>
-      <button class="sidebar__theme-btn" (click)="themeService.toggle()">
-        @if (themeService.isDark()) {
-          <svg lucideSun></svg> Light
-        } @else {
-          <svg lucideMoon></svg> Dark
-        } Mode
-      </button>
-      <button class="sidebar__signout-btn" (click)="handleSignOut()"><svg lucideLogOut></svg> Sign Out</button>
     </div>
   </div>
 </aside>

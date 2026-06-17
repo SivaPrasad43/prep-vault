@@ -27,6 +27,24 @@
     <a class="dashboard__add-btn" routerLink="/notes/new" title="Add Note"><svg lucidePlus></svg></a>
   </div>
 
+  <div class="dashboard__categories" #categoriesContainer>
+    <button
+      class="dashboard__cat-tab"
+      [class.--active]="!filterState.categoryId()"
+      (click)="filterState.setCategoryId(null)"
+    >All</button>
+    @for (cat of categoriesList(); track cat.id) {
+      <button
+        class="dashboard__cat-tab"
+        [class.--active]="filterState.categoryId() === cat.id"
+        (click)="selectCategory(cat.id)"
+      >
+        <app-category-icon [icon]="cat.icon" />
+        {{ cat.name }}
+      </button>
+    }
+  </div>
+
   @if (loading()) {
     <div class="dashboard__loading">Loading notes...</div>
   } @else if (error) {

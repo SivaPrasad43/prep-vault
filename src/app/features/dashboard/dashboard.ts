@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucidePlus } from '@lucide/angular';
+import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, switchMap } from 'rxjs';
 import { NotesService } from '../../core/services/notes.service';
@@ -16,19 +17,22 @@ import type { Note, Category, NoteStats } from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, NoteCard, SearchBar, EmptyState],
+  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, NoteCard, SearchBar, EmptyState, CategoryIcon],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
 export class Dashboard implements OnInit {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
-  private filterState = inject(FilterStateService);
+  protected filterState = inject(FilterStateService);
   protected notes = signal<Note[]>([]);
   protected categories = signal<Map<string, Category>>(new Map());
+  protected categoriesList = signal<Category[]>([]);
   protected stats = signal<NoteStats | null>(null);
   protected loading = signal(true);
   protected error = '';
+
+  @ViewChild('categoriesContainer') categoriesContainer?: ElementRef<HTMLElement>;
 
   protected greeting = this.getGreeting();
   protected today = new Date();
@@ -62,6 +66,7 @@ export class Dashboard implements OnInit {
           const map = new Map<string, Category>();
           cats.forEach((c) => map.set(c.id, c));
           this.categories.set(map);
+          this.categoriesList.set(cats);
         });
       },
     });
@@ -73,6 +78,20 @@ export class Dashboard implements OnInit {
 
   protected onSearch(query: string): void {
     this.filterState.setSearchQuery(query);
+  }
+
+  protected selectCategory(id: string | null): void {
+    const current = this.filterState.categoryId();
+    this.filterState.setCategoryId(current === id ? null : id);
+
+    setTimeout(() => {
+      const container = this.categoriesContainer?.nativeElement;
+      if (!container) return;
+      const active = container.querySelector('.dashboard__cat-tab.--active') as HTMLElement | null;
+      if (active) {
+        active.scrollIntoView({ inline: 'start', behavior: 'smooth', block: 'nearest' });
+      }
+    });
   }
 
   protected getCategory(note: Note): Category | null {

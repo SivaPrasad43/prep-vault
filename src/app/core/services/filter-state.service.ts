@@ -54,11 +54,4 @@ export class FilterStateService {
     this._sortBy.set(sort);
   }
 
-  resetFilters(): void {
-    this._categoryId.set(null);
-    this._searchQuery.set('');
-    this._confidenceLevel.set(null);
-    this._smartFilter.set(null);
-    this._sortBy.set('recent');
-  }
 }

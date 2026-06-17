@@ -38,10 +38,6 @@ export class NotesService {
       query = query.eq('is_pinned', true);
     }
 
-    if (filters?.smartFilter === 'recently_added') {
-      query = query.order('created_at', { ascending: false });
-    }
-
     if (filters?.searchQuery) {
       const q = filters.searchQuery;
       query = query.or(`title.ilike.*${q}*,description.ilike.*${q}*`);

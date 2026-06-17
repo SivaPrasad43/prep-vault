@@ -1,38 +1,32 @@
-import { Component, OnInit, inject, output, input, signal, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, output, input, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { LucideSun, LucideMoon, LucideX, LucideFilterX, LucideLogOut, LucideStar, LucidePin, LucideClock, LucidePencil, LucideLayoutDashboard } from '@lucide/angular';
+import { LucideSun, LucideMoon, LucideX, LucideLogOut, LucideStar, LucidePin, LucideLayoutDashboard } from '@lucide/angular';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
-import { CategoriesService } from '../../core/services/categories.service';
-import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
-import type { ConfidenceLevel, Category } from '../../core/models';
+import type { ConfidenceLevel } from '../../core/models';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [NgClass, CategoryIcon, LucideSun, LucideMoon, LucideX, LucideFilterX, LucideLogOut, LucideStar, LucidePin, LucideClock, LucidePencil, LucideLayoutDashboard],
+  imports: [NgClass, LucideSun, LucideMoon, LucideX, LucideLogOut, LucideStar, LucidePin, LucideLayoutDashboard],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
-export class Sidebar implements OnInit {
+export class Sidebar {
   readonly isOpen = input<boolean>(false);
   readonly sidebarVisible = input<boolean>(true);
   readonly closeSidebar = output<void>();
 
   protected filterState = inject(FilterStateService);
-  private categoriesService = inject(CategoriesService);
   private router = inject(Router);
 
-  protected categories: Category[] = [];
   protected activeRoute = signal('dashboard');
 
   protected readonly smartFilters = [
     { id: 'favorites' as const, label: 'Favorites' },
     { id: 'pinned' as const, label: 'Pinned' },
-    { id: 'recently_added' as const, label: 'Recently Added' },
-    { id: 'recently_edited' as const, label: 'Recently Edited' },
   ];
 
   protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; color: string }[] = [
@@ -40,8 +34,6 @@ export class Sidebar implements OnInit {
     { value: 'getting_there', label: 'Getting There', color: 'var(--color-confidence-getting-there)' },
     { value: 'confident', label: 'Confident', color: 'var(--color-confidence-confident)' },
   ];
-
-  private cdr = inject(ChangeDetectorRef);
 
   constructor(
     protected themeService: ThemeService,
@@ -55,17 +47,6 @@ export class Sidebar implements OnInit {
       });
   }
 
-  ngOnInit(): void {
-    this.categoriesService.seedDefaults().subscribe({
-      next: (cats) => { this.categories = cats; this.cdr.markForCheck(); },
-    });
-  }
-
-  protected selectCategory(id: string | null): void {
-    const current = this.filterState.categoryId();
-    this.filterState.setCategoryId(current === id ? null : id);
-  }
-
   protected selectConfidence(level: ConfidenceLevel): void {
     const current = this.filterState.confidenceLevel();
     this.filterState.setConfidenceLevel(current === level ? null : level);
@@ -74,10 +55,6 @@ export class Sidebar implements OnInit {
   protected selectSmartFilter(filterId: string): void {
     const current = this.filterState.smartFilter();
     this.filterState.setSmartFilter(current === filterId ? null : filterId as never);
-  }
-
-  protected resetFilters(): void {
-    this.filterState.resetFilters();
   }
 
   protected navigateTo(path: string): void {
