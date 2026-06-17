@@ -5,7 +5,7 @@ import { finalize } from 'rxjs/operators';
 import {
   LucideArrowLeft, LucideX,
   LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
-  LucideMaximize2, LucideMinimize2, LucideEraser, LucideSave,
+  LucideMaximize2, LucideMinimize2, LucideEraser
 } from '@lucide/angular';
 import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
 import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
@@ -19,7 +19,7 @@ import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock }
     ReactiveFormsModule,
     LucideArrowLeft, LucideX,
     LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
-    LucideMaximize2, LucideMinimize2, LucideEraser, LucideSave,
+    LucideMaximize2, LucideMinimize2, LucideEraser,
     CategoryIcon,
     MonacoCodeEditor,
   ],

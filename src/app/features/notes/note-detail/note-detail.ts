@@ -8,11 +8,12 @@ import { RevisionsService } from '../../../core/services/revisions.service';
 import { CategoryBadge } from '../../../shared/components/category-badge/category-badge';
 import { ConfidenceIndicator } from '../../../shared/components/confidence-indicator/confidence-indicator';
 import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
+import { Modal } from '../../../shared/components/modal/modal';
 import type { Note, Category } from '../../../core/models';
 
 @Component({
   selector: 'app-note-detail',
-  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, CategoryBadge, ConfidenceIndicator, MonacoCodeEditor],
+  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, CategoryBadge, ConfidenceIndicator, MonacoCodeEditor, Modal],
   templateUrl: './note-detail.html',
   styleUrl: './note-detail.scss',
 })

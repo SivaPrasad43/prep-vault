@@ -67,19 +67,14 @@
       </div>
     </article>
 
-    @if (showDeleteConfirm) {
-      <div class="detail__confirm-overlay" (click)="showDeleteConfirm = false">
-        <div class="detail__confirm" (click)="$event.stopPropagation()">
-          <h3>Delete this note?</h3>
-          <p>This action cannot be undone.</p>
-          <div class="detail__confirm-actions">
-            <button class="detail__action-btn" (click)="showDeleteConfirm = false">Cancel</button>
-            <button class="detail__action-btn detail__action-btn--danger" (click)="onDelete()" [disabled]="deleting">
-              {{ deleting ? 'Deleting...' : 'Delete' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    }
+    <app-modal [open]="showDeleteConfirm" title="Delete this note?" (close)="showDeleteConfirm = false">
+      <p>This action cannot be undone.</p>
+      <ng-container modal-actions>
+        <button class="detail__action-btn" (click)="showDeleteConfirm = false">Cancel</button>
+        <button class="detail__action-btn detail__action-btn--danger" (click)="onDelete()" [disabled]="deleting">
+          {{ deleting ? 'Deleting...' : 'Delete' }}
+        </button>
+      </ng-container>
+    </app-modal>
   }
 </div>

@@ -1,0 +1,18 @@
+@if (open()) {
+  <div class="modal__overlay" (click)="onOverlayClick()">
+    <div class="modal__card" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">{{ title() }}</h3>
+        @if (closable()) {
+          <button class="modal__close" (click)="close.emit()" aria-label="Close"><svg lucideX></svg></button>
+        }
+      </div>
+      <div class="modal__body">
+        <ng-content />
+      </div>
+      <div class="modal__actions">
+        <ng-content select="[modal-actions]" />
+      </div>
+    </div>
+  </div>
+}
