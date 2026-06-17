@@ -225,13 +225,29 @@ export class NoteForm implements OnInit {
   protected moveBlock(index: number, direction: -1 | 1): void {
     const target = index + direction;
     if (target < 0 || target >= this.contentBlocks.length) return;
+
     const arr = this.contentBlocks;
-    const current = arr.at(index) as ReturnType<typeof this.createBlockGroup>;
-    const adjacent = arr.at(target) as ReturnType<typeof this.createBlockGroup>;
-    const currentVal = current.value;
-    const adjacentVal = adjacent.value;
-    current.patchValue(adjacentVal as never);
-    adjacent.patchValue(currentVal as never);
+    const min = Math.min(index, target);
+    const max = Math.max(index, target);
+
+    const lowerGroup = arr.at(min);
+    const upperGroup = arr.at(max);
+
+    arr.removeAt(max);
+    arr.removeAt(min);
+
+    arr.insert(min, upperGroup);
+    arr.insert(max, lowerGroup);
+
+    if (this.fullscreenBlockIndex === index) {
+      this.fullscreenBlockIndex = target;
+    } else if (this.fullscreenBlockIndex === target) {
+      this.fullscreenBlockIndex = index;
+    }
+
+    const tempSize = this.fullscreenFontSizes[index];
+    this.fullscreenFontSizes[index] = this.fullscreenFontSizes[target];
+    this.fullscreenFontSizes[target] = tempSize;
   }
 
   protected selectCategory(catId: string): void {

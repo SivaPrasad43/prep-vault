@@ -88,15 +88,15 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
       getWorker: (_workerId: string, label: string) => {
         const path =
           label === 'typescript' || label === 'javascript'
-            ? 'monaco-editor/esm/vs/language/typescript/ts.worker.js'
+            ? 'ts'
             : label === 'json'
-              ? 'monaco-editor/esm/vs/language/json/json.worker.js'
+              ? 'json'
               : label === 'css'
-                ? 'monaco-editor/esm/vs/language/css/css.worker.js'
+                ? 'css'
                 : label === 'html'
-                  ? 'monaco-editor/esm/vs/language/html/html.worker.js'
-                  : 'monaco-editor/esm/vs/editor/editor.worker.js';
-        return new Worker(new URL(path, import.meta.url));
+                  ? 'html'
+                  : 'editor';
+        return new Worker(`/monaco-workers/${path}.worker.js`);
       },
     };
   }

@@ -38,9 +38,9 @@
 
       <div class="form__field">
         <label class="form__label">Content</label>
-        <div class="form__blocks" formArrayName="content_blocks">
-          @for (block of contentBlocks.controls; track idx; let idx = $index) {
-            <div class="form__block" [class.form__block--fullscreen]="isFullscreenBlock(idx)" [formGroupName]="idx">
+        <div class="form__blocks">
+          @for (block of contentBlocks.controls; track block; let idx = $index) {
+            <div class="form__block" [class.form__block--fullscreen]="isFullscreenBlock(idx)" [formGroup]="$any(block)">
                 <div class="form__block-bar">
                   <div class="form__block-bar-left">
                     <span class="form__block-type">
