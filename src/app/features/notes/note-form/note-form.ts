@@ -9,6 +9,7 @@ import {
 } from '@lucide/angular';
 import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
 import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
+import { FormSkeleton } from './form-skeleton';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock } from '../../../core/models';
@@ -22,6 +23,7 @@ import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock }
     LucideMaximize2, LucideMinimize2, LucideEraser,
     CategoryIcon,
     MonacoCodeEditor,
+    FormSkeleton,
   ],
   templateUrl: './note-form.html',
   styleUrl: './note-form.scss',

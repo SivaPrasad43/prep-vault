@@ -13,11 +13,12 @@ import { FilterStateService } from '../../core/services/filter-state.service';
 import { NoteCard } from '../../shared/components/note-card/note-card';
 import { SearchBar } from '../../shared/components/search-bar/search-bar';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
+import { SkeletonCard } from '../../shared/components/skeleton-card/skeleton-card';
 import type { Note, Category, NoteStats } from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, NoteCard, SearchBar, EmptyState, CategoryIcon],
+  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, NoteCard, SearchBar, EmptyState, CategoryIcon, SkeletonCard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

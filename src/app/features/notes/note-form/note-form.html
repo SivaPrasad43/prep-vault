@@ -5,7 +5,7 @@
   </div>
 
   @if (loading) {
-    <p class="form-page__loading">Loading...</p>
+    <app-form-skeleton />
   } @else {
     <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
       <div class="form__field">

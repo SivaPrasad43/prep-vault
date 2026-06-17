@@ -46,7 +46,12 @@
   </div>
 
   @if (loading()) {
-    <div class="dashboard__loading">Loading notes...</div>
+    <div class="dashboard__feed">
+      <app-skeleton-card />
+      <app-skeleton-card />
+      <app-skeleton-card />
+      <app-skeleton-card />
+    </div>
   } @else if (error) {
     <div class="dashboard__error">{{ error }}</div>
   } @else if (notes().length === 0) {

@@ -9,11 +9,12 @@ import { CategoryBadge } from '../../../shared/components/category-badge/categor
 import { ConfidenceIndicator } from '../../../shared/components/confidence-indicator/confidence-indicator';
 import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
 import { Modal } from '../../../shared/components/modal/modal';
+import { DetailSkeleton } from './detail-skeleton';
 import type { Note, Category } from '../../../core/models';
 
 @Component({
   selector: 'app-note-detail',
-  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, LucideCalendar, CategoryBadge, ConfidenceIndicator, MonacoCodeEditor, Modal],
+  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, LucideCalendar, CategoryBadge, ConfidenceIndicator, MonacoCodeEditor, Modal, DetailSkeleton],
   templateUrl: './note-detail.html',
   styleUrl: './note-detail.scss',
 })

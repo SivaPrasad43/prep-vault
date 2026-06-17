@@ -139,14 +139,9 @@
   }
 }
 
-.dashboard__loading,
 .dashboard__error {
   text-align: center;
   padding: var(--spacing-xxl);
-  color: var(--color-text-muted);
-}
-
-.dashboard__error {
   color: var(--color-danger);
 }
 
