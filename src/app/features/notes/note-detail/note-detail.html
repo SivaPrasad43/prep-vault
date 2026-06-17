@@ -18,13 +18,22 @@
           }
           <app-confidence-indicator [level]="note()!.confidence_level" />
         </div>
-        <div class="detail__icons">
-          @if (note()!.is_favorite) { <span class="detail__icon" title="Favorite"><svg lucideStar></svg></span> }
-          @if (note()!.is_pinned) { <span class="detail__icon" title="Pinned"><svg lucidePin></svg></span> }
-        </div>
       </div>
 
+      <p class="detail__created"><svg lucideCalendar></svg> Created {{ note()!.created_at | date : 'MMM d, yyyy' }}</p>
+
       <h1 class="detail__title">{{ note()!.title }}</h1>
+
+      <div class="detail__pills">
+        <button class="detail__pill" [class.detail__pill--active]="note()!.is_favorite" (click)="toggleFavorite()">
+          <svg lucideStar [style.fill]="note()!.is_favorite ? '#ca8a04' : 'none'"></svg>
+          <span>{{ note()!.is_favorite ? 'Favorited' : 'Favorite' }}</span>
+        </button>
+        <button class="detail__pill" [class.detail__pill--active]="note()!.is_pinned" (click)="togglePin()">
+          <svg lucidePin [style.fill]="note()!.is_pinned ? '#dc2626' : 'none'"></svg>
+          <span>{{ note()!.is_pinned ? 'Pinned' : 'Pin' }}</span>
+        </button>
+      </div>
 
       @if (note()!.content_blocks && note()!.content_blocks!.length > 0) {
         <div class="detail__blocks">
@@ -62,7 +71,6 @@
       }
 
       <div class="detail__footer">
-        <span>Created: {{ note()!.created_at | date : 'MMM d, yyyy' }}</span>
         <span>Updated: {{ note()!.updated_at | date : 'MMM d, yyyy' }}</span>
       </div>
     </article>

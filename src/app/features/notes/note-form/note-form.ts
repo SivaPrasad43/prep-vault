@@ -75,8 +75,6 @@ export class NoteForm implements OnInit {
     title: ['', Validators.required],
     category_id: ['', Validators.required],
     confidence_level: ['need_practice' as ConfidenceLevel],
-    is_favorite: [false],
-    is_pinned: [false],
     content_blocks: this.fb.array<ReturnType<typeof this.createBlockGroup>>([]),
   });
 
@@ -166,8 +164,6 @@ export class NoteForm implements OnInit {
           title: note.title,
           category_id: note.category_id,
           confidence_level: note.confidence_level,
-          is_favorite: note.is_favorite,
-          is_pinned: note.is_pinned,
         });
 
         const blocks = note.content_blocks ?? this.legacyToBlocks(note);
@@ -323,8 +319,6 @@ export class NoteForm implements OnInit {
       links: links,
       content_blocks: contentBlocks,
       confidence_level: (raw.confidence_level as ConfidenceLevel) || 'need_practice',
-      is_favorite: raw.is_favorite ?? false,
-      is_pinned: raw.is_pinned ?? false,
     };
 
     return { payload, contentBlocks };

@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, signal, ChangeDetectorRef } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin } from '@lucide/angular';
+import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, LucideCalendar } from '@lucide/angular';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RevisionsService } from '../../../core/services/revisions.service';
@@ -13,7 +13,7 @@ import type { Note, Category } from '../../../core/models';
 
 @Component({
   selector: 'app-note-detail',
-  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, CategoryBadge, ConfidenceIndicator, MonacoCodeEditor, Modal],
+  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, LucideCalendar, CategoryBadge, ConfidenceIndicator, MonacoCodeEditor, Modal],
   templateUrl: './note-detail.html',
   styleUrl: './note-detail.scss',
 })
@@ -92,6 +92,22 @@ export class NoteDetail implements OnInit {
         this.deleting = false;
         this.showDeleteConfirm = false;
       },
+    });
+  }
+
+  protected toggleFavorite(): void {
+    const n = this.note();
+    if (!n) return;
+    this.notesService.update(n.id, { is_favorite: !n.is_favorite }).subscribe({
+      next: (updated) => this.note.set(updated),
+    });
+  }
+
+  protected togglePin(): void {
+    const n = this.note();
+    if (!n) return;
+    this.notesService.update(n.id, { is_pinned: !n.is_pinned }).subscribe({
+      next: (updated) => this.note.set(updated),
     });
   }
 

@@ -171,23 +171,6 @@
         </div>
       </div>
 
-      <div class="form__toggles">
-        <label class="form__toggle">
-          <input type="checkbox" formControlName="is_favorite" />
-          <span class="form__toggle-track">
-            <span class="form__toggle-knob"></span>
-          </span>
-          <span class="form__toggle-label">Mark as favorite</span>
-        </label>
-        <label class="form__toggle">
-          <input type="checkbox" formControlName="is_pinned" />
-          <span class="form__toggle-track">
-            <span class="form__toggle-knob"></span>
-          </span>
-          <span class="form__toggle-label">Pin this note</span>
-        </label>
-      </div>
-
       @if (error) {
         <div class="form__error">{{ error }}</div>
       }
