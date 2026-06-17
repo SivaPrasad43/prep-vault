@@ -83,9 +83,6 @@
           <svg lucideMoon></svg> Dark
         } Mode
       </button>
-      <button class="sidebar__clear-btn" (click)="exportNotes()"><svg lucideDownload></svg> Export</button>
-      <button class="sidebar__clear-btn" (click)="fileInput.click()"><svg lucideUpload></svg> Import</button>
-      <input #fileInput type="file" accept=".json" (change)="importNotes($event)" hidden />
       <button class="sidebar__signout-btn" (click)="handleSignOut()"><svg lucideLogOut></svg> Sign Out</button>
     </div>
   </div>

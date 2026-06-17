@@ -2,18 +2,17 @@ import { Component, OnInit, inject, output, input, signal, ChangeDetectorRef } f
 import { NgClass } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { LucideSun, LucideMoon, LucideX, LucideFilterX, LucideLogOut, LucideStar, LucidePin, LucideClock, LucidePencil, LucideLayoutDashboard, LucideDownload, LucideUpload } from '@lucide/angular';
+import { LucideSun, LucideMoon, LucideX, LucideFilterX, LucideLogOut, LucideStar, LucidePin, LucideClock, LucidePencil, LucideLayoutDashboard } from '@lucide/angular';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
 import { CategoriesService } from '../../core/services/categories.service';
-import { NotesService } from '../../core/services/notes.service';
 import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
 import type { ConfidenceLevel, Category } from '../../core/models';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [NgClass, CategoryIcon, LucideSun, LucideMoon, LucideX, LucideFilterX, LucideLogOut, LucideStar, LucidePin, LucideClock, LucidePencil, LucideLayoutDashboard, LucideDownload, LucideUpload],
+  imports: [NgClass, CategoryIcon, LucideSun, LucideMoon, LucideX, LucideFilterX, LucideLogOut, LucideStar, LucidePin, LucideClock, LucidePencil, LucideLayoutDashboard],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
@@ -23,7 +22,6 @@ export class Sidebar implements OnInit {
   readonly closeSidebar = output<void>();
 
   protected filterState = inject(FilterStateService);
-  private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
   private router = inject(Router);
 
@@ -98,48 +96,5 @@ export class Sidebar implements OnInit {
     });
   }
 
-  protected exportNotes(): void {
-    this.notesService.getAll().subscribe({
-      next: (notes) => {
-        const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `prepvault-notes-${new Date().toISOString().split('T')[0]}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-      },
-    });
-  }
 
-  protected importNotes(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const notes = JSON.parse(reader.result as string);
-        if (!Array.isArray(notes)) throw new Error('Invalid format');
-        let imported = 0;
-        for (const n of notes) {
-          this.notesService.create({
-            title: n.title ?? '',
-            description: n.description ?? '',
-            category_id: n.category_id ?? '',
-            confidence_level: n.confidence_level ?? 'need_practice',
-            code_snippets: n.code_snippets ?? [],
-            links: n.links ?? [],
-            is_favorite: n.is_favorite ?? false,
-            is_pinned: n.is_pinned ?? false,
-          }).subscribe({ next: () => imported++ });
-        }
-      } catch {
-        // ignore invalid file
-      }
-    };
-    reader.readAsText(file);
-    input.value = '';
-  }
 }
