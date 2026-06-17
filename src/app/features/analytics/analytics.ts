@@ -180,8 +180,7 @@ export class Analytics implements OnInit, OnDestroy {
         datasets: [{
           data: [s.needPractice, s.gettingThere, s.confident],
           backgroundColor: [needPracticeColor, gettingThereColor, confidentColor],
-          borderColor: style.getPropertyValue('--color-surface').trim() || '#fff',
-          borderWidth: 3,
+          borderWidth: 0,
         }],
       },
       options: {
