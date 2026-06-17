@@ -12,6 +12,7 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
   private platformId = inject(PLATFORM_ID);
   private monaco: typeof monacoType | null = null;
   private editorInitialized = false;
+  private workerContents = new Map<string, string>();
 
   readonly code = input<string>('');
   readonly language = input<string>('');
@@ -73,7 +74,11 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
 
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
-    this.monaco = await import('monaco-editor');
+    const [monaco] = await Promise.all([
+      import('monaco-editor'),
+      this.prefetchWorkers(),
+    ]);
+    this.monaco = monaco;
     this.configureMonacoWorkers();
     requestAnimationFrame(() => {
       this.initEditor();
@@ -85,6 +90,22 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
   ngOnDestroy(): void {
     this.editor?.dispose();
     this.editor = null;
+  }
+
+  private async prefetchWorkers(): Promise<void> {
+    const labels = [
+      'editor/editor',
+      'language/typescript/ts',
+      'language/json/json',
+      'language/css/css',
+      'language/html/html',
+    ];
+    await Promise.allSettled(
+      labels.map(async (path) => {
+        const res = await fetch(`/monaco-workers/${path}.worker.js`);
+        this.workerContents.set(path, await res.text());
+      })
+    );
   }
 
   private configureMonacoWorkers(): void {
@@ -101,6 +122,11 @@ export class MonacoCodeEditor implements AfterViewInit, OnDestroy {
               : label === 'html'
                 ? 'language/html/html'
                 : 'editor/editor';
+        const content = this.workerContents.get(path);
+        if (content) {
+          const blob = new Blob([content], { type: 'application/javascript' });
+          return new Worker(URL.createObjectURL(blob));
+        }
         return new Worker(`/monaco-workers/${path}.worker.js`);
       },
     };
