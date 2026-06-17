@@ -28,6 +28,10 @@
             <span class="sidebar__item-icon"><svg lucideLayoutDashboard></svg></span>
             <span class="sidebar__item-label">Dashboard</span>
           </li>
+          <li class="sidebar__item" (click)="navigateTo('/analytics')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'analytics' }">
+            <span class="sidebar__item-icon"><svg lucideChartNoAxesColumn></svg></span>
+            <span class="sidebar__item-label">Analytics</span>
+          </li>
         </ul>
       </div>
 

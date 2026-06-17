@@ -24,9 +24,9 @@ export class Layout {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((e) => {
-        const isDashboard = e.urlAfterRedirects === '/dashboard' || e.urlAfterRedirects === '/';
-        this.showSidebar.set(isDashboard);
-        if (!isDashboard) {
+        const show = e.urlAfterRedirects === '/dashboard' || e.urlAfterRedirects === '/' || e.urlAfterRedirects === '/analytics';
+        this.showSidebar.set(show);
+        if (!show) {
           this.sidebarOpen.set(false);
         }
       });

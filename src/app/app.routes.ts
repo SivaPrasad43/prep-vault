@@ -18,6 +18,11 @@ export const routes: Routes = [
           import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
       {
+        path: 'analytics',
+        loadComponent: () =>
+          import('./features/analytics/analytics').then((m) => m.Analytics),
+      },
+      {
         path: 'notes/new',
         loadComponent: () =>
           import('./features/notes/note-form/note-form').then((m) => m.NoteForm),

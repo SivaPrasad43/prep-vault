@@ -1,0 +1,87 @@
+@if (loading()) {
+  <app-analytics-skeleton />
+} @else {
+  <div class="analytics">
+    <h1 class="analytics__title">Analytics</h1>
+
+    <div class="analytics__cards">
+      <div class="analytics__card">
+        <svg lucideFileText></svg>
+        <div class="analytics__card-info">
+          <span class="analytics__card-value">{{ stats()?.total ?? 0 }}</span>
+          <span class="analytics__card-label">Total Notes</span>
+        </div>
+      </div>
+      <div class="analytics__card">
+        <svg lucideCalendar></svg>
+        <div class="analytics__card-info">
+          <span class="analytics__card-value">{{ weekTotal() }}</span>
+          <span class="analytics__card-label">This Week</span>
+        </div>
+      </div>
+      <div class="analytics__card">
+        <svg lucideFlame></svg>
+        <div class="analytics__card-info">
+          <span class="analytics__card-value">{{ todayCount() }}</span>
+          <span class="analytics__card-label">Today</span>
+        </div>
+      </div>
+      <div class="analytics__card">
+        <svg lucideFlame></svg>
+        <div class="analytics__card-info">
+          <span class="analytics__card-value">{{ stats()?.currentStreak ?? 0 }}</span>
+          <span class="analytics__card-label">Streak</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="analytics__chart-card">
+      <div class="analytics__chart-header">
+        <h2 class="analytics__chart-title">Last 7 Days</h2>
+      </div>
+      <div class="analytics__chart-body">
+        <canvas #barCanvas></canvas>
+      </div>
+    </div>
+
+    <div class="analytics__grid">
+      <div class="analytics__chart-card">
+        <div class="analytics__chart-header">
+          <h2 class="analytics__chart-title">Confidence</h2>
+        </div>
+        <div class="analytics__chart-body analytics__chart-body--compact">
+          <canvas #doughnutCanvas></canvas>
+        </div>
+      </div>
+
+      <div class="analytics__chart-card">
+        <div class="analytics__chart-header">
+          <h2 class="analytics__chart-title">Categories</h2>
+        </div>
+        <div class="analytics__chart-body analytics__chart-body--compact">
+          @if (categoryDistribution().length) {
+            <div class="analytics__categories">
+              @for (cat of categoryDistribution(); track cat.categoryId) {
+                <div class="analytics__category">
+                  <div class="analytics__category-info">
+                    <span class="analytics__category-name">{{ cat.name }}</span>
+                    <span class="analytics__category-count">{{ cat.count }}</span>
+                  </div>
+                  <div class="analytics__category-track">
+                    <div
+                      class="analytics__category-fill"
+                      [style.width.%]="categoryPercent(cat.count)"
+                      [style.background]="cat.color"
+                    ></div>
+                  </div>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="analytics__empty">No notes yet</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
