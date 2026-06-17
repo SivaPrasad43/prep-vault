@@ -1,5 +1,5 @@
 .search {
-  height: 3rem;;
+  height: 3rem;
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
@@ -8,6 +8,9 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 
   &:focus-within {
     border-color: var(--color-primary);
@@ -23,6 +26,7 @@
 
 .search__input {
   flex: 1;
+  min-width: 0;
   border: none;
   outline: none;
   background: transparent;

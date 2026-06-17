@@ -115,3 +115,47 @@
   font-size: var(--font-xs);
   color: var(--color-text-muted);
 }
+
+@media (max-width: 480px) {
+  .card {
+    padding: var(--spacing-md) ;
+  }
+
+  .card__top {
+    margin-bottom: var(--spacing-xs);
+  }
+
+  .card__pin-pill {
+    padding: 2px 6px;
+    font-size: 0.65rem;
+
+    svg {
+      width: 10px;
+      height: 10px;
+    }
+  }
+
+  .card__star {
+    width: 28px;
+    height: 28px;
+
+    svg {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .card__title {
+    font-size: 1.2rem;
+  }
+
+  .card__preview {
+    font-size: var(--font-xs);
+    margin-bottom: var(--spacing-xs);
+    -webkit-line-clamp: 1;
+  }
+
+  .card__date {
+    font-size: 0.65rem;
+  }
+}

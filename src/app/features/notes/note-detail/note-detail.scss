@@ -11,6 +11,11 @@
   margin-bottom: var(--spacing-lg);
   flex-wrap: wrap;
   gap: var(--spacing-sm);
+  padding: var(--spacing-md) 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-background);
 }
 
 .detail__back {
@@ -222,5 +227,73 @@
   border-top: 1px solid var(--color-border-light);
   font-size: var(--font-xs);
   color: var(--color-text-muted);
+}
+
+@media (max-width: 480px) {
+  .detail {
+    margin: 0 auto;
+    padding: var(--spacing-md);
+  }
+
+  .detail__topbar {
+    padding: var(--spacing-sm) 0;
+    margin: 0 calc(-1 * var(--spacing-md));
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+    border-bottom: 1px solid var(--color-border-light);
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  .detail__back {
+    font-size: var(--font-xs);
+    padding: var(--spacing-xs);
+    white-space: nowrap;
+  }
+
+  .detail__actions {
+    margin-left: auto;
+    gap: var(--spacing-xs);
+  }
+
+  .detail__action-btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-xs);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .detail__card {
+    padding: var(--spacing-md) 0;
+  }
+
+  .detail__pills {
+    gap: var(--spacing-xs);
+    flex-wrap: wrap;
+  }
+
+  .detail__pill {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-xs);
+  }
+
+  .detail__title {
+    font-size: 1.4rem;
+    margin-bottom: var(--spacing-md);
+  }
+
+  .detail__description {
+    font-size: var(--font-sm);
+  }
+
+  .detail__code-header {
+    font-size: var(--font-sm);
+  }
+
+  .detail__footer {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-sm);
+  }
 }
 

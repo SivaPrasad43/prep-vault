@@ -11,6 +11,11 @@
   align-items: center;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-xl);
+  padding: var(--spacing-md) 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-background);
 }
 
 .form-page__back {
@@ -276,6 +281,50 @@
 }
 
 @media (max-width: 480px) {
+
+  .form-page {
+    padding: var(--spacing-md);
+  }
+
+  .form-page__header {
+    margin-bottom: var(--spacing-lg);
+  }
+
+  .form-page__title {
+    font-size: 1.4rem;
+  }
+
+  .form {
+    gap: var(--spacing-md);
+  }
+
+  .form__pill {
+    padding: 6px 12px;
+    font-size: var(--font-xs);
+  }
+
+  .form__input {
+    height: 2.5rem;
+    font-size: var(--font-xs);
+  }
+
+  .form__textarea {
+    font-size: var(--font-xs);
+    min-height: 80px;
+  }
+
+  .form__radio {
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .form__radio-label {
+    font-size: var(--font-xs);
+  }
+
+  .form__btn {
+    padding: var(--spacing-xs) var(--spacing-md);
+    font-size: var(--font-xs);
+  }
 
   .form__link-fields {
     grid-template-columns: 1fr;

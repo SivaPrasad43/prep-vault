@@ -3,7 +3,7 @@
     <app-detail-skeleton />
   } @else if (note()) {
     <div class="detail__topbar">
-      <button class="detail__back" (click)="goBack()"><svg lucideArrowLeft></svg> Back to Dashboard</button>
+      <button class="detail__back" (click)="goBack()"><svg lucideArrowLeft></svg> <span class="detail__back-text">Back to Dashboard</span></button>
       <div class="detail__actions">
         <a class="detail__action-btn" [routerLink]="['/notes', note()!.id, 'edit']"><svg lucidePencil></svg> Edit</a>
         <button class="detail__action-btn detail__action-btn--danger" (click)="showDeleteConfirm = true"><svg lucideTrash2></svg> Delete</button>
