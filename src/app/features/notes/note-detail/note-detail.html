@@ -48,11 +48,11 @@
                 <div class="detail__code-block">
                   <div class="detail__code-header">
                     <span>{{ languageLabel(block.language) }}</span>
+                    <button class="detail__code-fullscreen" (click)="openFullscreen(idx); $event.stopPropagation()">
+                      <svg lucideMaximize2></svg>
+                    </button>
                   </div>
-                  <app-monaco-code-editor
-                    [code]="block.code"
-                    [language]="block.language"
-                  />
+                  <pre style="max-height:30rem;"><code [innerHTML]="highlightedCode(block.code, block.language)"></code></pre>
                 </div>
               }
               @case ('link') {
@@ -84,5 +84,21 @@
         </button>
       </ng-container>
     </app-modal>
+
+    @if (fullscreenBlockIndex() !== null && getCodeBlock(fullscreenBlockIndex()!)) {
+      <div class="detail__fullscreen-overlay" (click)="closeFullscreen()">
+        <div class="detail__fullscreen-content" (click)="$event.stopPropagation()">
+          <div class="detail__fullscreen-header">
+            <span>{{ languageLabel(getCodeBlock(fullscreenBlockIndex()!)!.language) }}</span>
+            <button class="detail__fullscreen-close" (click)="closeFullscreen()">
+              <svg lucideMinimize2></svg>
+            </button>
+          </div>
+          <div style="flex: 1; min-height: 0;">
+            <pre><code [innerHTML]="highlightedCode(getCodeBlock(fullscreenBlockIndex()!)!.code, getCodeBlock(fullscreenBlockIndex()!)!.language)"></code></pre>
+          </div>
+        </div>
+      </div>
+    }
   }
 </div>
