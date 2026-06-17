@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angul
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { LucidePlus } from '@lucide/angular';
+import { LucidePlus, LucideFlame } from '@lucide/angular';
 import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, switchMap } from 'rxjs';
@@ -18,7 +18,7 @@ import type { Note, Category, NoteStats } from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, NoteCard, SearchBar, EmptyState, CategoryIcon, SkeletonCard],
+  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, LucideFlame, NoteCard, SearchBar, EmptyState, CategoryIcon, SkeletonCard],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })

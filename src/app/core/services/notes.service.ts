@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { from, Observable, combineLatest, forkJoin } from 'rxjs';
+import { from, Observable, combineLatest, forkJoin, of } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
@@ -127,6 +127,49 @@ export class NotesService {
     );
   }
 
+  getStreak(): Observable<number> {
+    const userId = this.auth.userId;
+    if (!userId) return of(0);
+
+    return from(
+      this.supabase.client
+        .from('notes')
+        .select('created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false }),
+    ).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        if (!data || data.length === 0) return 0;
+
+        const dates = data.map((d) => {
+          const date = new Date(d.created_at);
+          return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+        });
+
+        const uniqueDates = [...new Set(dates)].sort((a, b) => b - a);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayMs = today.getTime();
+        const msInDay = 24 * 60 * 60 * 1000;
+
+        const diff = (todayMs - uniqueDates[0]) / msInDay;
+        if (diff > 1) return 0;
+
+        let streak = 1;
+        for (let i = 1; i < uniqueDates.length; i++) {
+          if (Math.round((uniqueDates[i - 1] - uniqueDates[i]) / msInDay) === 1) {
+            streak++;
+          } else {
+            break;
+          }
+        }
+
+        return streak;
+      }),
+    );
+  }
+
   getStats(): Observable<NoteStats> {
     return forkJoin([
       from(
@@ -136,15 +179,16 @@ export class NotesService {
           .eq('user_id', this.auth.userId),
       ),
       this.revisions.getTodayCount(),
+      this.getStreak(),
     ]).pipe(
-      map(([{ data, error }, revisedToday]) => {
+      map(([{ data, error }, revisedToday, currentStreak]) => {
         if (error) throw error;
         const notes = data ?? [];
         const total = notes.length;
         const needPractice = notes.filter((n) => n.confidence_level === 'need_practice').length;
         const gettingThere = notes.filter((n) => n.confidence_level === 'getting_there').length;
         const confident = notes.filter((n) => n.confidence_level === 'confident').length;
-        return { total, revisedToday, confident, needPractice, gettingThere };
+        return { total, revisedToday, confident, needPractice, gettingThere, currentStreak };
       }),
     );
   }

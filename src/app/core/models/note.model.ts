@@ -67,4 +67,5 @@ export interface NoteStats {
   confident: number;
   needPractice: number;
   gettingThere: number;
+  currentStreak: number;
 }
