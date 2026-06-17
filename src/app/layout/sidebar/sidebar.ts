@@ -66,24 +66,20 @@ export class Sidebar implements OnInit {
   protected selectCategory(id: string | null): void {
     const current = this.filterState.categoryId();
     this.filterState.setCategoryId(current === id ? null : id);
-    this.onClose();
   }
 
   protected selectConfidence(level: ConfidenceLevel): void {
     const current = this.filterState.confidenceLevel();
     this.filterState.setConfidenceLevel(current === level ? null : level);
-    this.onClose();
   }
 
   protected selectSmartFilter(filterId: string): void {
     const current = this.filterState.smartFilter();
     this.filterState.setSmartFilter(current === filterId ? null : filterId as never);
-    this.onClose();
   }
 
   protected resetFilters(): void {
     this.filterState.resetFilters();
-    this.onClose();
   }
 
   protected navigateTo(path: string): void {

@@ -7,69 +7,71 @@
       <button class="sidebar__close" (click)="onClose()" aria-label="Close sidebar"><svg lucideX></svg></button>
     </div>
 
-    <div class="sidebar__section">
-      <h3 class="sidebar__section-title">Overview</h3>
-      <ul class="sidebar__list">
-        <li class="sidebar__item" (click)="navigateTo('/dashboard')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'dashboard' }">
-          <span class="sidebar__item-icon"><svg lucideLayoutDashboard></svg></span>
-          <span class="sidebar__item-label">Dashboard</span>
-        </li>
-      </ul>
-    </div>
-
-    <nav class="sidebar__section">
-      <h3 class="sidebar__section-title">Categories</h3>
-      <ul class="sidebar__list">
-        @for (cat of categories; track cat.id) {
-          <li
-            class="sidebar__item"
-            (click)="selectCategory(cat.id)"
-            [ngClass]="{ 'sidebar__item--active': filterState.categoryId() === cat.id }"
-          >
-            <span class="sidebar__item-icon"><app-category-icon [icon]="cat.icon" /></span>
-            <span class="sidebar__item-label">{{ cat.name }}</span>
+    <div class="sidebar__scroll">
+      <div class="sidebar__section">
+        <h3 class="sidebar__section-title">Overview</h3>
+        <ul class="sidebar__list">
+          <li class="sidebar__item" (click)="navigateTo('/dashboard')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'dashboard' }">
+            <span class="sidebar__item-icon"><svg lucideLayoutDashboard></svg></span>
+            <span class="sidebar__item-label">Dashboard</span>
           </li>
-        }
-      </ul>
-    </nav>
+        </ul>
+      </div>
 
-    <div class="sidebar__section">
-      <h3 class="sidebar__section-title">Smart Filters</h3>
-      <ul class="sidebar__list">
-        @for (filter of smartFilters; track filter.id) {
-          <li
-            class="sidebar__item"
-            [ngClass]="{ 'sidebar__item--active': filterState.smartFilter() === filter.id }"
-            (click)="selectSmartFilter(filter.id)"
-          >
-            <span class="sidebar__item-icon">
-              @switch (filter.id) {
-                @case ('favorites') { <svg lucideStar></svg> }
-                @case ('pinned') { <svg lucidePin></svg> }
-                @case ('recently_added') { <svg lucideClock></svg> }
-                @case ('recently_edited') { <svg lucidePencil></svg> }
-              }
-            </span>
-            <span class="sidebar__item-label">{{ filter.label }}</span>
-          </li>
-        }
-      </ul>
-    </div>
+      <nav class="sidebar__section">
+        <h3 class="sidebar__section-title">Categories</h3>
+        <ul class="sidebar__list">
+          @for (cat of categories; track cat.id) {
+            <li
+              class="sidebar__item"
+              (click)="selectCategory(cat.id)"
+              [ngClass]="{ 'sidebar__item--active': filterState.categoryId() === cat.id }"
+            >
+              <span class="sidebar__item-icon"><app-category-icon [icon]="cat.icon" /></span>
+              <span class="sidebar__item-label">{{ cat.name }}</span>
+            </li>
+          }
+        </ul>
+      </nav>
 
-    <div class="sidebar__section">
-      <h3 class="sidebar__section-title">Confidence</h3>
-      <ul class="sidebar__list">
-        @for (level of confidenceLevels; track level.value) {
-          <li
-            class="sidebar__item"
-            [ngClass]="{ 'sidebar__item--active': filterState.confidenceLevel() === level.value }"
-            (click)="selectConfidence(level.value)"
-          >
-            <span class="sidebar__item-dot" [style.background]="level.color"></span>
-            <span class="sidebar__item-label">{{ level.label }}</span>
-          </li>
-        }
-      </ul>
+      <div class="sidebar__section">
+        <h3 class="sidebar__section-title">Smart Filters</h3>
+        <ul class="sidebar__list">
+          @for (filter of smartFilters; track filter.id) {
+            <li
+              class="sidebar__item"
+              [ngClass]="{ 'sidebar__item--active': filterState.smartFilter() === filter.id }"
+              (click)="selectSmartFilter(filter.id)"
+            >
+              <span class="sidebar__item-icon">
+                @switch (filter.id) {
+                  @case ('favorites') { <svg lucideStar></svg> }
+                  @case ('pinned') { <svg lucidePin></svg> }
+                  @case ('recently_added') { <svg lucideClock></svg> }
+                  @case ('recently_edited') { <svg lucidePencil></svg> }
+                }
+              </span>
+              <span class="sidebar__item-label">{{ filter.label }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <div class="sidebar__section">
+        <h3 class="sidebar__section-title">Confidence</h3>
+        <ul class="sidebar__list">
+          @for (level of confidenceLevels; track level.value) {
+            <li
+              class="sidebar__item"
+              [ngClass]="{ 'sidebar__item--active': filterState.confidenceLevel() === level.value }"
+              (click)="selectConfidence(level.value)"
+            >
+              <span class="sidebar__item-dot" [style.background]="level.color"></span>
+              <span class="sidebar__item-label">{{ level.label }}</span>
+            </li>
+          }
+        </ul>
+      </div>
     </div>
 
     <div class="sidebar__footer">
