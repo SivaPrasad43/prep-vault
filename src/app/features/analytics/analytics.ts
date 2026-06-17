@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, ViewChild, ElementRef, effect } from '@angular/core';
 import { LucideFileText, LucideCalendar, LucideFlame } from '@lucide/angular';
 import { Chart, registerables } from 'chart.js';
 import { combineLatest } from 'rxjs';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { AnalyticsSkeleton } from './analytics-skeleton';
 import type { NoteStats } from '../../core/models';
 
@@ -18,8 +19,18 @@ Chart.register(...registerables);
 export class Analytics implements OnInit, OnDestroy {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
+  private themeService = inject(ThemeService);
   private barChart: Chart | null = null;
   private doughnutChart: Chart | null = null;
+
+  constructor() {
+    effect(() => {
+      this.themeService.isDark();
+      if (this.loading()) return;
+      this.renderBarChart();
+      this.renderDoughnutChart();
+    });
+  }
 
   @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
   @ViewChild('doughnutCanvas') doughnutCanvas!: ElementRef<HTMLCanvasElement>;
