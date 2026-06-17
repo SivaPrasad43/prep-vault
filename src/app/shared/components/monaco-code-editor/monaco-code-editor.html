@@ -1,11 +1,8 @@
-@if (loading()) {
-  <div class="monaco-loading">
-    <div class="monaco-loading__spinner"></div>
-  </div>
-}
-<div
-  #editorContainer
-  class="monaco-editor-container"
-  [class.monaco-editor-container--hidden]="loading()"
-  [class.monaco-editor-container--readonly]="readonly() && !fullscreen()"
-></div>
+<div #editorContainer class="monaco-editor-container">
+  <ngx-monaco-editor
+    [options]="editorOptions"
+    [ngModel]="code()"
+    (ngModelChange)="codeChange.emit($event)"
+    (init)="onInit($event)"
+  />
+</div>
