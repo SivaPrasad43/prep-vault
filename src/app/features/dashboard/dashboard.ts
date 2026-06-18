@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, signal, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, inject, signal, ViewChild, ElementRef, DestroyRef } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LucidePlus, LucideFlame } from '@lucide/angular';
 import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, switchMap } from 'rxjs';
+import { debounceTime, switchMap, fromEvent } from 'rxjs';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
@@ -14,7 +14,7 @@ import { NoteCard } from '../../shared/components/note-card/note-card';
 import { SearchBar } from '../../shared/components/search-bar/search-bar';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { SkeletonCard } from '../../shared/components/skeleton-card/skeleton-card';
-import type { Note, Category, NoteStats } from '../../core/models';
+import type { Note, Category, NoteStats, NoteFilters } from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,16 +22,26 @@ import type { Note, Category, NoteStats } from '../../core/models';
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.scss',
 })
-export class Dashboard implements OnInit {
+export class Dashboard implements OnInit, AfterViewInit {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
+  private hostRef = inject(ElementRef);
+  private destroyRef = inject(DestroyRef);
   protected filterState = inject(FilterStateService);
-  protected notes = signal<Note[]>([]);
+  private readonly PAGE_SIZE = 10;
+
+  protected displayedNotes = signal<Note[]>([]);
   protected categories = signal<Map<string, Category>>(new Map());
   protected categoriesList = signal<Category[]>([]);
   protected stats = signal<NoteStats | null>(null);
   protected loading = signal(true);
+  protected loadingMore = signal(false);
+  protected allLoaded = signal(false);
   protected error = '';
+
+  private currentFilters?: NoteFilters;
+  private loadMoreEpoch = 0;
+  private scrollContainer: HTMLElement | null = null;
 
   @ViewChild('categoriesContainer') categoriesContainer?: ElementRef<HTMLElement>;
 
@@ -43,14 +53,20 @@ export class Dashboard implements OnInit {
       .pipe(
         debounceTime(300),
         switchMap((filters) => {
+          this.loadMoreEpoch++;
+          this.currentFilters = filters;
           this.loading.set(true);
-          return this.notesService.getAll(filters);
+          this.loadingMore.set(false);
+          this.allLoaded.set(false);
+          this.displayedNotes.set([]);
+          return this.notesService.getAll(filters, 1, this.PAGE_SIZE);
         }),
         takeUntilDestroyed(),
       )
       .subscribe({
-        next: (data) => {
-          this.notes.set(data);
+        next: (result) => {
+          this.displayedNotes.set(result.data);
+          this.allLoaded.set(result.count <= this.PAGE_SIZE);
           this.loading.set(false);
         },
         error: (err) => {
@@ -102,9 +118,51 @@ export class Dashboard implements OnInit {
   protected toggleFavorite(note: Note): void {
     this.notesService.update(note.id, { is_favorite: !note.is_favorite }).subscribe({
       next: (updated) => {
-        this.notes.update((ns) => ns.map((n) => (n.id === updated.id ? updated : n)));
+        this.displayedNotes.update((ns) => ns.map((n) => (n.id === updated.id ? updated : n)));
       },
     });
+  }
+
+  protected loadMore(): void {
+    if (this.loadingMore() || this.allLoaded() || this.loading()) return;
+
+    this.loadingMore.set(true);
+    const epoch = ++this.loadMoreEpoch;
+    const nextPage = Math.floor(this.displayedNotes().length / this.PAGE_SIZE) + 1;
+
+    this.notesService.getAll(this.currentFilters, nextPage, this.PAGE_SIZE).subscribe({
+      next: (result) => {
+        if (epoch !== this.loadMoreEpoch) return;
+        this.displayedNotes.update((ns) => [...ns, ...result.data]);
+        this.allLoaded.set(this.displayedNotes().length >= result.count);
+        this.loadingMore.set(false);
+      },
+      error: () => {
+        if (epoch === this.loadMoreEpoch) this.loadingMore.set(false);
+      },
+    });
+  }
+
+  ngAfterViewInit(): void {
+    let el: HTMLElement | null = this.hostRef.nativeElement;
+    while (el) {
+      const style = getComputedStyle(el);
+      if (style.overflowY === 'auto' || style.overflowY === 'scroll') break;
+      el = el.parentElement;
+    }
+
+    if (el) {
+      this.scrollContainer = el;
+      fromEvent(el, 'scroll')
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => {
+          if (this.loadingMore() || this.allLoaded() || this.loading()) return;
+          const { scrollTop, scrollHeight, clientHeight } = this.scrollContainer!;
+          if (scrollTop + clientHeight >= scrollHeight - 400) {
+            this.loadMore();
+          }
+        });
+    }
   }
 
   private getGreeting(): string {

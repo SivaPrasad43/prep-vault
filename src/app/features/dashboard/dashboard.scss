@@ -92,7 +92,7 @@
 
 .dashboard__categories {
   position: sticky;
-  top: -2rem;
+  top: 0rem;
   z-index: 10;
   background: var(--color-background);
   display: flex;
@@ -251,4 +251,47 @@
   .dashboard__feed {
     gap: var(--spacing-sm);
   }
+}
+
+.dashboard__loader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+}
+
+.dashboard__loader-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: dash-loader-spin 0.6s linear infinite;
+}
+
+@keyframes dash-loader-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.dashboard__end {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-lg);
+  margin-top: var(--spacing-md);
+  color: var(--color-text-muted);
+  font-size: var(--font-sm);
+  position: relative;
+}
+
+.dashboard__end::before {
+  content: '';
+  display: block;
+  width: 80px;
+  height: 1px;
+  background: var(--color-border);
+  margin: 0 auto var(--spacing-md);
 }

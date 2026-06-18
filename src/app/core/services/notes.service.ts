@@ -14,10 +14,10 @@ export class NotesService {
     private revisions: RevisionsService,
   ) {}
 
-  getAll(filters?: NoteFilters): Observable<Note[]> {
+  getAll(filters?: NoteFilters, page: number = 1, pageSize: number = 10): Observable<{ data: Note[]; count: number }> {
     let query = this.supabase.client
       .from('notes')
-      .select('*')
+      .select('*', { count: 'exact' })
       .eq('user_id', this.auth.userId)
       .order('is_pinned', { ascending: false })
       .order('updated_at', { ascending: false });
@@ -47,10 +47,14 @@ export class NotesService {
       query = query.order('title', { ascending: true });
     }
 
+    const rangeFrom = (page - 1) * pageSize;
+    const rangeTo = rangeFrom + pageSize - 1;
+    query = query.range(rangeFrom, rangeTo);
+
     return from(query).pipe(
-      map(({ data, error }) => {
+      map(({ data, error, count }) => {
         if (error) throw error;
-        return data ?? [];
+        return { data: data ?? [], count: count ?? 0 };
       }),
     );
   }

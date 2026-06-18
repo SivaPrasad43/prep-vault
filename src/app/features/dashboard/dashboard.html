@@ -47,14 +47,14 @@
     </div>
   } @else if (error) {
     <div class="dashboard__error">{{ error }}</div>
-  } @else if (notes().length === 0) {
+  } @else if (displayedNotes().length === 0) {
     <app-empty-state
       title="No notes yet"
       message="Add your first topic, question, or resource to start preparing."
     />
   } @else {
     <div class="dashboard__feed">
-      @for (note of notes(); track note.id) {
+      @for (note of displayedNotes(); track note.id) {
         <app-note-card
           [note]="note"
           [category]="getCategory(note)"
@@ -62,5 +62,18 @@
         />
       }
     </div>
+
+    @if (loadingMore()) {
+      <div class="dashboard__loader">
+        <div class="dashboard__loader-spinner"></div>
+        <span>Loading more notes…</span>
+      </div>
+    }
+
+    @if (allLoaded() && displayedNotes().length > 0) {
+      <div class="dashboard__end">
+        <span>You've reached the end of your notes</span>
+      </div>
+    }
   }
 </div>
