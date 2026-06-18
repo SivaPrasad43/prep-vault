@@ -11,9 +11,9 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/layout').then((m) => m.Layout),
     canActivate: [AuthGuard],
     children: [
-      { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
+      { path: '', redirectTo: 'my-notes', pathMatch: 'full' },
       {
-        path: 'dashboard',
+        path: 'my-notes',
         loadComponent: () =>
           import('./features/dashboard/dashboard').then((m) => m.Dashboard),
       },
@@ -41,6 +41,6 @@ export const routes: Routes = [
   },
   {
     path: '**',
-    redirectTo: 'dashboard',
+    redirectTo: 'my-notes',
   },
 ];

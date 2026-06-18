@@ -356,7 +356,7 @@ export class NoteForm implements OnInit {
     if (this.noteId) {
       this.router.navigate(['/notes', this.noteId]);
     } else {
-      this.router.navigate(['/dashboard']);
+      this.router.navigate(['/my-notes']);
     }
   }
 }

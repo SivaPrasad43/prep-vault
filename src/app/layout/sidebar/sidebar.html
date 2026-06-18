@@ -21,9 +21,9 @@
       <div class="sidebar__section">
         <h3 class="sidebar__section-title">Overview</h3>
         <ul class="sidebar__list">
-          <li class="sidebar__item" (click)="navigateTo('/dashboard')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'dashboard' }">
+          <li class="sidebar__item" (click)="navigateTo('/my-notes')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'my-notes' }">
             <span class="sidebar__item-icon"><svg lucideLayoutDashboard></svg></span>
-            <span class="sidebar__item-label">Dashboard</span>
+            <span class="sidebar__item-label">My Notes</span>
           </li>
           <li class="sidebar__item" (click)="navigateTo('/analytics')" [ngClass]="{ 'sidebar__item--active': activeRoute() === 'analytics' }">
             <span class="sidebar__item-icon"><svg lucideChartNoAxesColumn></svg></span>

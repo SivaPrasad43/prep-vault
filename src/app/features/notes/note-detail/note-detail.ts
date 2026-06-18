@@ -57,7 +57,7 @@ export class NoteDetail implements OnInit {
       error: () => {
         this.loading.set(false);
         this.cdr.detectChanges();
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/my-notes']);
       },
     });
   }
@@ -135,7 +135,7 @@ export class NoteDetail implements OnInit {
     this.deleting = true;
     this.notesService.delete(n.id).subscribe({
       next: () => {
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/my-notes']);
       },
       error: () => {
         this.deleting = false;
@@ -161,7 +161,7 @@ export class NoteDetail implements OnInit {
   }
 
   protected goBack(): void {
-    this.router.navigate(['/dashboard']);
+    this.router.navigate(['/my-notes']);
   }
 
   protected openFullscreen(index: number): void {

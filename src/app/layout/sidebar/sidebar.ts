@@ -22,7 +22,7 @@ export class Sidebar {
   protected filterState = inject(FilterStateService);
   private router = inject(Router);
 
-  protected activeRoute = signal('dashboard');
+  protected activeRoute = signal('my-notes');
 
   protected readonly smartFilters = [
     { id: 'favorites' as const, label: 'Favorites' },
@@ -42,7 +42,7 @@ export class Sidebar {
     this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
       .subscribe((e) => {
-        const path = e.urlAfterRedirects.split('?')[0].replace(/^\//, '') || 'dashboard';
+        const path = e.urlAfterRedirects.split('?')[0].replace(/^\//, '') || 'my-notes';
         this.activeRoute.set(path);
       });
   }

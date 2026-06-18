@@ -29,7 +29,7 @@ export class Auth {
     this.authService.signIn(this.email, this.password).subscribe({
       next: () => {
         this.loading = false;
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/my-notes']);
       },
       error: (err) => {
         this.loading = false;
