@@ -10,10 +10,10 @@ type ThemeMode = 'light' | 'dark';
   providedIn: 'root',
 })
 export class ThemeService {
-  private _mode = signal<ThemeMode>('light');
+  private _mode = signal<ThemeMode>('dark');
   readonly mode = this._mode.asReadonly();
 
-  private _theme = signal<Theme>(lightTheme);
+  private _theme = signal<Theme>(darkTheme);
   readonly theme = this._theme.asReadonly();
 
   readonly isDark = signal(false);
@@ -81,7 +81,7 @@ export class ThemeService {
   }
 
   private loadSavedTheme(): ThemeMode {
-    return (localStorage.getItem('prep-vault-theme') as ThemeMode) || 'light';
+    return (localStorage.getItem('prep-vault-theme') as ThemeMode) || 'dark';
   }
 
   private saveTheme(mode: ThemeMode): void {
