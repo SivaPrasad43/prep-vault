@@ -5,19 +5,23 @@
 }
 
 .form__block {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  background: var(--color-surface);
+  background: transparent;
   overflow: hidden;
+}
+
+.form__block + .form__block {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid var(--color-border-light);
 }
 
 .form__block-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  background: color-mix(in srgb, var(--color-background) 50%, transparent);
-  border-bottom: 1px solid var(--color-border-light);
+  padding: var(--spacing-xs) 0;
+  background: transparent;
+  border-bottom: none;
 }
 
 .form__block-bar-left {
@@ -85,9 +89,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   font-size: 0.85rem;
+  transition: all var(--transition-fast);
 
   &:hover:not(:disabled) {
     color: var(--color-text);
@@ -196,6 +201,7 @@
     padding: var(--spacing-lg) var(--spacing-xl);
     font-size: var(--font-base);
     line-height: 1.8;
+    background-color: var(--color-surface) !important;
   }
 
   app-monaco-code-editor {
@@ -231,20 +237,19 @@
 .form__block-action {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  height: 28px;
+  gap: 4px;
+  height: 26px;
   padding: 0 var(--spacing-sm);
-  border: 1px solid var(--color-border);
+  border: none;
   border-radius: var(--radius-sm);
-  background: var(--color-surface);
-  color: var(--color-text-secondary);
+  background: transparent;
+  color: var(--color-text-muted);
   font-size: var(--font-xs);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-normal);
   cursor: pointer;
   transition: all var(--transition-fast);
 
   &:hover:not(:disabled) {
-    border-color: var(--color-text-muted);
     background: var(--color-surface-hover);
     color: var(--color-text);
   }

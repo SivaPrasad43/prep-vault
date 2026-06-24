@@ -12,8 +12,7 @@ import { Skeleton } from '../skeleton/skeleton';
           <app-skeleton width="60px" height="22px" borderRadius="var(--radius-full)" />
         </div>
         <div class="skeleton-card__actions">
-          <app-skeleton width="60px" height="22px" borderRadius="var(--radius-full)" />
-          <app-skeleton width="32px" height="32px" borderRadius="50%" />
+          <app-skeleton width="20px" height="20px" borderRadius="4px" />
         </div>
       </div>
       <app-skeleton width="65%" height="20px" borderRadius="var(--radius-sm)" />

@@ -28,53 +28,20 @@
   flex-shrink: 0;
 }
 
-.card__pin-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 2px 8px;
-  background: #ef4444;
-  color: white;
-  font-size: var(--font-xs);
-  font-weight: var(--font-weight-medium);
-  margin-right: 0.5rem;
-
-  svg {
-    width: 12px;
-    height: 12px;
-  }
-}
-
-.card__star {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-full);
-  width: 32px;
-  height: 32px;
+.card__bookmark {
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   flex-shrink: 0;
-  transition: all var(--transition-fast);
+  width: 20px;
+  height: 20px;
   color: var(--color-text-muted);
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
+  transition: color var(--transition-fast);
 
   &:hover {
-    border-color: #facc15;
-    color: #facc15;
-    background: color-mix(in srgb, #facc15 8%, transparent);
+    color: #3b82f6;
   }
 
   &--active {
-    border-color: #facc15;
-    color: #ca8a04;
-    background: color-mix(in srgb, #facc15 12%, transparent);
-    box-shadow: 0 0 8px color-mix(in srgb, #facc15 20%, transparent);
+    color: #3b82f6;
   }
 }
 
@@ -125,24 +92,9 @@
     margin-bottom: var(--spacing-xs);
   }
 
-  .card__pin-pill {
-    padding: 2px 6px;
-    font-size: 0.65rem;
-
-    svg {
-      width: 10px;
-      height: 10px;
-    }
-  }
-
-  .card__star {
-    width: 28px;
-    height: 28px;
-
-    svg {
-      width: 14px;
-      height: 14px;
-    }
+  .card__bookmark {
+    width: 18px;
+    height: 18px;
   }
 
   .card__title {

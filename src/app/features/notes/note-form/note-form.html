@@ -8,184 +8,198 @@
     <app-form-skeleton />
   } @else {
     <form class="form" [formGroup]="form" (ngSubmit)="onSubmit()">
-      <div class="form__field">
-        <label class="form__label" for="title">Title *</label>
-        <input
-          id="title"
-          class="form__input"
-          type="text"
-          formControlName="title"
-          placeholder="Give your note a title"
-        />
-      </div>
+      <div class="form__layout">
+        <div class="form__main">
+          <div class="form__field">
+            <label class="form__label" for="title">Title *</label>
+            <input
+              id="title"
+              class="form__input form__input--title"
+              type="text"
+              formControlName="title"
+              placeholder="Write suitable title for the note"
+            />
+          </div>
 
-      <div class="form__field">
-        <label class="form__label">Category *</label>
-        <div class="form__pills">
-          @for (cat of categories; track cat.id) {
-            <button
-              type="button"
-              class="form__pill form__pill--cat"
-              [class.--active]="form.value.category_id === cat.id"
-              (click)="selectCategory(cat.id)"
-            >
-              <app-category-icon [icon]="cat.icon" />
-              <span>{{ cat.name }}</span>
-            </button>
-          }
-        </div>
-      </div>
-
-      <div class="form__field">
-        <label class="form__label">Content</label>
-        <div class="form__blocks">
-          @for (block of contentBlocks.controls; track block; let idx = $index) {
-            <div class="form__block" [class.form__block--fullscreen]="isFullscreenBlock(idx)" [formGroup]="$any(block)">
-                <div class="form__block-bar">
-                  <div class="form__block-bar-left">
-                    <span class="form__block-type">
-                      @if (block.value.type === 'text') {
-                        <svg lucideType></svg> Text
-                      } @else if (block.value.type === 'code') {
-                        <svg lucideFileCode></svg> Code
-                      } @else if (block.value.type === 'link') {
-                        <svg lucideLink></svg> Link
-                      }
-                    </span>
-                    @if (isFullscreenBlock(idx)) {
-                      <div class="form__fs-controls">
-                        <button type="button" class="form__fs-btn" (click)="adjustFontSize(idx, -FS_FONT_STEP)" title="Decrease font size">A−</button>
-                        <button type="button" class="form__fs-btn" (click)="resetFontSize(idx)" title="Reset font size">A</button>
-                        <button type="button" class="form__fs-btn" (click)="adjustFontSize(idx, FS_FONT_STEP)" title="Increase font size">A+</button>
-                      </div>
-                    }
-                  </div>
-                  <div class="form__block-actions">
-                    @if (canUseFullscreen(block.value.type)) {
-                      <button type="button" class="form__block-action" (click)="clearBlock(idx)" title="Clear content">
-                        <svg lucideEraser></svg>
-                        <span>Clear</span>
-                      </button>
-                      @if (isFullscreenBlock(idx)) {
-                        <button type="button" class="form__block-btn" (click)="closeFullscreenBlock()" title="Exit full screen">
-                          <svg lucideMinimize2></svg>
-                        </button>
-                      } @else {
-                        <button type="button" class="form__block-btn" (click)="openFullscreenBlock(idx)" title="Full screen">
-                          <svg lucideMaximize2></svg>
-                        </button>
-                      }
-                    }
-                    @if (!isFullscreenBlock(idx)) {
-                      <button type="button" class="form__block-btn" (click)="moveBlock(idx, -1)" [disabled]="idx === 0" title="Move up">
-                        <svg lucideMoveUp></svg>
-                      </button>
-                      <button type="button" class="form__block-btn" (click)="moveBlock(idx, 1)" [disabled]="idx === contentBlocks.length - 1" title="Move down">
-                        <svg lucideMoveDown></svg>
-                      </button>
-                      <button type="button" class="form__block-btn form__block-btn--danger" (click)="removeBlock(idx)" title="Remove block">
-                        <svg lucideX></svg>
-                      </button>
-                    }
-                  </div>
-                </div>
-
-              @switch (block.value.type) {
-                @case ('text') {
-                  <textarea
-                    class="form__textarea"
-                    [style.font-size.px]="getFullscreenFontSize(idx)"
-                    formControlName="content"
-                    placeholder="Write your notes here..."
-                    rows="4"
-                  ></textarea>
-                }
-                @case ('code') {
-                  <div class="form__lang-pills">
-                    @for (lang of languages; track lang.value) {
-                      <button
-                        type="button"
-                        class="form__pill form__pill--lang"
-                        [class.--active]="block.get('language')?.value === lang.value"
-                        (click)="block.get('language')?.setValue(lang.value)"
-                      >
-                        {{ lang.label }}
-                      </button>
-                    }
-                  </div>
-                  <app-monaco-code-editor
-                    [code]="block.get('code')?.value ?? ''"
-                    [language]="block.get('language')?.value ?? ''"
-                    [readonly]="false"
-                    [fontSize]="getFullscreenFontSize(idx) ?? 13"
-                    [fullscreen]="isFullscreenBlock(idx)"
-                    (codeChange)="onCodeChange(idx, $event)"
-                  />
-                }
-                @case ('link') {
-                  <div class="form__link-fields">
-                    <input
-                      class="form__input form__input--sm"
-                      formControlName="label"
-                      placeholder="Label (e.g. YouTube)"
-                    />
-                    <input
-                      class="form__input form__input--sm"
-                      formControlName="url"
-                      placeholder="URL"
-                    />
-                  </div>
-                }
+          <div class="form__field">
+            <label class="form__label">Category *</label>
+            <div class="form__pills">
+              @for (cat of categories; track cat.id) {
+                <button
+                  type="button"
+                  class="form__pill form__pill--cat"
+                  [class.--active]="form.value.category_id === cat.id"
+                  (click)="selectCategory(cat.id)"
+                >
+                  <app-category-icon [icon]="cat.icon" />
+                  <span>{{ cat.name }}</span>
+                </button>
               }
             </div>
-          }
+          </div>
+
+          <div class="form__field form__field--content">
+            <div class="form__blocks">
+              @for (block of contentBlocks.controls; track block; let idx = $index) {
+                <div class="form__block" [class.form__block--fullscreen]="isFullscreenBlock(idx)" [formGroup]="$any(block)">
+                    <div class="form__block-bar">
+                      <div class="form__block-bar-left">
+                        <span class="form__block-type">
+                          @if (block.value.type === 'text') {
+                            <svg lucideType></svg> Text
+                          } @else if (block.value.type === 'code') {
+                            <svg lucideFileCode></svg> Code
+                          } @else if (block.value.type === 'link') {
+                            <svg lucideLink></svg> Link
+                          }
+                        </span>
+                        @if (isFullscreenBlock(idx)) {
+                          <div class="form__fs-controls">
+                            <button type="button" class="form__fs-btn" (click)="adjustFontSize(idx, -FS_FONT_STEP)" title="Decrease font size">A−</button>
+                            <button type="button" class="form__fs-btn" (click)="resetFontSize(idx)" title="Reset font size">A</button>
+                            <button type="button" class="form__fs-btn" (click)="adjustFontSize(idx, FS_FONT_STEP)" title="Increase font size">A+</button>
+                          </div>
+                        }
+                      </div>
+                      <div class="form__block-actions">
+                        @if (canUseFullscreen(block.value.type)) {
+                          <button type="button" class="form__block-action" (click)="clearBlock(idx)" title="Clear content">
+                            <svg lucideEraser></svg>
+                            <span>Clear</span>
+                          </button>
+                          @if (isFullscreenBlock(idx)) {
+                            <button type="button" class="form__block-btn" (click)="closeFullscreenBlock()" title="Exit full screen">
+                              <svg lucideMinimize2></svg>
+                            </button>
+                          } @else {
+                            <button type="button" class="form__block-btn" (click)="openFullscreenBlock(idx)" title="Full screen">
+                              <svg lucideMaximize2></svg>
+                            </button>
+                          }
+                        }
+                        @if (!isFullscreenBlock(idx)) {
+                          <button type="button" class="form__block-btn" (click)="moveBlock(idx, -1)" [disabled]="idx === 0" title="Move up">
+                            <svg lucideMoveUp></svg>
+                          </button>
+                          <button type="button" class="form__block-btn" (click)="moveBlock(idx, 1)" [disabled]="idx === contentBlocks.length - 1" title="Move down">
+                            <svg lucideMoveDown></svg>
+                          </button>
+                          <button type="button" class="form__block-btn form__block-btn--danger" (click)="removeBlock(idx)" title="Remove block">
+                            <svg lucideX></svg>
+                          </button>
+                        }
+                      </div>
+                    </div>
+
+                  @switch (block.value.type) {
+                    @case ('text') {
+                      <textarea
+                        class="form__textarea"
+                        [style.font-size.px]="getFullscreenFontSize(idx)"
+                        formControlName="content"
+                        placeholder="Write your notes here..."
+                        rows="1"
+                      ></textarea>
+                    }
+                    @case ('code') {
+                      <div class="form__lang-pills">
+                        @for (lang of languages; track lang.value) {
+                          <button
+                            type="button"
+                            class="form__pill form__pill--lang"
+                            [class.--active]="block.get('language')?.value === lang.value"
+                            (click)="block.get('language')?.setValue(lang.value)"
+                          >
+                            {{ lang.label }}
+                          </button>
+                        }
+                      </div>
+                      <app-monaco-code-editor
+                        [code]="block.get('code')?.value ?? ''"
+                        [language]="block.get('language')?.value ?? ''"
+                        [readonly]="false"
+                        [fontSize]="getFullscreenFontSize(idx) ?? 13"
+                        [fullscreen]="isFullscreenBlock(idx)"
+                        (codeChange)="onCodeChange(idx, $event)"
+                      />
+                    }
+                    @case ('link') {
+                      <div class="form__link-fields">
+                        <input
+                          class="form__input form__input--sm"
+                          formControlName="label"
+                          placeholder="Label (e.g. YouTube)"
+                        />
+                        <input
+                          class="form__input form__input--sm"
+                          formControlName="url"
+                          placeholder="URL"
+                        />
+                      </div>
+                    }
+                  }
+                </div>
+              }
+            </div>
+
+            <div class="form__add-bar">
+              <button type="button" class="form__pill form__pill--add" (click)="addBlock('text')">
+                <svg lucideType></svg> Text
+              </button>
+              <button type="button" class="form__pill form__pill--add" (click)="addBlock('code')">
+                <svg lucideFileCode></svg> Code
+              </button>
+              <button type="button" class="form__pill form__pill--add" (click)="addBlock('link')">
+                <svg lucideLink></svg> Link
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="form__add-bar">
-          <button type="button" class="form__pill form__pill--add" (click)="addBlock('text')">
-            <svg lucideType></svg> Text
-          </button>
-          <button type="button" class="form__pill form__pill--add" (click)="addBlock('code')">
-            <svg lucideFileCode></svg> Code
-          </button>
-          <button type="button" class="form__pill form__pill--add" (click)="addBlock('link')">
-            <svg lucideLink></svg> Link
-          </button>
-        </div>
-      </div>
-
-      <div class="form__field">
-        <label class="form__label">Confidence Level</label>
-        <div class="form__confidence">
-          @for (level of confidenceLevels; track level.value) {
-            <label class="form__radio" [class.--active]="form.value.confidence_level === level.value">
-              <input
-                type="radio"
-                formControlName="confidence_level"
-                [value]="level.value"
-              />
-              <span class="form__radio-dot" [style.--dot-color]="confidenceColors[level.value]"></span>
-              <span class="form__radio-label">{{ level.label }}</span>
-            </label>
-          }
-        </div>
+        <aside class="form__sidebar">
+          <div class="form__confidence-card">
+            <div class="form__confidence-header">
+              <svg lucideBrain></svg>
+              <span>Confidence Level</span>
+            </div>
+            <p class="form__confidence-desc">How well do you know this topic?</p>
+            <div class="form__confidence">
+              @for (level of confidenceLevels; track level.value) {
+                <label class="form__radio" [class.--active]="form.value.confidence_level === level.value" [style.--dot-color]="confidenceColors[level.value]">
+                  <input
+                    type="radio"
+                    formControlName="confidence_level"
+                    [value]="level.value"
+                  />
+                  <span class="form__radio-dot"></span>
+                  <div class="form__radio-body">
+                    <span class="form__radio-label">{{ level.label }}</span>
+                    <span class="form__radio-desc">{{ level.desc }}</span>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+        </aside>
       </div>
 
       @if (error) {
         <div class="form__error">{{ error }}</div>
       }
 
-      <div class="form__actions">
-        <button type="button" class="form__btn form__btn--secondary" (click)="goBack()">
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="form__btn form__btn--primary"
-          [disabled]="form.invalid || submitting"
-        >
-          {{ submitLabel() }}
-        </button>
+      <div class="form__sticky-bar">
+        <div class="form__actions">
+          <button type="button" class="form__btn form__btn--secondary" (click)="goBack()">
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="form__btn form__btn--primary"
+            [disabled]="form.invalid || submitting"
+          >
+            {{ submitLabel() }}
+          </button>
+        </div>
       </div>
     </form>
   }

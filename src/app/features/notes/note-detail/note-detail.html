@@ -24,17 +24,6 @@
 
       <h1 class="detail__title">{{ note()!.title }}</h1>
 
-      <div class="detail__pills">
-        <button class="detail__pill" [class.detail__pill--active]="note()!.is_favorite" (click)="toggleFavorite()">
-          <svg lucideStar [style.fill]="note()!.is_favorite ? '#ca8a04' : 'none'"></svg>
-          <span>{{ note()!.is_favorite ? 'Favorited' : 'Favorite' }}</span>
-        </button>
-        <button class="detail__pill" [class.detail__pill--active]="note()!.is_pinned" (click)="togglePin()">
-          <svg lucidePin [style.fill]="note()!.is_pinned ? '#dc2626' : 'none'"></svg>
-          <span>{{ note()!.is_pinned ? 'Pinned' : 'Pin' }}</span>
-        </button>
-      </div>
-
       @if (note()!.content_blocks && note()!.content_blocks!.length > 0) {
         <div class="detail__blocks">
           @for (block of note()!.content_blocks; track idx; let idx = $index) {

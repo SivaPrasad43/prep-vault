@@ -42,10 +42,7 @@
               (click)="selectSmartFilter(filter.id)"
             >
               <span class="sidebar__item-icon">
-                @switch (filter.id) {
-                  @case ('favorites') { <svg lucideStar></svg> }
-                  @case ('pinned') { <svg lucidePin></svg> }
-                }
+                <svg lucideBookmark></svg>
               </span>
               <span class="sidebar__item-label">{{ filter.label }}</span>
             </li>

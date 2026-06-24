@@ -2,7 +2,7 @@ import { Component, OnInit, inject, signal, ChangeDetectorRef, PLATFORM_ID } fro
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, LucideCalendar, LucideMaximize2, LucideMinimize2 } from '@lucide/angular';
+import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar, LucideMaximize2, LucideMinimize2 } from '@lucide/angular';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RevisionsService } from '../../../core/services/revisions.service';
@@ -15,7 +15,7 @@ import hljs from 'highlight.js';
 
 @Component({
   selector: 'app-note-detail',
-  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideStar, LucidePin, LucideCalendar, LucideMaximize2, LucideMinimize2, CategoryBadge, ConfidenceIndicator, Modal, DetailSkeleton],
+  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar, LucideMaximize2, LucideMinimize2, CategoryBadge, ConfidenceIndicator, Modal, DetailSkeleton],
   templateUrl: './note-detail.html',
   styleUrl: './note-detail.scss',
 })
@@ -141,22 +141,6 @@ export class NoteDetail implements OnInit {
         this.deleting = false;
         this.showDeleteConfirm = false;
       },
-    });
-  }
-
-  protected toggleFavorite(): void {
-    const n = this.note();
-    if (!n) return;
-    this.notesService.update(n.id, { is_favorite: !n.is_favorite }).subscribe({
-      next: (updated) => this.note.set(updated),
-    });
-  }
-
-  protected togglePin(): void {
-    const n = this.note();
-    if (!n) return;
-    this.notesService.update(n.id, { is_pinned: !n.is_pinned }).subscribe({
-      next: (updated) => this.note.set(updated),
     });
   }
 

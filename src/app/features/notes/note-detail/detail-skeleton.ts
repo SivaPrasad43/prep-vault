@@ -24,11 +24,6 @@ import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 
         <app-skeleton width="70%" height="28px" borderRadius="var(--radius-sm)" />
 
-        <div class="detail-skeleton__pills">
-          <app-skeleton width="100px" height="30px" borderRadius="var(--radius-full)" />
-          <app-skeleton width="80px" height="30px" borderRadius="var(--radius-full)" />
-        </div>
-
         <div class="detail-skeleton__content">
           <app-skeleton width="100%" height="14px" borderRadius="var(--radius-sm)" />
           <app-skeleton width="95%" height="14px" borderRadius="var(--radius-sm)" />

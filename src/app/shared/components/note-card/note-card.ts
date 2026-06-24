@@ -1,14 +1,14 @@
 import { Component, input, output, inject } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { Router } from '@angular/router';
-import { LucideStar, LucidePin } from '@lucide/angular';
+import { LucideBookmark } from '@lucide/angular';
 import { CategoryBadge } from '../category-badge/category-badge';
 import { ConfidenceIndicator } from '../confidence-indicator/confidence-indicator';
 import type { Note, Category } from '../../../core/models';
 
 @Component({
   selector: 'app-note-card',
-  imports: [DatePipe, LucideStar, LucidePin, CategoryBadge, ConfidenceIndicator],
+  imports: [DatePipe, LucideBookmark, CategoryBadge, ConfidenceIndicator],
   templateUrl: './note-card.html',
   styleUrl: './note-card.scss',
 })

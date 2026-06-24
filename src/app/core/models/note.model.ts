@@ -42,7 +42,6 @@ export interface Note {
   content_blocks: ContentBlock[] | null;
   confidence_level: ConfidenceLevel;
   is_favorite: boolean;
-  is_pinned: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -56,7 +55,6 @@ export interface CreateNotePayload {
   content_blocks?: ContentBlock[];
   confidence_level?: ConfidenceLevel;
   is_favorite?: boolean;
-  is_pinned?: boolean;
 }
 
 export interface UpdateNotePayload extends Partial<CreateNotePayload> {}

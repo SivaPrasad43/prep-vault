@@ -1,4 +1,4 @@
-<article class="card" [class.card--pinned]="note().is_pinned" (click)="openNote()">
+<article class="card" (click)="openNote()">
   <div class="card__top">
     <div class="card__meta">
       @if (category()) {
@@ -7,19 +7,14 @@
       <app-confidence-indicator [level]="note().confidence_level" />
     </div>
     <div class="card__actions">
-      @if (note().is_pinned) {
-        <span class="card__pin-pill">
-          <svg lucidePin></svg> Pinned
-        </span>
-      }
-      <button
-        class="card__star"
-        [class.card__star--active]="note().is_favorite"
+      <svg
+        class="card__bookmark"
+        [class.card__bookmark--active]="note().is_favorite"
         (click)="toggleFavorite.emit(note()); $event.stopPropagation()"
-        [attr.aria-label]="note().is_favorite ? 'Remove from favorites' : 'Add to favorites'"
-      >
-        <svg lucideStar [style.fill]="note().is_favorite ? '#facc15' : 'none'"></svg>
-      </button>
+        [attr.aria-label]="note().is_favorite ? 'Remove from bookmarks' : 'Add to bookmarks'"
+        lucideBookmark
+        [style.fill]="note().is_favorite ? '#3b82f6' : 'none'"
+      ></svg>
     </div>
   </div>
 

@@ -19,7 +19,6 @@ export class NotesService {
       .from('notes')
       .select('*', { count: 'exact' })
       .eq('user_id', this.auth.userId)
-      .order('is_pinned', { ascending: false })
       .order('updated_at', { ascending: false });
 
     if (filters?.categoryId) {
@@ -30,12 +29,8 @@ export class NotesService {
       query = query.eq('confidence_level', filters.confidenceLevel);
     }
 
-    if (filters?.smartFilter === 'favorites') {
+    if (filters?.smartFilter === 'bookmarks') {
       query = query.eq('is_favorite', true);
-    }
-
-    if (filters?.smartFilter === 'pinned') {
-      query = query.eq('is_pinned', true);
     }
 
     if (filters?.searchQuery) {

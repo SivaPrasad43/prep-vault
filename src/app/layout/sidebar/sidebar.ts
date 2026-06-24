@@ -2,7 +2,7 @@ import { Component, inject, output, input, signal } from '@angular/core';
 import { NgClass } from '@angular/common';
 import { Router, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
-import { LucideSun, LucideMoon, LucideX, LucideLogOut, LucideStar, LucidePin, LucideLayoutDashboard, LucideChartNoAxesColumn } from '@lucide/angular';
+import { LucideSun, LucideMoon, LucideX, LucideLogOut, LucideBookmark, LucideLayoutDashboard, LucideChartNoAxesColumn } from '@lucide/angular';
 import { ThemeService } from '../../core/services/theme.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
@@ -10,7 +10,7 @@ import type { ConfidenceLevel } from '../../core/models';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [NgClass, LucideSun, LucideMoon, LucideX, LucideLogOut, LucideStar, LucidePin, LucideLayoutDashboard, LucideChartNoAxesColumn],
+  imports: [NgClass, LucideSun, LucideMoon, LucideX, LucideLogOut, LucideBookmark, LucideLayoutDashboard, LucideChartNoAxesColumn],
   templateUrl: './sidebar.html',
   styleUrl: './sidebar.scss',
 })
@@ -25,8 +25,7 @@ export class Sidebar {
   protected activeRoute = signal('my-notes');
 
   protected readonly smartFilters = [
-    { id: 'favorites' as const, label: 'Favorites' },
-    { id: 'pinned' as const, label: 'Pinned' },
+    { id: 'bookmarks' as const, label: 'Bookmarks' },
   ];
 
   protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; color: string }[] = [

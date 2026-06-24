@@ -5,7 +5,7 @@ import { finalize } from 'rxjs/operators';
 import {
   LucideArrowLeft, LucideX,
   LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
-  LucideMaximize2, LucideMinimize2, LucideEraser
+  LucideMaximize2, LucideMinimize2, LucideEraser, LucideBrain
 } from '@lucide/angular';
 import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
 import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
@@ -20,7 +20,7 @@ import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock }
     ReactiveFormsModule,
     LucideArrowLeft, LucideX,
     LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
-    LucideMaximize2, LucideMinimize2, LucideEraser,
+    LucideMaximize2, LucideMinimize2, LucideEraser, LucideBrain,
     CategoryIcon,
     MonacoCodeEditor,
     FormSkeleton,
@@ -61,10 +61,10 @@ export class NoteForm implements OnInit {
     delete this.fullscreenFontSizes[index];
   }
 
-  protected readonly confidenceLevels: { value: ConfidenceLevel; label: string }[] = [
-    { value: 'need_practice', label: 'Need Practice' },
-    { value: 'getting_there', label: 'Getting There' },
-    { value: 'confident', label: 'Confident' },
+  protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; desc: string }[] = [
+    { value: 'need_practice', label: 'Need Practice', desc: 'Still learning the basics' },
+    { value: 'getting_there', label: 'Getting There', desc: 'Understand core concepts' },
+    { value: 'confident', label: 'Confident', desc: 'Can explain it to others' },
   ];
 
   protected readonly confidenceColors: Record<ConfidenceLevel, string> = {
