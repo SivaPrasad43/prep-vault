@@ -1,14 +1,10 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { FormBuilder, FormArray, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
-import {
-  LucideArrowLeft, LucideX,
-  LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
-  LucideMaximize2, LucideMinimize2, LucideEraser, LucideBrain
-} from '@lucide/angular';
+import { LucideArrowLeft, LucideBrain } from '@lucide/angular';
 import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
-import { MonacoCodeEditor } from '../../../shared/components/monaco-code-editor/monaco-code-editor';
+import { MarkdownEditor } from '../../../shared/components/markdown-editor/markdown-editor';
 import { FormSkeleton } from './form-skeleton';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -18,11 +14,9 @@ import type { Category, Note, CreateNotePayload, ConfidenceLevel, ContentBlock }
   selector: 'app-note-form',
   imports: [
     ReactiveFormsModule,
-    LucideArrowLeft, LucideX,
-    LucideMoveUp, LucideMoveDown, LucideType, LucideFileCode, LucideLink,
-    LucideMaximize2, LucideMinimize2, LucideEraser, LucideBrain,
+    LucideArrowLeft, LucideBrain,
     CategoryIcon,
-    MonacoCodeEditor,
+    MarkdownEditor,
     FormSkeleton,
   ],
   templateUrl: './note-form.html',
@@ -41,25 +35,6 @@ export class NoteForm implements OnInit {
   protected loading = false;
   protected submitting = false;
   protected error = '';
-  protected fullscreenBlockIndex: number | null = null;
-  protected fullscreenFontSizes: Record<number, number> = {};
-  protected readonly FS_FONT_MIN = 10;
-  protected readonly FS_FONT_MAX = 32;
-  protected readonly FS_FONT_STEP = 2;
-
-  protected getFullscreenFontSize(index: number): number | null {
-    return this.fullscreenFontSizes[index] ?? null;
-  }
-
-  protected adjustFontSize(index: number, delta: number): void {
-    const current = this.fullscreenFontSizes[index] ?? 16;
-    const next = Math.max(this.FS_FONT_MIN, Math.min(this.FS_FONT_MAX, current + delta));
-    this.fullscreenFontSizes[index] = next;
-  }
-
-  protected resetFontSize(index: number): void {
-    delete this.fullscreenFontSizes[index];
-  }
 
   protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; desc: string }[] = [
     { value: 'need_practice', label: 'Need Practice', desc: 'Still learning the basics' },
@@ -77,55 +52,8 @@ export class NoteForm implements OnInit {
     title: ['', Validators.required],
     category_id: ['', Validators.required],
     confidence_level: ['need_practice' as ConfidenceLevel],
-    content_blocks: this.fb.array<ReturnType<typeof this.createBlockGroup>>([]),
+    body_markdown: [''],
   });
-
-  get contentBlocks(): FormArray {
-    return this.form.get('content_blocks') as FormArray;
-  }
-
-  protected readonly languages: { value: string; label: string }[] = [
-    { value: '', label: 'Auto' },
-    { value: 'javascript', label: 'JavaScript' },
-    { value: 'typescript', label: 'TypeScript' },
-    { value: 'python', label: 'Python' },
-    { value: 'java', label: 'Java' },
-    { value: 'go', label: 'Go' },
-    { value: 'rust', label: 'Rust' },
-    { value: 'cpp', label: 'C++' },
-    { value: 'c', label: 'C' },
-    { value: 'sql', label: 'SQL' },
-    { value: 'bash', label: 'Bash' },
-    { value: 'html', label: 'HTML' },
-    { value: 'css', label: 'CSS' },
-    { value: 'json', label: 'JSON' },
-    { value: 'yaml', label: 'YAML' },
-    { value: 'markdown', label: 'Markdown' },
-    { value: 'ruby', label: 'Ruby' },
-    { value: 'php', label: 'PHP' },
-  ];
-
-  private createBlockGroup(type: ContentBlock['type'] = 'text') {
-    switch (type) {
-      case 'code':
-        return this.fb.group({
-          type: ['code' as const],
-          language: [''],
-          code: [''],
-        });
-      case 'link':
-        return this.fb.group({
-          type: ['link' as const],
-          label: [''],
-          url: [''],
-        });
-      default:
-        return this.fb.group({
-          type: ['text' as const],
-          content: [''],
-        });
-    }
-  }
 
   ngOnInit(): void {
     this.loading = true;
@@ -166,19 +94,27 @@ export class NoteForm implements OnInit {
           title: note.title,
           category_id: note.category_id,
           confidence_level: note.confidence_level,
+          body_markdown: note.body_markdown ?? this.blocksToMarkdown(note),
         });
-
-        const blocks = note.content_blocks ?? this.legacyToBlocks(note);
-        for (const block of blocks) {
-          const group = this.createBlockGroup(block.type);
-          group.patchValue(block as never);
-          this.contentBlocks.push(group);
-        }
       },
       error: () => {
         this.error = 'Failed to load note';
       },
     });
+  }
+
+  private blocksToMarkdown(note: Note): string {
+    const blocks = note.content_blocks ?? this.legacyToBlocks(note);
+    return blocks.map((b) => {
+      switch (b.type) {
+        case 'text':
+          return b.content;
+        case 'code':
+          return '```' + (b.language || '') + '\n' + b.code + '\n```';
+        case 'link':
+          return '[' + (b.label || b.url) + '](' + b.url + ')';
+      }
+    }).join('\n\n');
   }
 
   private legacyToBlocks(note: Note): ContentBlock[] {
@@ -199,91 +135,55 @@ export class NoteForm implements OnInit {
     return blocks;
   }
 
-  protected addBlock(type: ContentBlock['type']): void {
-    this.contentBlocks.push(this.createBlockGroup(type));
-  }
+  private parseMarkdownToBlocks(md: string): ContentBlock[] {
+    const blocks: ContentBlock[] = [];
+    const lines = md.split('\n');
+    let i = 0;
 
-  protected removeBlock(index: number): void {
-    this.contentBlocks.removeAt(index);
-    delete this.fullscreenFontSizes[index];
-    const keys = Object.keys(this.fullscreenFontSizes).map(Number);
-    for (const k of keys) {
-      if (k > index) {
-        this.fullscreenFontSizes[k - 1] = this.fullscreenFontSizes[k];
-        delete this.fullscreenFontSizes[k];
+    while (i < lines.length) {
+      const line = lines[i];
+
+      const codeMatch = line.match(/^```(\w*)/);
+      if (codeMatch) {
+        const language = codeMatch[1];
+        const codeLines: string[] = [];
+        i++;
+        while (i < lines.length && !lines[i].startsWith('```')) {
+          codeLines.push(lines[i]);
+          i++;
+        }
+        i++;
+        blocks.push({ type: 'code', language, code: codeLines.join('\n') });
+        continue;
+      }
+
+      const linkMatch = line.match(/^\[(.+?)\]\((https?:\/\/.+?)\)$/);
+      if (linkMatch) {
+        blocks.push({ type: 'link', label: linkMatch[1], url: linkMatch[2] });
+        i++;
+        continue;
+      }
+
+      const textLines: string[] = [];
+      while (i < lines.length && !lines[i].startsWith('```') && !lines[i].match(/^\[.+?\]\(https?:\/\/.+?\)$/)) {
+        textLines.push(lines[i]);
+        i++;
+      }
+      const text = textLines.join('\n').trim();
+      if (text) {
+        blocks.push({ type: 'text', content: text });
       }
     }
-    if (this.fullscreenBlockIndex === index) {
-      this.closeFullscreenBlock();
-    } else if (this.fullscreenBlockIndex !== null && this.fullscreenBlockIndex > index) {
-      this.fullscreenBlockIndex -= 1;
-    }
-  }
 
-  protected moveBlock(index: number, direction: -1 | 1): void {
-    const target = index + direction;
-    if (target < 0 || target >= this.contentBlocks.length) return;
-
-    const arr = this.contentBlocks;
-    const min = Math.min(index, target);
-    const max = Math.max(index, target);
-
-    const lowerGroup = arr.at(min);
-    const upperGroup = arr.at(max);
-
-    arr.removeAt(max);
-    arr.removeAt(min);
-
-    arr.insert(min, upperGroup);
-    arr.insert(max, lowerGroup);
-
-    if (this.fullscreenBlockIndex === index) {
-      this.fullscreenBlockIndex = target;
-    } else if (this.fullscreenBlockIndex === target) {
-      this.fullscreenBlockIndex = index;
-    }
-
-    const tempSize = this.fullscreenFontSizes[index];
-    this.fullscreenFontSizes[index] = this.fullscreenFontSizes[target];
-    this.fullscreenFontSizes[target] = tempSize;
+    return blocks;
   }
 
   protected selectCategory(catId: string): void {
     this.form.patchValue({ category_id: catId });
   }
 
-  protected canUseFullscreen(type: ContentBlock['type'] | undefined): boolean {
-    return type === 'text' || type === 'code';
-  }
-
-  protected isFullscreenBlock(index: number): boolean {
-    return this.fullscreenBlockIndex === index;
-  }
-
-  protected openFullscreenBlock(index: number): void {
-    this.fullscreenBlockIndex = index;
-  }
-
-  protected closeFullscreenBlock(): void {
-    if (this.fullscreenBlockIndex !== null) {
-      delete this.fullscreenFontSizes[this.fullscreenBlockIndex];
-    }
-    this.fullscreenBlockIndex = null;
-  }
-
-  protected onCodeChange(blockIndex: number, code: string): void {
-    const block = this.contentBlocks.at(blockIndex);
-    block.get('code')?.setValue(code, { emitEvent: false });
-  }
-
-  protected clearBlock(index: number): void {
-    const block = this.contentBlocks.at(index);
-    const type = block.value.type;
-    if (type === 'text') {
-      block.get('content')?.setValue('');
-    } else if (type === 'code') {
-      block.get('code')?.setValue('');
-    }
+  protected onMarkdownChange(value: string): void {
+    this.form.patchValue({ body_markdown: value });
   }
 
   protected submitLabel(): string {
@@ -291,14 +191,10 @@ export class NoteForm implements OnInit {
     return this.isEditing ? 'Update Note' : 'Save Note';
   }
 
-  private buildPayload(): { payload: CreateNotePayload; contentBlocks: ContentBlock[] } {
+  private buildPayload(): CreateNotePayload {
     const raw = this.form.value;
-    const contentBlocks = ((raw.content_blocks ?? []) as ContentBlock[]).filter((b) => {
-      if (b.type === 'text') return b.content?.trim();
-      if (b.type === 'code') return b.code?.trim();
-      if (b.type === 'link') return b.url?.trim();
-      return false;
-    });
+    const bodyMarkdown = raw.body_markdown || '';
+    const contentBlocks = this.parseMarkdownToBlocks(bodyMarkdown);
 
     const description = contentBlocks
       .filter((b): b is { type: 'text'; content: string } => b.type === 'text')
@@ -313,17 +209,16 @@ export class NoteForm implements OnInit {
       .filter((b): b is { type: 'link'; label: string; url: string } => b.type === 'link')
       .map((b) => ({ label: b.label || b.url, url: b.url }));
 
-    const payload: CreateNotePayload = {
+    return {
       title: raw.title!,
       category_id: raw.category_id!,
       description: description || undefined,
       code_snippets: codeSnippets,
       links: links,
       content_blocks: contentBlocks,
+      body_markdown: bodyMarkdown || undefined,
       confidence_level: (raw.confidence_level as ConfidenceLevel) || 'need_practice',
     };
-
-    return { payload, contentBlocks };
   }
 
   protected onSubmit(): void {
@@ -331,7 +226,7 @@ export class NoteForm implements OnInit {
     this.submitting = true;
     this.error = '';
 
-    const { payload } = this.buildPayload();
+    const payload = this.buildPayload();
 
     const obs = this.isEditing && this.noteId
       ? this.notesService.update(this.noteId, payload)
@@ -346,10 +241,6 @@ export class NoteForm implements OnInit {
         this.error = err.message || 'Failed to save note';
       },
     });
-  }
-
-  protected submitInFullscreen(): void {
-    this.closeFullscreenBlock();
   }
 
   protected goBack(): void {

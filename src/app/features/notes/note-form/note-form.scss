@@ -1,5 +1,3 @@
-@use './note-form-editor';
-
 .form-page {
   max-width: 1100px;
   margin: 0 auto;
@@ -105,7 +103,7 @@
   gap: var(--spacing-xs);
 
   &--content {
-    gap: 0;
+    gap: var(--spacing-xs);
   }
 }
 
@@ -140,7 +138,7 @@
   }
 
   &--title {
-    font-size: 1.75rem;
+    font-size: 3rem;
     font-weight: var(--font-weight-bold);
     padding: var(--spacing-xs) 0 var(--spacing-sm);
     border-bottom: none;
@@ -161,24 +159,6 @@
     border: 1px solid var(--color-border);
     border-radius: var(--radius-sm);
     background: var(--color-surface);
-  }
-}
-
-.form__textarea {
-  padding: var(--spacing-xs) 0;
-  border: none;
-  border-radius: 0;
-  font-size: var(--font-base);
-  line-height: 1.8;
-  background: transparent;
-  color: var(--color-text);
-  outline: none;
-  width: 100%;
-  field-sizing: content;
-
-  &::placeholder {
-    color: var(--color-text-muted);
-    font-style: italic;
   }
 }
 
@@ -213,37 +193,12 @@
     border-color: var(--pill-color, var(--color-text));
     color: var(--pill-color, var(--color-text));
   }
-
-  &--add {
-    border-style: dashed;
-    border-color: var(--color-border);
-
-    &:hover {
-      border-color: var(--color-primary);
-      color: var(--color-primary);
-      background: transparent;
-    }
-  }
 }
 
 .form__pill--cat.--active {
   background: var(--color-text);
   color: var(--color-background);
   border-color: var(--color-text);
-}
-
-.form__hint {
-  font-size: var(--font-xs);
-  color: var(--color-text-muted);
-  padding: var(--spacing-xs) 0;
-}
-
-.form__add-bar {
-  display: flex;
-  gap: var(--spacing-xs);
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-border-light);
 }
 
 .form__confidence {
@@ -407,7 +362,6 @@
 }
 
 @media (max-width: 768px) {
-
   .form__layout {
     grid-template-columns: 1fr;
   }
@@ -464,7 +418,6 @@
 }
 
 @media (max-width: 480px) {
-
   .form-page {
     padding: var(--spacing-md);
   }
@@ -491,20 +444,8 @@
     font-size: var(--font-xs);
   }
 
-  .form__textarea {
-    font-size: var(--font-xs);
-  }
-
   .form__btn {
     padding: var(--spacing-xs) var(--spacing-md);
     font-size: var(--font-xs);
-  }
-
-  .form__link-fields {
-    grid-template-columns: 1fr;
-  }
-
-  .form__add-bar {
-    flex-direction: column;
   }
 }

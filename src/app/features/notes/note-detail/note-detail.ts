@@ -2,7 +2,23 @@ import { Component, OnInit, inject, signal, ChangeDetectorRef, PLATFORM_ID } fro
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar, LucideMaximize2, LucideMinimize2 } from '@lucide/angular';
+import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar } from '@lucide/angular';
+import { marked } from 'marked';
+import { markedHighlight } from 'marked-highlight';
+import DOMPurify from 'dompurify';
+import hljs from 'highlight.js';
+
+marked.use(markedHighlight({
+  langPrefix: 'hljs language-',
+  highlight(code: string, lang: string): string {
+    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
+    try {
+      return hljs.highlight(code, { language }).value;
+    } catch {
+      return code;
+    }
+  },
+}));
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RevisionsService } from '../../../core/services/revisions.service';
@@ -11,11 +27,10 @@ import { ConfidenceIndicator } from '../../../shared/components/confidence-indic
 import { Modal } from '../../../shared/components/modal/modal';
 import { DetailSkeleton } from './detail-skeleton';
 import type { Note, Category, ContentBlock } from '../../../core/models';
-import hljs from 'highlight.js';
 
 @Component({
   selector: 'app-note-detail',
-  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar, LucideMaximize2, LucideMinimize2, CategoryBadge, ConfidenceIndicator, Modal, DetailSkeleton],
+  imports: [DatePipe, RouterLink, LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar, CategoryBadge, ConfidenceIndicator, Modal, DetailSkeleton],
   templateUrl: './note-detail.html',
   styleUrl: './note-detail.scss',
 })
@@ -34,7 +49,7 @@ export class NoteDetail implements OnInit {
   protected showDeleteConfirm = false;
   protected loading = signal(true);
   protected deleting = false;
-  protected fullscreenBlockIndex = signal<number | null>(null);
+  protected renderedHtml = signal<SafeHtml | null>(null);
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
@@ -51,6 +66,7 @@ export class NoteDetail implements OnInit {
         this.note.set(n);
         this.loadCategory(n.category_id);
         this.loading.set(false);
+        this.renderNoteContent(n);
         this.cdr.detectChanges();
         this.revisionsService.log(id).subscribe();
       },
@@ -68,6 +84,45 @@ export class NoteDetail implements OnInit {
         this.category.set(cat);
       },
     });
+  }
+
+  private renderNoteContent(n: Note): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    if (n.body_markdown) {
+      marked.parse(n.body_markdown, { async: true, gfm: true, breaks: true }).then((raw) => {
+        this.renderedHtml.set(this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(raw as string)));
+        this.cdr.detectChanges();
+      });
+    }
+  }
+
+  protected hasRenderedContent(): boolean {
+    return this.renderedHtml() !== null;
+  }
+
+  protected getBlocks(): ContentBlock[] {
+    const n = this.note();
+    if (!n) return [];
+    return n.content_blocks ?? this.legacyToBlocks(n);
+  }
+
+  private legacyToBlocks(note: Note): ContentBlock[] {
+    const blocks: ContentBlock[] = [];
+    if (note.description) {
+      blocks.push({ type: 'text', content: note.description });
+    }
+    for (const s of note.code_snippets ?? []) {
+      if (s.code) {
+        blocks.push({ type: 'code', language: s.language, code: s.code, filename: s.filename });
+      }
+    }
+    for (const l of note.links ?? []) {
+      if (l.url) {
+        blocks.push({ type: 'link', label: l.label, url: l.url });
+      }
+    }
+    return blocks;
   }
 
   protected highlightedCode(code: string, language: string): SafeHtml {
@@ -146,27 +201,5 @@ export class NoteDetail implements OnInit {
 
   protected goBack(): void {
     this.router.navigate(['/my-notes']);
-  }
-
-  protected openFullscreen(index: number): void {
-    this.fullscreenBlockIndex.set(index);
-    document.body.style.overflow = 'hidden';
-  }
-
-  protected closeFullscreen(): void {
-    this.fullscreenBlockIndex.set(null);
-    document.body.style.overflow = '';
-  }
-
-  protected isFullscreen(index: number): boolean {
-    return this.fullscreenBlockIndex() === index;
-  }
-
-  protected getCodeBlock(index: number): { code: string; language: string } | null {
-    const block = this.note()?.content_blocks?.[index];
-    if (block && block.type === 'code') {
-      return block as { code: string; language: string };
-    }
-    return null;
   }
 }

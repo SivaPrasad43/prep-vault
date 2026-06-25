@@ -40,6 +40,7 @@ export interface Note {
   code_snippets: CodeSnippet[];
   links: Link[];
   content_blocks: ContentBlock[] | null;
+  body_markdown: string | null;
   confidence_level: ConfidenceLevel;
   is_favorite: boolean;
   created_at: string;
@@ -53,6 +54,7 @@ export interface CreateNotePayload {
   code_snippets?: CodeSnippet[];
   links?: Link[];
   content_blocks?: ContentBlock[];
+  body_markdown?: string;
   confidence_level?: ConfidenceLevel;
   is_favorite?: boolean;
 }
