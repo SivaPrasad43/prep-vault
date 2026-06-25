@@ -1,4 +1,5 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -29,6 +30,7 @@ export class NoteForm implements OnInit {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
   private cdr = inject(ChangeDetectorRef);
+  private location = inject(Location);
   protected categories: Category[] = [];
   protected isEditing = false;
   private noteId: string | null = null;
@@ -245,7 +247,7 @@ export class NoteForm implements OnInit {
 
   protected goBack(): void {
     if (this.noteId) {
-      this.router.navigate(['/notes', this.noteId]);
+      this.location.back();
     } else {
       this.router.navigate(['/my-notes']);
     }
