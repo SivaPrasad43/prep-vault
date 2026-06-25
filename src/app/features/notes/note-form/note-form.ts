@@ -236,7 +236,7 @@ export class NoteForm implements OnInit {
 
     obs.subscribe({
       next: (note) => {
-        this.router.navigate(['/notes', note.id]);
+        this.router.navigate(['/notes', note.id], { replaceUrl: true });
       },
       error: (err) => {
         this.submitting = false;
