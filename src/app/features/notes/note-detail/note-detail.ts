@@ -91,7 +91,19 @@ export class NoteDetail implements OnInit {
 
     if (n.body_markdown) {
       marked.parse(n.body_markdown, { async: true, gfm: true, breaks: true }).then((raw) => {
-        this.renderedHtml.set(this.sanitizer.bypassSecurityTrustHtml(DOMPurify.sanitize(raw as string)));
+        const sanitized = DOMPurify.sanitize(raw as string, {
+          ALLOWED_TAGS: [
+            'a', 'abbr', 'b', 'blockquote', 'br', 'caption', 'cite', 'code', 'col', 'colgroup',
+            'dd', 'del', 'dfn', 'div', 'dl', 'dt', 'em', 'figcaption', 'figure', 'h1', 'h2', 'h3',
+            'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins', 'kbd', 'li', 'mark', 'ol', 'p', 'pre',
+            'q', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup', 'table', 'tbody', 'td',
+            'tfoot', 'th', 'thead', 'time', 'tr', 'u', 'ul', 'var',
+          ],
+          ALLOWED_ATTR: [
+            'class', 'id', 'href', 'target', 'rel', 'src', 'alt', 'style', 'title', 'width', 'height',
+          ],
+        });
+        this.renderedHtml.set(this.sanitizer.bypassSecurityTrustHtml(sanitized));
         this.cdr.detectChanges();
       });
     }

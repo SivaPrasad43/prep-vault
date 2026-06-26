@@ -1,4 +1,5 @@
-import { Component, input, output, signal, effect, viewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, input, output, signal, effect, viewChild, ElementRef, AfterViewInit, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import {
   LucideBold, LucideItalic, LucideHeading1, LucideHeading2, LucideHeading3,
@@ -34,11 +35,13 @@ marked.use(markedHighlight({
   styleUrl: './markdown-editor.scss',
 })
 export class MarkdownEditor implements AfterViewInit {
+  private sanitizer = inject(DomSanitizer);
+
   readonly value = input<string>('');
   readonly valueChange = output<string>();
 
   protected showPreview = signal(false);
-  protected renderedHtml = signal('');
+  protected renderedHtml = signal<SafeHtml | ''>('');
   protected isPreviewLoading = signal(false);
 
   private editorRef = viewChild.required<ElementRef<HTMLTextAreaElement>>('editor');
@@ -77,11 +80,25 @@ export class MarkdownEditor implements AfterViewInit {
 
   private async renderPreview(md: string): Promise<void> {
     if (!md.trim()) {
-      this.renderedHtml.set('<p style="color: var(--color-text-muted); font-style: italic;">Nothing to preview</p>');
+      this.renderedHtml.set(this.sanitizer.bypassSecurityTrustHtml(
+        '<p style="color: var(--color-text-muted); font-style: italic;">Nothing to preview</p>'
+      ));
       return;
     }
     const raw = await marked.parse(md, { async: true, gfm: true, breaks: true });
-    this.renderedHtml.set(DOMPurify.sanitize(raw as string));
+    const sanitized = DOMPurify.sanitize(raw as string, {
+      ALLOWED_TAGS: [
+        'a', 'abbr', 'b', 'blockquote', 'br', 'caption', 'cite', 'code', 'col', 'colgroup',
+        'dd', 'del', 'dfn', 'div', 'dl', 'dt', 'em', 'figcaption', 'figure', 'h1', 'h2', 'h3',
+        'h4', 'h5', 'h6', 'hr', 'i', 'img', 'ins', 'kbd', 'li', 'mark', 'ol', 'p', 'pre',
+        'q', 's', 'samp', 'small', 'span', 'strong', 'sub', 'sup', 'table', 'tbody', 'td',
+        'tfoot', 'th', 'thead', 'time', 'tr', 'u', 'ul', 'var',
+      ],
+      ALLOWED_ATTR: [
+        'class', 'id', 'href', 'target', 'rel', 'src', 'alt', 'style', 'title', 'width', 'height',
+      ],
+    });
+    this.renderedHtml.set(this.sanitizer.bypassSecurityTrustHtml(sanitized));
   }
 
   private getSel(): { start: number; end: number; text: string } {

@@ -172,6 +172,11 @@
       background: none;
       padding: 0;
       font-size: var(--font-sm);
+
+      &.hljs {
+        background: #282c34;
+        color: #abb2bf;
+      }
     }
   }
 
