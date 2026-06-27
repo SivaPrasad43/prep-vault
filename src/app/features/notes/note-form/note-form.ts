@@ -1,5 +1,4 @@
 import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { Location } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { finalize } from 'rxjs/operators';
@@ -30,7 +29,6 @@ export class NoteForm implements OnInit {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
   private cdr = inject(ChangeDetectorRef);
-  private location = inject(Location);
   protected categories: Category[] = [];
   protected isEditing = false;
   private noteId: string | null = null;
@@ -236,7 +234,7 @@ export class NoteForm implements OnInit {
 
     obs.subscribe({
       next: (note) => {
-        this.router.navigate(['/notes', note.id], { replaceUrl: true });
+        this.router.navigate(['/notes', note.id]);
       },
       error: (err) => {
         this.submitting = false;
@@ -247,7 +245,7 @@ export class NoteForm implements OnInit {
 
   protected goBack(): void {
     if (this.noteId) {
-      this.location.back();
+      this.router.navigate(['/notes', this.noteId]);
     } else {
       this.router.navigate(['/my-notes']);
     }

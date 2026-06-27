@@ -4,21 +4,10 @@ import { DatePipe, isPlatformBrowser } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LucideArrowLeft, LucidePencil, LucideTrash2, LucideCalendar } from '@lucide/angular';
 import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
 import DOMPurify from 'dompurify';
 import hljs from 'highlight.js';
 
-marked.use(markedHighlight({
-  langPrefix: 'hljs language-',
-  highlight(code: string, lang: string): string {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-    try {
-      return hljs.highlight(code, { language }).value;
-    } catch {
-      return code;
-    }
-  },
-}));
+import '../../../shared/markdown.config';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RevisionsService } from '../../../core/services/revisions.service';
@@ -137,19 +126,19 @@ export class NoteDetail implements OnInit {
     return blocks;
   }
 
-  protected highlightedCode(code: string, language: string): SafeHtml {
+  protected highlightedCode(code: string, language: string): string {
     if (!isPlatformBrowser(this.platformId)) {
-      return this.sanitizer.bypassSecurityTrustHtml(this.escapeHtml(code));
+      return this.escapeHtml(code);
     }
     const lang = this.mapHighlightLanguage(language);
     try {
       if (lang && hljs.getLanguage(lang)) {
-        return this.sanitizer.bypassSecurityTrustHtml(hljs.highlight(code, { language: lang }).value);
+        return hljs.highlight(code, { language: lang }).value;
       }
       const result = hljs.highlightAuto(code);
-      return this.sanitizer.bypassSecurityTrustHtml(result.value);
+      return result.value;
     } catch {
-      return this.sanitizer.bypassSecurityTrustHtml(this.escapeHtml(code));
+      return this.escapeHtml(code);
     }
   }
 

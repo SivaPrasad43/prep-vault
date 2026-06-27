@@ -7,21 +7,9 @@ import {
   LucideEye, LucideEyeClosed, LucideFileCode,
 } from '@lucide/angular';
 import { marked } from 'marked';
-import { markedHighlight } from 'marked-highlight';
 import DOMPurify from 'dompurify';
-import hljs from 'highlight.js';
 
-marked.use(markedHighlight({
-  langPrefix: 'hljs language-',
-  highlight(code: string, lang: string): string {
-    const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-    try {
-      return hljs.highlight(code, { language }).value;
-    } catch {
-      return code;
-    }
-  },
-}));
+import '../../markdown.config';
 
 @Component({
   selector: 'app-markdown-editor',
