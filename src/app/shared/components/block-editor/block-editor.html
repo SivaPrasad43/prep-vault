@@ -1,0 +1,72 @@
+<div class="block-editor">
+  <div #host class="block-editor__content"></div>
+
+  @if (bubble(); as b) {
+    <div
+      class="be-bubble"
+      role="toolbar"
+      aria-label="Text formatting"
+      [style.top.px]="b.top"
+      [style.left.px]="b.left"
+      (mousedown)="onBubbleMousedown($event)"
+    >
+      @if (linkMode()) {
+        <input
+          #linkInput
+          class="be-bubble__input"
+          type="url"
+          placeholder="Paste link and press Enter"
+          [value]="linkValue()"
+          (input)="linkValue.set($any($event.target).value)"
+          (keydown)="onLinkKeydown($event)"
+          (blur)="onLinkBlur()"
+        />
+      } @else {
+        <button type="button" class="be-bubble__btn" [class.--active]="b.bold" (click)="toggleMark('bold')" title="Bold (Ctrl+B)" aria-label="Bold"><svg lucideBold></svg></button>
+        <button type="button" class="be-bubble__btn" [class.--active]="b.italic" (click)="toggleMark('italic')" title="Italic (Ctrl+I)" aria-label="Italic"><svg lucideItalic></svg></button>
+        <button type="button" class="be-bubble__btn" [class.--active]="b.code" (click)="toggleMark('code')" title="Inline code (Ctrl+E)" aria-label="Inline code"><svg lucideCode></svg></button>
+        <button type="button" class="be-bubble__btn" [class.--active]="b.link" (click)="openLinkInput()" title="Link" aria-label="Link"><svg lucideLink></svg></button>
+      }
+    </div>
+  }
+
+  @if (slash(); as s) {
+    <div class="be-slash" role="listbox" aria-label="Insert block" [style.top.px]="s.top" [style.left.px]="s.left" (mousedown)="$event.preventDefault()">
+      @if (s.items.length === 0) {
+        <div class="be-slash__empty">No results</div>
+      } @else {
+        <div class="be-slash__label">Basic blocks</div>
+        @for (item of s.items; track item.title; let i = $index) {
+          <button
+            type="button"
+            role="option"
+            class="be-slash__item"
+            [class.be-slash__item--active]="i === s.active"
+            [attr.aria-selected]="i === s.active"
+            (mouseenter)="hoverSlash(i)"
+            (click)="pickSlash(i)"
+          >
+            <span class="be-slash__icon">
+              @switch (item.icon) {
+                @case ('text') { <svg lucideType></svg> }
+                @case ('h1') { <svg lucideHeading1></svg> }
+                @case ('h2') { <svg lucideHeading2></svg> }
+                @case ('h3') { <svg lucideHeading3></svg> }
+                @case ('bullet') { <svg lucideList></svg> }
+                @case ('ordered') { <svg lucideListOrdered></svg> }
+                @case ('todo') { <svg lucideListTodo></svg> }
+                @case ('quote') { <svg lucideQuote></svg> }
+                @case ('code') { <svg lucideFileCode></svg> }
+                @case ('divider') { <svg lucideMinus></svg> }
+              }
+            </span>
+            <span class="be-slash__text">
+              <span class="be-slash__title">{{ item.title }}</span>
+              <span class="be-slash__hint">{{ item.hint }}</span>
+            </span>
+          </button>
+        }
+      }
+    </div>
+  }
+</div>

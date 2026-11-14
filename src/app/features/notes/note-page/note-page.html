@@ -1,0 +1,110 @@
+<div class="note-page">
+  <div class="note-page__topbar">
+    <button type="button" class="note-page__back" (click)="goBack()">
+      <svg lucideArrowLeft></svg><span>My notes</span>
+    </button>
+
+    <div class="note-page__topbar-right">
+      <span class="note-page__status" [class]="'note-page__status note-page__status--' + saveStatus()" aria-live="polite">
+        @switch (saveStatus()) {
+          @case ('saving') { <svg lucideLoader class="note-page__spin"></svg> Saving… }
+          @case ('saved') { <svg lucideCircleCheck></svg> Saved }
+          @case ('error') { <svg lucideCloudOff></svg> Not saved — retrying }
+        }
+      </span>
+
+      @if (!isNew()) {
+        <div class="note-page__menu-wrap">
+          <button type="button" class="note-page__icon-btn" (click)="toggleMenu($event)" aria-label="More actions" [attr.aria-expanded]="menuOpen()">
+            <svg lucideEllipsis></svg>
+          </button>
+          @if (menuOpen()) {
+            <div class="note-page__menu" role="menu" (click)="$event.stopPropagation()">
+              <button type="button" role="menuitem" class="note-page__menu-item note-page__menu-item--danger" (click)="askDelete()">
+                <svg lucideTrash2></svg> Delete note
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="note-page__skeleton">
+      <app-skeleton width="60%" height="40px" borderRadius="var(--radius-sm)" />
+      <app-skeleton width="40%" height="20px" borderRadius="var(--radius-sm)" />
+      <app-skeleton width="100%" height="14px" borderRadius="var(--radius-sm)" />
+      <app-skeleton width="92%" height="14px" borderRadius="var(--radius-sm)" />
+      <app-skeleton width="75%" height="14px" borderRadius="var(--radius-sm)" />
+    </div>
+  } @else {
+    <textarea
+      #titleInput
+      class="note-page__title"
+      rows="1"
+      placeholder="Untitled"
+      aria-label="Title"
+      [value]="title()"
+      (input)="onTitleInput($event)"
+      (keydown)="onTitleKeydown($event)"
+    ></textarea>
+
+    <div class="note-page__props">
+      <label class="note-page__prop" title="Category">
+        <svg lucideFolder></svg>
+        <select class="note-page__select" [value]="categoryId()" (change)="onCategoryChange($event)" aria-label="Category">
+          @for (cat of categories(); track cat.id) {
+            <option [value]="cat.id" [selected]="cat.id === categoryId()">{{ cat.name }}</option>
+          }
+        </select>
+      </label>
+
+      <button type="button" class="note-page__prop note-page__prop--btn" (click)="cycleConfidence()" title="Confidence — click to change">
+        <app-confidence-indicator [level]="confidence()" />
+      </button>
+
+      <button
+        type="button"
+        class="note-page__prop note-page__prop--btn note-page__star"
+        [class.note-page__star--active]="favorite()"
+        (click)="toggleFavorite()"
+        [attr.aria-pressed]="favorite()"
+        [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"
+        [title]="favorite() ? 'Bookmarked' : 'Bookmark'"
+      >
+        <svg lucideStar></svg>
+      </button>
+
+      @if (!isNew()) {
+        <span class="note-page__prop note-page__prop--static" title="Revisions">
+          <svg lucideHistory></svg>
+          {{ revisionCount() ?? '–' }} {{ revisionCount() === 1 ? 'revision' : 'revisions' }}
+        </span>
+        <button type="button" class="note-page__prop note-page__prop--btn note-page__revise" (click)="markRevised()" [disabled]="markingRevised()">
+          {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+        </button>
+      }
+
+      @if (updatedAt()) {
+        <span class="note-page__prop note-page__prop--static note-page__edited">
+          <svg lucideClock></svg> Edited {{ updatedAt() | date: 'MMM d, y, h:mm a' }}
+        </span>
+      }
+    </div>
+
+    @for (key of [editorKey()]; track key) {
+      <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" />
+    }
+  }
+
+  <app-modal [open]="showDeleteConfirm()" title="Delete this note?" (close)="showDeleteConfirm.set(false)">
+    <p>This action cannot be undone.</p>
+    <ng-container modal-actions>
+      <button type="button" class="note-page__modal-btn" (click)="showDeleteConfirm.set(false)">Cancel</button>
+      <button type="button" class="note-page__modal-btn note-page__modal-btn--danger" (click)="onDelete()" [disabled]="deleting()">
+        {{ deleting() ? 'Deleting…' : 'Delete' }}
+      </button>
+    </ng-container>
+  </app-modal>
+</div>

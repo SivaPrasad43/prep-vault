@@ -50,7 +50,7 @@ export interface Note {
 export interface CreateNotePayload {
   title: string;
   category_id: string;
-  description?: string;
+  description?: string | null;
   code_snippets?: CodeSnippet[];
   links?: Link[];
   content_blocks?: ContentBlock[];

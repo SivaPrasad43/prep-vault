@@ -8,7 +8,7 @@
       class="min-w-0 flex-1 text-base leading-snug font-medium outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
       (click)="$event.stopPropagation()"
     >
-      {{ note().title }}
+      {{ note().title || 'Untitled' }}
     </a>
     <button
       type="button"
