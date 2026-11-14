@@ -33,7 +33,10 @@ Select any text to get the formatting toolbar: **bold**, *italic*, \`inline code
 - [ ] Write your first note
 - [ ] Mark a topic as revised
 
-Long note? Click the **Contents** button (list icon, top right) to open a collapsible outline of your headings and jump to any section.
+## Navigate long notes
+
+- **Contents:** click the list icon in a note's top bar to open an outline of your headings. Expand or collapse sections with the arrows, and click a heading to jump to it. On a phone it slides up from the bottom.
+- **Find in note:** press **Ctrl/Cmd + F** (or click the 🔍 icon) to search only this note's text, code blocks included. Every match is highlighted. Press **Enter** / **Shift + Enter** to move between them and **Esc** to close.
 
 ## Code blocks
 
@@ -58,20 +61,17 @@ In light mode they look like a highlighter pen. In dark mode they glow. Press **
 
 ## Saving
 
-- Everything **saves automatically** a moment after you stop typing. Watch the status in the top-right corner.
+- Everything **saves automatically** a moment after you stop typing. The top bar shows when the note was last edited and whether it's saved.
 - Press **Ctrl/Cmd + S** to save immediately.
 - If you're offline, PrepVault keeps retrying until the save goes through.
+- Cleared a note completely (no title, no text)? It's deleted automatically when you leave it, so empty "Untitled" notes never pile up.
 
 ## Organise and revise
 
 - **Category:** pick one from the menu under the title. Use the category filter above your notes to narrow the list.
-- **Confidence:** <mark data-color="pink">Need practice</mark> → <mark data-color="yellow">Getting there</mark> → <mark data-color="lime">Confident</mark>. The coloured dots above your notes filter by it.
+- **Confidence:** <mark data-color="pink">Need practice</mark> → <mark data-color="yellow">Getting there</mark> → <mark data-color="lime">Confident</mark>. Set it from the menu under the title. Click a coloured dot above your notes to show only that level, and click it again to show everything.
 - **Bookmark** a note with the bookmark icon in its top-right corner to find it under **Saved**.
 - **Mark revised** each time you review a topic. It counts your revisions and keeps your day streak going.
-
-## Find things fast
-
-Use the search box above your notes to search titles and content. Combine it with the category and confidence filters.
 
 ## Track your progress
 
@@ -86,7 +86,9 @@ Open **Progress** from the side menu to see:
 | Action | Shortcut |
 | --- | --- |
 | Save now | Ctrl/Cmd + S |
-| Show / hide contents | Ctrl/Cmd + Shift + O |
+| Find in note | Ctrl/Cmd + F |
+| Next / previous match | Enter / Shift + Enter |
+| Close find or contents | Esc |
 | Block menu | / |
 | Bold / Italic | Ctrl/Cmd + B / I |
 | Inline code | Ctrl/Cmd + E |
