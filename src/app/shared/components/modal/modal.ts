@@ -1,11 +1,12 @@
 import { Component, input, output, HostListener } from '@angular/core';
-import { LucideX } from '@lucide/angular';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideX } from '@ng-icons/lucide';
 
 @Component({
   selector: 'app-modal',
-  imports: [LucideX],
+  imports: [NgIcon],
   templateUrl: './modal.html',
-  styleUrl: './modal.scss',
+  viewProviders: [provideIcons({ lucideX })],
 })
 export class Modal {
   readonly open = input(false);

@@ -1,108 +1,125 @@
-<div class="note-page">
-  <div class="note-page__topbar">
-    <button type="button" class="note-page__back" (click)="goBack()">
-      <svg lucideArrowLeft></svg><span>My notes</span>
+<div class="min-h-dvh bg-background">
+  <!-- Top bar -->
+  <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-background/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/70 sm:px-4">
+    <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()">
+      <ng-icon name="lucideArrowLeft" class="text-lg" />
+      <span>Notes</span>
     </button>
 
-    <div class="note-page__topbar-right">
-      <span class="note-page__status" [class]="'note-page__status note-page__status--' + saveStatus()" aria-live="polite">
+    <div class="ml-auto flex items-center gap-1">
+      <span class="flex items-center gap-1.5 px-2 text-xs text-muted-foreground" aria-live="polite">
         @switch (saveStatus()) {
-          @case ('saving') { <svg lucideLoader class="note-page__spin"></svg> Saving… }
-          @case ('saved') { <svg lucideCircleCheck></svg> Saved }
-          @case ('error') { <svg lucideCloudOff></svg> Not saved — retrying }
+          @case ('saving') { <ng-icon name="lucideLoaderCircle" class="animate-spin" /> Saving… }
+          @case ('saved') { <ng-icon name="lucideCircleCheck" /> Saved }
+          @case ('error') { <span class="flex items-center gap-1.5 text-destructive"><ng-icon name="lucideCloudOff" /> Not saved — retrying</span> }
         }
       </span>
 
       @if (!isNew()) {
-        <div class="note-page__menu-wrap">
-          <button type="button" class="note-page__icon-btn" (click)="toggleMenu($event)" aria-label="More actions" [attr.aria-expanded]="menuOpen()">
-            <svg lucideEllipsis></svg>
-          </button>
-          @if (menuOpen()) {
-            <div class="note-page__menu" role="menu" (click)="$event.stopPropagation()">
-              <button type="button" role="menuitem" class="note-page__menu-item note-page__menu-item--danger" (click)="askDelete()">
-                <svg lucideTrash2></svg> Delete note
-              </button>
-            </div>
-          }
-        </div>
-      }
-    </div>
-  </div>
-
-  @if (loading()) {
-    <div class="note-page__skeleton">
-      <app-skeleton width="60%" height="40px" borderRadius="var(--radius-sm)" />
-      <app-skeleton width="40%" height="20px" borderRadius="var(--radius-sm)" />
-      <app-skeleton width="100%" height="14px" borderRadius="var(--radius-sm)" />
-      <app-skeleton width="92%" height="14px" borderRadius="var(--radius-sm)" />
-      <app-skeleton width="75%" height="14px" borderRadius="var(--radius-sm)" />
-    </div>
-  } @else {
-    <textarea
-      #titleInput
-      class="note-page__title"
-      rows="1"
-      placeholder="Untitled"
-      aria-label="Title"
-      [value]="title()"
-      (input)="onTitleInput($event)"
-      (keydown)="onTitleKeydown($event)"
-    ></textarea>
-
-    <div class="note-page__props">
-      <label class="note-page__prop" title="Category">
-        <svg lucideFolder></svg>
-        <select class="note-page__select" [value]="categoryId()" (change)="onCategoryChange($event)" aria-label="Category">
-          @for (cat of categories(); track cat.id) {
-            <option [value]="cat.id" [selected]="cat.id === categoryId()">{{ cat.name }}</option>
-          }
-        </select>
-      </label>
-
-      <button type="button" class="note-page__prop note-page__prop--btn" (click)="cycleConfidence()" title="Confidence — click to change">
-        <app-confidence-indicator [level]="confidence()" />
-      </button>
-
-      <button
-        type="button"
-        class="note-page__prop note-page__prop--btn note-page__star"
-        [class.note-page__star--active]="favorite()"
-        (click)="toggleFavorite()"
-        [attr.aria-pressed]="favorite()"
-        [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"
-        [title]="favorite() ? 'Bookmarked' : 'Bookmark'"
-      >
-        <svg lucideStar></svg>
-      </button>
-
-      @if (!isNew()) {
-        <span class="note-page__prop note-page__prop--static" title="Revisions">
-          <svg lucideHistory></svg>
-          {{ revisionCount() ?? '–' }} {{ revisionCount() === 1 ? 'revision' : 'revisions' }}
-        </span>
-        <button type="button" class="note-page__prop note-page__prop--btn note-page__revise" (click)="markRevised()" [disabled]="markingRevised()">
-          {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+        <button z-button zType="ghost" zSize="icon-lg" zShape="circle" z-dropdown [zDropdownMenu]="actions" aria-label="More actions">
+          <ng-icon name="lucideEllipsis" class="text-lg" />
         </button>
-      }
-
-      @if (updatedAt()) {
-        <span class="note-page__prop note-page__prop--static note-page__edited">
-          <svg lucideClock></svg> Edited {{ updatedAt() | date: 'MMM d, y, h:mm a' }}
-        </span>
+        <z-dropdown-menu-content #actions="zDropdownMenuContent" zAlign="end" class="w-44">
+          <z-dropdown-menu-item zType="destructive" (click)="askDelete()">
+            <ng-icon name="lucideTrash2" />
+            Delete note
+          </z-dropdown-menu-item>
+        </z-dropdown-menu-content>
       }
     </div>
+  </header>
 
-    @for (key of [editorKey()]; track key) {
-      <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" />
+  <article class="mx-auto w-full max-w-3xl px-5 pt-6 pb-10 sm:px-12 sm:pt-12">
+    @if (loading()) {
+      <div class="space-y-4">
+        <z-skeleton class="h-10 w-3/5" />
+        <z-skeleton class="h-6 w-2/5" />
+        <z-skeleton class="mt-8 h-4 w-full" />
+        <z-skeleton class="h-4 w-11/12" />
+        <z-skeleton class="h-4 w-3/4" />
+      </div>
+    } @else {
+      <textarea
+        #titleInput
+        class="w-full resize-none overflow-hidden bg-transparent text-3xl leading-tight font-bold tracking-tight outline-none placeholder:text-muted-foreground/60 sm:text-4xl"
+        rows="1"
+        placeholder="Untitled"
+        aria-label="Title"
+        [value]="title()"
+        (input)="onTitleInput($event)"
+        (keydown)="onTitleKeydown($event)"
+      ></textarea>
+
+      <!-- Properties -->
+      <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b pb-4 text-sm text-muted-foreground">
+        <label class="flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-muted" title="Category">
+          @if (category(); as cat) {
+            <app-category-icon [icon]="cat.icon" [style.color]="cat.color" />
+          }
+          <select
+            class="cursor-pointer bg-transparent text-foreground outline-none"
+            [value]="categoryId()"
+            (change)="onCategoryChange($event)"
+            aria-label="Category"
+          >
+            @for (cat of categories(); track cat.id) {
+              <option [value]="cat.id" [selected]="cat.id === categoryId()">{{ cat.name }}</option>
+            }
+          </select>
+        </label>
+
+        <button type="button" class="flex h-8 items-center rounded-md px-2 hover:bg-muted" (click)="cycleConfidence()" title="Confidence — click to change">
+          <app-confidence-indicator [level]="confidence()" />
+        </button>
+
+        <button
+          type="button"
+          class="grid size-8 place-items-center rounded-md hover:bg-muted"
+          [class.text-amber-500]="favorite()"
+          (click)="toggleFavorite()"
+          [attr.aria-pressed]="favorite()"
+          [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"
+          [title]="favorite() ? 'Bookmarked' : 'Bookmark'"
+        >
+          <ng-icon [name]="favorite() ? 'starSolid' : 'lucideStar'" class="text-base" />
+        </button>
+
+        @if (!isNew()) {
+          <span class="flex h-8 items-center gap-1.5 px-2" title="Revisions">
+            <ng-icon name="lucideHistory" />
+            {{ revisionCount() ?? '–' }} {{ revisionCount() === 1 ? 'revision' : 'revisions' }}
+          </span>
+          <button
+            z-button
+            zType="outline"
+            zSize="sm"
+            class="rounded-full"
+            (click)="markRevised()"
+            [zDisabled]="markingRevised()"
+          >
+            {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+          </button>
+        }
+
+        @if (updatedAt()) {
+          <span class="ml-auto flex h-8 items-center gap-1.5 px-2 text-xs">
+            <ng-icon name="lucideClock" />
+            Edited {{ updatedAt() | date: 'MMM d, h:mm a' }}
+          </span>
+        }
+      </div>
+
+      @for (key of [editorKey()]; track key) {
+        <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" />
+      }
     }
-  }
+  </article>
 
   <app-modal [open]="showDeleteConfirm()" title="Delete this note?" (close)="showDeleteConfirm.set(false)">
-    <p>This action cannot be undone.</p>
+    <p>This can't be undone.</p>
     <ng-container modal-actions>
-      <button type="button" class="note-page__modal-btn" (click)="showDeleteConfirm.set(false)">Cancel</button>
-      <button type="button" class="note-page__modal-btn note-page__modal-btn--danger" (click)="onDelete()" [disabled]="deleting()">
+      <button z-button zType="ghost" (click)="showDeleteConfirm.set(false)">Cancel</button>
+      <button z-button class="bg-destructive text-white hover:bg-destructive/90" (click)="onDelete()" [zLoading]="deleting()">
         {{ deleting() ? 'Deleting…' : 'Delete' }}
       </button>
     </ng-container>

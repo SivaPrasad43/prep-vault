@@ -1,5 +1,7 @@
 @layer ng-icon, theme, base, components, utilities;
 @import 'tailwindcss';
+/* Syntax colors for code blocks in the note editor (hljs classes from lowlight). */
+@import 'highlight.js/styles/atom-one-dark.css';
 @import './app/shared/core/css/zard';
 @plugin "tailwindcss-animate";
 

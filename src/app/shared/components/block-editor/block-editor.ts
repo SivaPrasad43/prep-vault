@@ -23,22 +23,11 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Suggestion, { type SuggestionProps } from '@tiptap/suggestion';
 import { createLowlight, all } from 'lowlight';
 import { Markdown } from 'tiptap-markdown';
+import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  LucideBold,
-  LucideItalic,
-  LucideCode,
-  LucideLink,
-  LucideHeading1,
-  LucideHeading2,
-  LucideHeading3,
-  LucideList,
-  LucideListOrdered,
-  LucideListTodo,
-  LucideQuote,
-  LucideFileCode,
-  LucideMinus,
-  LucideType,
-} from '@lucide/angular';
+  lucideBold, lucideItalic, lucideCode, lucideLink, lucideHeading1, lucideHeading2, lucideHeading3,
+  lucideList, lucideListOrdered, lucideListTodo, lucideQuote, lucideFileCode, lucideMinus, lucideType,
+} from '@ng-icons/lucide';
 
 /** Same grammar set highlight.js used for the old markdown renderer (all languages). */
 const lowlight = createLowlight(all);
@@ -216,13 +205,15 @@ interface BubbleState {
 
 @Component({
   selector: 'app-block-editor',
-  imports: [
-    LucideBold, LucideItalic, LucideCode, LucideLink,
-    LucideHeading1, LucideHeading2, LucideHeading3, LucideList, LucideListOrdered,
-    LucideListTodo, LucideQuote, LucideFileCode, LucideMinus, LucideType,
-  ],
+  imports: [NgIcon],
   templateUrl: './block-editor.html',
-  styleUrl: './block-editor.scss',
+  styleUrl: './block-editor.css',
+  viewProviders: [
+    provideIcons({
+      lucideBold, lucideItalic, lucideCode, lucideLink, lucideHeading1, lucideHeading2, lucideHeading3,
+      lucideList, lucideListOrdered, lucideListTodo, lucideQuote, lucideFileCode, lucideMinus, lucideType,
+    }),
+  ],
   encapsulation: ViewEncapsulation.None,
 })
 export class BlockEditor implements OnDestroy {

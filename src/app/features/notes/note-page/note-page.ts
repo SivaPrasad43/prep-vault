@@ -13,25 +13,21 @@ import {
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  LucideArrowLeft,
-  LucideStar,
-  LucideEllipsis,
-  LucideTrash2,
-  LucideHistory,
-  LucideClock,
-  LucideCircleCheck,
-  LucideCloudOff,
-  LucideLoader,
-  LucideFolder,
-} from '@lucide/angular';
+  lucideArrowLeft, lucideStar, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
+  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle,
+} from '@ng-icons/lucide';
+import { ZardButtonComponent } from '@/shared/ui/button';
+import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
+import { ZardDropdownImports } from '@/shared/ui/dropdown';
+import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RevisionsService } from '../../../core/services/revisions.service';
 import { BlockEditor } from '../../../shared/components/block-editor/block-editor';
 import { ConfidenceIndicator } from '../../../shared/components/confidence-indicator/confidence-indicator';
 import { Modal } from '../../../shared/components/modal/modal';
-import { Skeleton } from '../../../shared/components/skeleton/skeleton';
 import { deriveLegacyFields, noteToMarkdown } from '../../../shared/note-markdown';
 import type { Category, ConfidenceLevel, Note, UpdateNotePayload } from '../../../core/models';
 
@@ -55,15 +51,24 @@ const CONFIDENCE_ORDER: ConfidenceLevel[] = ['need_practice', 'getting_there', '
   selector: 'app-note-page',
   imports: [
     DatePipe,
-    LucideArrowLeft, LucideStar, LucideEllipsis, LucideTrash2, LucideHistory, LucideClock,
-    LucideCircleCheck, LucideCloudOff, LucideLoader, LucideFolder,
+    NgIcon,
+    ZardButtonComponent,
+    ZardSkeletonComponent,
+    ...ZardDropdownImports,
+    CategoryIcon,
     BlockEditor,
     ConfidenceIndicator,
     Modal,
-    Skeleton,
   ],
   templateUrl: './note-page.html',
-  styleUrl: './note-page.scss',
+  viewProviders: [
+    provideIcons({
+      lucideArrowLeft, lucideStar, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
+      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle,
+      starSolid:
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>',
+    }),
+  ],
 })
 export class NotePage implements OnDestroy {
   private route = inject(ActivatedRoute);
@@ -94,7 +99,6 @@ export class NotePage implements OnDestroy {
   protected readonly justRevised = signal(false);
 
   protected readonly saveStatus = signal<SaveStatus>('idle');
-  protected readonly menuOpen = signal(false);
   protected readonly showDeleteConfirm = signal(false);
   protected readonly deleting = signal(false);
 
@@ -416,19 +420,7 @@ export class NotePage implements OnDestroy {
 
   // ---------- Menu / delete / nav ----------
 
-  protected toggleMenu(event: MouseEvent): void {
-    event.stopPropagation();
-    this.menuOpen.update((o) => !o);
-  }
-
-  @HostListener('document:click')
-  @HostListener('document:keydown.escape')
-  protected closeMenu(): void {
-    this.menuOpen.set(false);
-  }
-
   protected askDelete(): void {
-    this.menuOpen.set(false);
     this.showDeleteConfirm.set(true);
   }
 
