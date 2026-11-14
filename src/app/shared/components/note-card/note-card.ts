@@ -1,10 +1,10 @@
-import { Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideBookmark } from '@ng-icons/lucide';
-import { CategoryBadge } from '../category-badge/category-badge';
 import { ConfidenceIndicator } from '../confidence-indicator/confidence-indicator';
+import { CategoryIcon } from '../category-icon/category-icon';
 import type { Note, Category } from '../../../core/models';
 
 const BOOKMARK_SOLID =
@@ -26,24 +26,35 @@ function toPlainText(md: string): string {
 
 @Component({
   selector: 'app-note-card',
-  imports: [DatePipe, RouterLink, NgIcon, CategoryBadge, ConfidenceIndicator],
+  imports: [DatePipe, RouterLink, NgIcon, ConfidenceIndicator, CategoryIcon],
   templateUrl: './note-card.html',
   viewProviders: [provideIcons({ lucideBookmark, heroBookmarkSolid: BOOKMARK_SOLID })],
 })
 export class NoteCard {
-  private router = inject(Router);
-
   readonly note = input.required<Note>();
   readonly category = input<Category | null>(null);
+  /** Currently open in the reading pane. */
+  readonly active = input(false);
   readonly toggleFavorite = output<Note>();
 
   protected readonly preview = computed(() => {
     const n = this.note();
     const text = n.body_markdown ? toPlainText(n.body_markdown) : (n.description ?? '');
-    return text.length > 400 ? text.slice(0, 400) + '…' : text;
+    return text.length > 200 ? text.slice(0, 200) + '…' : text;
   });
 
-  protected openNote(): void {
-    this.router.navigate(['/notes', this.note().id]);
-  }
+  protected readonly confidenceLabel = computed(
+    () =>
+      ({ need_practice: 'Need practice', getting_there: 'Getting there', confident: 'Confident' })[
+        this.note().confidence_level
+      ],
+  );
+
+  /** Compact date: time for today, "MMM d" this year, full date otherwise. */
+  protected readonly dateFormat = computed(() => {
+    const d = new Date(this.note().updated_at);
+    const now = new Date();
+    if (d.toDateString() === now.toDateString()) return 'h:mm a';
+    return d.getFullYear() === now.getFullYear() ? 'MMM d' : 'MMM d, y';
+  });
 }

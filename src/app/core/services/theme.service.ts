@@ -1,91 +1,42 @@
-import { Injectable, Inject, PLATFORM_ID, effect, signal } from '@angular/core';
+import { Injectable, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { lightTheme } from '../../theme/light-theme';
-import { darkTheme } from '../../theme/dark-theme';
-import type { Theme } from '../../theme/theme';
 
 type ThemeMode = 'light' | 'dark';
 
-@Injectable({
-  providedIn: 'root',
-})
+const STORAGE_KEY = 'prep-vault-theme';
+
+/**
+ * Light/dark mode via the `.dark` class on <html> (ZardUI/Tailwind tokens).
+ * index.html applies the saved mode before first paint; this keeps it in sync.
+ */
+@Injectable({ providedIn: 'root' })
 export class ThemeService {
-  private _mode = signal<ThemeMode>('dark');
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly _mode = signal<ThemeMode>(this.loadSaved());
+
   readonly mode = this._mode.asReadonly();
+  readonly isDark = computed(() => this._mode() === 'dark');
 
-  private _theme = signal<Theme>(darkTheme);
-  readonly theme = this._theme.asReadonly();
-
-  readonly isDark = signal(false);
-  private isBrowser: boolean;
-
-  constructor(@Inject(PLATFORM_ID) platformId: object) {
-    this.isBrowser = isPlatformBrowser(platformId);
-
-    if (this.isBrowser) {
-      const saved = this.loadSavedTheme();
-      this._mode.set(saved);
-      this.applyTheme(saved);
-
-      effect(() => {
-        this.applyTheme(this._mode());
-        this.saveTheme(this._mode());
-      });
-    }
+  constructor() {
+    if (!this.isBrowser) return;
+    effect(() => {
+      const mode = this._mode();
+      document.documentElement.classList.toggle('dark', mode === 'dark');
+      document.documentElement.style.colorScheme = mode;
+      localStorage.setItem(STORAGE_KEY, mode);
+    });
   }
 
   toggle(): void {
     this._mode.update((m) => (m === 'light' ? 'dark' : 'light'));
-    this.isDark.set(this._mode() === 'dark');
   }
 
   setMode(mode: ThemeMode): void {
     this._mode.set(mode);
-    this.isDark.set(mode === 'dark');
   }
 
-  private applyTheme(mode: ThemeMode): void {
-    const t = mode === 'light' ? lightTheme : darkTheme;
-    this._theme.set(t);
-    this.isDark.set(mode === 'dark');
-
-    if (!this.isBrowser) return;
-
-    const root = document.documentElement;
-    for (const [key, value] of Object.entries(t.colors)) {
-      const cssVar = `--color-${key.replace(/([A-Z])/g, '-$1').toLowerCase()}`;
-      root.style.setProperty(cssVar, value);
-    }
-
-    for (const [key, value] of Object.entries(t.spacing)) {
-      root.style.setProperty(`--spacing-${key}`, value);
-    }
-
-    for (const [key, value] of Object.entries(t.borderRadius)) {
-      root.style.setProperty(`--radius-${key}`, value);
-    }
-
-    for (const [key, value] of Object.entries(t.fontSize)) {
-      root.style.setProperty(`--font-${key}`, value);
-    }
-
-    for (const [key, value] of Object.entries(t.shadow)) {
-      root.style.setProperty(`--shadow-${key}`, value);
-    }
-
-    for (const [key, value] of Object.entries(t.transition)) {
-      root.style.setProperty(`--transition-${key}`, value);
-    }
-
-    root.setAttribute('data-theme', mode);
-    root.classList.toggle('dark', mode === 'dark');
-  }
-
-  private loadSavedTheme(): ThemeMode {
-    return (localStorage.getItem('prep-vault-theme') as ThemeMode) || 'dark';
-  }
-
-  private saveTheme(mode: ThemeMode): void {
-    localStorage.setItem('prep-vault-theme', mode);
+  private loadSaved(): ThemeMode {
+    if (!this.isBrowser) return 'dark';
+    return localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
   }
 }

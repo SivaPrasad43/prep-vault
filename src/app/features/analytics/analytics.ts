@@ -103,8 +103,11 @@ export class Analytics implements OnInit, OnDestroy {
     return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
   }
 
-  /** Add alpha to an oklch()/rgb() color string; canvas accepts both. */
+  /** Add alpha to a #rrggbb / oklch() / rgb() color string; canvas accepts all. */
   private withAlpha(color: string, alpha: number): string {
+    if (/^#[0-9a-f]{6}$/i.test(color)) {
+      return color + Math.round(alpha * 255).toString(16).padStart(2, '0');
+    }
     return /^(oklch|rgb|hsl)\(/.test(color) && !color.includes('/')
       ? color.replace(/\)\s*$/, ` / ${alpha})`)
       : color;

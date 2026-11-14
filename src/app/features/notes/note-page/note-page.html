@@ -1,0 +1,127 @@
+<div class="min-h-dvh bg-card lg:min-h-full lg:rounded-2xl lg:shadow-sheet">
+  <!-- Top bar -->
+  <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-card/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:px-4 lg:rounded-t-2xl">
+    <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()" title="Back to notes">
+      <ng-icon name="lucideArrowLeft" class="text-lg" />
+      <span class="lg:sr-only">Notes</span>
+    </button>
+
+    <div class="ml-auto flex items-center gap-1">
+      <span class="flex items-center gap-1.5 px-2 text-xs text-muted-foreground" aria-live="polite">
+        @switch (saveStatus()) {
+          @case ('saving') { <ng-icon name="lucideLoaderCircle" class="animate-spin" /> Saving… }
+          @case ('saved') { <ng-icon name="lucideCircleCheck" /> Saved }
+          @case ('error') { <span class="flex items-center gap-1.5 text-destructive"><ng-icon name="lucideCloudOff" /> Not saved — retrying</span> }
+        }
+      </span>
+
+      @if (!isNew()) {
+        <button z-button zType="ghost" zSize="icon-lg" zShape="circle" z-dropdown [zDropdownMenu]="actions" aria-label="More actions">
+          <ng-icon name="lucideEllipsis" class="text-lg" />
+        </button>
+        <z-dropdown-menu-content #actions="zDropdownMenuContent" zAlign="end" class="w-44">
+          <z-dropdown-menu-item zType="destructive" (click)="askDelete()">
+            <ng-icon name="lucideTrash2" />
+            Delete note
+          </z-dropdown-menu-item>
+        </z-dropdown-menu-content>
+      }
+    </div>
+  </header>
+
+  <article class="mx-auto w-full max-w-3xl px-5 pt-4 pb-10 sm:px-12 sm:pt-8">
+    @if (loading()) {
+      <div class="space-y-4">
+        <z-skeleton class="h-10 w-3/5" />
+        <z-skeleton class="h-6 w-2/5" />
+        <z-skeleton class="mt-8 h-4 w-full" />
+        <z-skeleton class="h-4 w-11/12" />
+        <z-skeleton class="h-4 w-3/4" />
+      </div>
+    } @else {
+      <textarea
+        #titleInput
+        class="w-full resize-none overflow-hidden bg-transparent font-serif text-3xl leading-tight font-semibold tracking-tight outline-none placeholder:text-muted-foreground/60 sm:text-4xl"
+        rows="1"
+        placeholder="Untitled"
+        aria-label="Title"
+        [value]="title()"
+        (input)="onTitleInput($event)"
+        (keydown)="onTitleKeydown($event)"
+      ></textarea>
+
+      <!-- Properties -->
+      <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b border-dashed pb-4 text-sm text-muted-foreground">
+        <label class="flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-muted" title="Category">
+          @if (category(); as cat) {
+            <app-category-icon [icon]="cat.icon" [style.color]="cat.color" />
+          }
+          <select
+            class="cursor-pointer bg-transparent text-foreground outline-none"
+            [value]="categoryId()"
+            (change)="onCategoryChange($event)"
+            aria-label="Category"
+          >
+            @for (cat of categories(); track cat.id) {
+              <option [value]="cat.id" [selected]="cat.id === categoryId()">{{ cat.name }}</option>
+            }
+          </select>
+        </label>
+
+        <button type="button" class="flex h-8 items-center rounded-md px-2 hover:bg-muted" (click)="cycleConfidence()" title="Confidence — click to change">
+          <app-confidence-indicator [level]="confidence()" />
+        </button>
+
+        <button
+          type="button"
+          class="grid size-8 place-items-center rounded-md hover:bg-muted"
+          [class.text-primary]="favorite()"
+          (click)="toggleFavorite()"
+          [attr.aria-pressed]="favorite()"
+          [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"
+          [title]="favorite() ? 'Bookmarked' : 'Bookmark'"
+        >
+          <ng-icon [name]="favorite() ? 'starSolid' : 'lucideStar'" class="text-base" />
+        </button>
+
+        @if (!isNew()) {
+          <span class="flex h-8 items-center gap-1.5 px-2" title="Revisions">
+            <ng-icon name="lucideHistory" />
+            {{ revisionCount() ?? '–' }} {{ revisionCount() === 1 ? 'revision' : 'revisions' }}
+          </span>
+          <button
+            z-button
+            zType="outline"
+            zSize="sm"
+            class="rounded-full"
+            (click)="markRevised()"
+            [zDisabled]="markingRevised()"
+          >
+            {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+          </button>
+        }
+
+        @if (updatedAt()) {
+          <span class="ml-auto flex h-8 items-center gap-1.5 px-2 text-xs">
+            <ng-icon name="lucideClock" />
+            Edited {{ updatedAt() | date: 'MMM d, h:mm a' }}
+          </span>
+        }
+      </div>
+
+      @for (key of [editorKey()]; track key) {
+        <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" />
+      }
+    }
+  </article>
+
+  <app-modal [open]="showDeleteConfirm()" title="Delete this note?" (close)="showDeleteConfirm.set(false)">
+    <p>This can't be undone.</p>
+    <ng-container modal-actions>
+      <button z-button zType="ghost" (click)="showDeleteConfirm.set(false)">Cancel</button>
+      <button z-button class="bg-destructive text-white hover:bg-destructive/90" (click)="onDelete()" [zLoading]="deleting()">
+        {{ deleting() ? 'Deleting…' : 'Delete' }}
+      </button>
+    </ng-container>
+  </app-modal>
+</div>

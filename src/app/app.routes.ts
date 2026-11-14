@@ -11,36 +11,40 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/layout').then((m) => m.Layout),
     canActivate: [AuthGuard],
     children: [
-      { path: '', redirectTo: 'my-notes', pathMatch: 'full' },
+      { path: '', redirectTo: 'notes', pathMatch: 'full' },
+      // Old URL; the notes list now lives at /notes.
+      { path: 'my-notes', redirectTo: 'notes', pathMatch: 'full' },
       {
-        path: 'my-notes',
+        // Gmail-style workspace: note list + reading/editing pane.
+        path: 'notes',
         loadComponent: () =>
           import('./features/dashboard/dashboard').then((m) => m.Dashboard),
+        children: [
+          {
+            path: '',
+            loadComponent: () =>
+              import('./features/notes/note-empty/note-empty').then((m) => m.NoteEmpty),
+          },
+          // Edit and read are the same page now.
+          { path: ':id/edit', redirectTo: ':id' },
+          {
+            // Also serves `notes/new`: one route so the component (and editor focus) survives the
+            // redirect from /notes/new to /notes/:id after the note is first saved.
+            path: ':id',
+            loadComponent: () =>
+              import('./features/notes/note-page/note-page').then((m) => m.NotePage),
+          },
+        ],
       },
       {
         path: 'analytics',
         loadComponent: () =>
           import('./features/analytics/analytics').then((m) => m.Analytics),
       },
-      {
-        path: 'notes/new',
-        loadComponent: () =>
-          import('./features/notes/note-form/note-form').then((m) => m.NoteForm),
-      },
-      {
-        path: 'notes/:id',
-        loadComponent: () =>
-          import('./features/notes/note-detail/note-detail').then((m) => m.NoteDetail),
-      },
-      {
-        path: 'notes/:id/edit',
-        loadComponent: () =>
-          import('./features/notes/note-form/note-form').then((m) => m.NoteForm),
-      },
     ],
   },
   {
     path: '**',
-    redirectTo: 'my-notes',
+    redirectTo: 'notes',
   },
 ];

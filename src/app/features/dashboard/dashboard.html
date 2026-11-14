@@ -1,105 +1,133 @@
-<div class="mx-auto w-full max-w-6xl px-4 pt-6 pb-24 sm:px-6">
-  <!-- Greeting + streak -->
-  <section class="mb-6 flex flex-wrap items-end justify-between gap-4">
-    <div>
-      <h1 class="text-2xl font-normal tracking-tight sm:text-3xl">{{ greeting }}</h1>
-      <p class="mt-1 text-sm text-muted-foreground">{{ today | date: 'EEEE, MMMM d' }}</p>
-    </div>
-    @if (stats(); as s) {
-      <div class="flex items-center gap-2 rounded-full border px-4 py-2 text-sm" aria-label="Current streak">
-        <ng-icon name="lucideFlame" class="text-lg text-orange-500" />
-        <span class="font-medium">{{ s.currentStreak }}</span>
-        <span class="text-muted-foreground">day streak</span>
+<div class="flex lg:h-dvh">
+  <!-- Notes column -->
+  <section
+    aria-label="Notes"
+    class="w-full shrink-0 lg:scrollbar-thin lg:w-[22rem] lg:overflow-y-auto xl:w-[25rem]"
+    [class.max-lg:hidden]="noteOpen()"
+  >
+    <header class="sticky top-0 z-20 bg-desk/95 px-4 pt-5 pb-3 backdrop-blur">
+      <div class="flex items-end justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-xs text-muted-foreground">{{ greeting }}</p>
+          <h1 class="font-serif text-2xl font-semibold tracking-tight">{{ heading() }}</h1>
+        </div>
+        @if (stats(); as s) {
+          <div class="mb-1 flex shrink-0 items-center gap-1 text-xs text-muted-foreground" title="Day streak">
+            <ng-icon name="lucideFlame" class="text-sm text-orange-500" />
+            <span><span class="font-medium text-foreground tabular-nums">{{ s.currentStreak }}</span>-day streak</span>
+          </div>
+        }
       </div>
-    }
+
+      <!-- Search -->
+      <label class="mt-3 flex h-10 items-center gap-2 rounded-lg border bg-card px-3 shadow-xs focus-within:ring-2 focus-within:ring-ring/40">
+        <ng-icon name="lucideSearch" class="shrink-0 text-muted-foreground" />
+        <input
+          #search
+          type="search"
+          class="h-full w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+          placeholder="Search notes"
+          aria-label="Search notes"
+          [value]="filterState.searchQuery()"
+          (input)="filterState.setSearchQuery(search.value)"
+        />
+        @if (filterState.searchQuery()) {
+          <button type="button" class="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted" aria-label="Clear search" (click)="search.value = ''; filterState.setSearchQuery('')">
+            <ng-icon name="lucideX" />
+          </button>
+        }
+      </label>
+
+      <!-- Filters: category + confidence -->
+      <div class="mt-2 flex items-center gap-2">
+        <label class="relative flex h-8 min-w-0 flex-1 items-center rounded-md border bg-card text-xs">
+          <select
+            class="h-full w-full min-w-0 cursor-pointer appearance-none truncate bg-transparent pr-7 pl-2.5 outline-none"
+            aria-label="Filter by category"
+            [value]="filterState.categoryId() ?? ''"
+            (change)="onCategoryChange($event)"
+          >
+            <option value="">All categories</option>
+            @for (cat of categoriesList(); track cat.id) {
+              <option [value]="cat.id" [selected]="filterState.categoryId() === cat.id">{{ cat.name }}</option>
+            }
+          </select>
+          <ng-icon name="lucideChevronDown" class="pointer-events-none absolute right-2 text-muted-foreground" />
+        </label>
+        <div class="flex shrink-0 items-center rounded-md border bg-card p-0.5" role="group" aria-label="Filter by confidence">
+          @for (level of confidenceLevels; track level.value) {
+            <button
+              type="button"
+              class="grid size-7 place-items-center rounded"
+              [class.bg-accent]="filterState.confidenceLevel() === level.value"
+              [attr.aria-pressed]="filterState.confidenceLevel() === level.value"
+              [attr.aria-label]="level.label"
+              [title]="level.label"
+              (click)="toggleConfidence(level.value)"
+            >
+              <span class="size-2.5 rounded-full" [class]="level.dot"></span>
+            </button>
+          }
+        </div>
+      </div>
+      <p class="mt-2 text-[0.6875rem] text-muted-foreground">
+        @if (!loading()) {
+          {{ totalCount() }} {{ totalCount() === 1 ? 'note' : 'notes' }}
+        } @else {
+          Loading…
+        }
+      </p>
+    </header>
+
+    <div class="px-3 pb-6">
+      @if (loading()) {
+        <ul class="space-y-2.5">
+          @for (i of skeletons; track i) {
+            <li class="space-y-2 rounded-2xl border p-4">
+              <z-skeleton class="h-4 w-2/3" />
+              <z-skeleton class="h-3 w-full" />
+              <z-skeleton class="h-3 w-1/3" />
+            </li>
+          }
+        </ul>
+      } @else if (error) {
+        <div class="rounded-lg border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">{{ error }}</div>
+      } @else if (displayedNotes().length === 0) {
+        <app-empty-state
+          [title]="filterState.hasActiveFilters() ? 'No matching notes' : 'No notes yet'"
+          [message]="filterState.hasActiveFilters() ? 'Try a different search or filter.' : 'Add your first topic, question, or resource to start preparing.'"
+        />
+      } @else {
+        <ul class="space-y-2.5">
+          @for (note of displayedNotes(); track note.id) {
+            <li>
+              <app-note-card
+                [note]="note"
+                [category]="getCategory(note)"
+                [active]="selectedId() === note.id"
+                (toggleFavorite)="toggleFavorite($event)"
+              />
+            </li>
+          }
+        </ul>
+
+        <div #sentinel class="h-px" aria-hidden="true"></div>
+
+        @if (loadingMore()) {
+          <p class="py-4 text-center text-xs text-muted-foreground">Loading more notes…</p>
+        } @else if (allLoaded() && displayedNotes().length > 3) {
+          <p class="py-4 text-center text-xs text-muted-foreground">That's everything</p>
+        }
+      }
+    </div>
   </section>
 
-  <!-- Quick capture (Keep "Take a note…") -->
-  <a
-    routerLink="/notes/new"
-    class="mx-auto mb-6 flex h-12 max-w-2xl items-center gap-3 rounded-xl border bg-card px-4 text-muted-foreground shadow-sm transition-shadow hover:shadow-md"
+  <!-- Open note: a sheet on the desk -->
+  <section
+    aria-label="Selected note"
+    class="min-w-0 flex-1 lg:scrollbar-thin lg:overflow-y-auto lg:py-3 lg:pr-3"
+    [class.max-lg:hidden]="!noteOpen()"
   >
-    <ng-icon name="lucidePencilLine" class="text-lg" />
-    <span class="text-base">Take a note…</span>
-  </a>
-
-  <!-- Category chips -->
-  @if (categoriesList().length) {
-    <div class="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="toolbar" aria-label="Filter by category">
-      <button
-        type="button"
-        class="h-8 shrink-0 rounded-lg border px-3 text-sm transition-colors"
-        [class]="!filterState.categoryId() ? 'border-transparent bg-nav-active text-nav-active-foreground' : 'hover:bg-muted'"
-        [attr.aria-pressed]="!filterState.categoryId()"
-        (click)="filterState.setCategoryId(null)"
-      >
-        All
-      </button>
-      @for (cat of categoriesList(); track cat.id) {
-        <button
-          type="button"
-          class="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm transition-colors"
-          [class]="filterState.categoryId() === cat.id ? 'border-transparent bg-nav-active text-nav-active-foreground' : 'hover:bg-muted'"
-          [attr.aria-pressed]="filterState.categoryId() === cat.id"
-          (click)="selectCategory(cat.id)"
-        >
-          <app-category-icon [icon]="cat.icon" />
-          {{ cat.name }}
-        </button>
-      }
-    </div>
-  }
-
-  @if (loading()) {
-    <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
-      @for (i of skeletons; track i) {
-        <div class="mb-4 break-inside-avoid space-y-3 rounded-xl border p-4">
-          <z-skeleton class="h-5 w-2/3" />
-          <z-skeleton class="h-3 w-full" />
-          <z-skeleton class="h-3 w-4/5" />
-          <div class="flex gap-2 pt-1">
-            <z-skeleton class="h-5 w-20 rounded-full" />
-            <z-skeleton class="h-5 w-16 rounded-full" />
-          </div>
-        </div>
-      }
-    </div>
-  } @else if (error) {
-    <div class="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">{{ error }}</div>
-  } @else if (displayedNotes().length === 0) {
-    <app-empty-state
-      [title]="filterState.hasActiveFilters() ? 'No matching notes' : 'No notes yet'"
-      [message]="filterState.hasActiveFilters() ? 'Try a different search or filter.' : 'Add your first topic, question, or resource to start preparing.'"
-    />
-  } @else {
-    <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
-      @for (note of displayedNotes(); track note.id) {
-        <app-note-card
-          class="mb-4 block break-inside-avoid"
-          [note]="note"
-          [category]="getCategory(note)"
-          (toggleFavorite)="toggleFavorite($event)"
-        />
-      }
-    </div>
-
-    <div #sentinel class="h-px" aria-hidden="true"></div>
-
-    @if (loadingMore()) {
-      <p class="py-6 text-center text-sm text-muted-foreground">Loading more notes…</p>
-    } @else if (allLoaded()) {
-      <p class="py-6 text-center text-sm text-muted-foreground">You've reached the end</p>
-    }
-  }
+    <router-outlet />
+  </section>
 </div>
-
-<!-- Mobile FAB -->
-<a
-  z-button
-  routerLink="/notes/new"
-  zShape="circle"
-  class="fixed right-5 bottom-5 z-20 size-14 shadow-lg md:hidden"
-  aria-label="New note"
->
-  <ng-icon name="lucidePlus" class="text-2xl" />
-</a>

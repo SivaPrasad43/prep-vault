@@ -1,0 +1,72 @@
+<div class="block-editor relative w-full">
+  <div #host class="block-editor__content"></div>
+
+  @if (bubble(); as b) {
+    <div
+      class="fixed z-50 rounded-lg border bg-popover text-popover-foreground shadow-lg flex -translate-x-1/2 gap-0.5 p-1"
+      role="toolbar"
+      aria-label="Text formatting"
+      [style.top.px]="b.top"
+      [style.left.px]="b.left"
+      (mousedown)="onBubbleMousedown($event)"
+    >
+      @if (linkMode()) {
+        <input
+          #linkInput
+          class="h-8 w-64 bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground"
+          type="url"
+          placeholder="Paste link and press Enter"
+          [value]="linkValue()"
+          (input)="linkValue.set($any($event.target).value)"
+          (keydown)="onLinkKeydown($event)"
+          (blur)="onLinkBlur()"
+        />
+      } @else {
+        <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.bold" [class.bg-muted]="b.bold" (click)="toggleMark('bold')" title="Bold (Ctrl+B)" aria-label="Bold"><ng-icon name="lucideBold" /></button>
+        <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.italic" [class.bg-muted]="b.italic" (click)="toggleMark('italic')" title="Italic (Ctrl+I)" aria-label="Italic"><ng-icon name="lucideItalic" /></button>
+        <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.code" [class.bg-muted]="b.code" (click)="toggleMark('code')" title="Inline code (Ctrl+E)" aria-label="Inline code"><ng-icon name="lucideCode" /></button>
+        <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.link" [class.bg-muted]="b.link" (click)="openLinkInput()" title="Link" aria-label="Link"><ng-icon name="lucideLink" /></button>
+      }
+    </div>
+  }
+
+  @if (slash(); as s) {
+    <div class="fixed z-50 rounded-lg border bg-popover text-popover-foreground shadow-lg max-h-80 w-72 overflow-y-auto p-1" role="listbox" aria-label="Insert block" [style.top.px]="s.top" [style.left.px]="s.left" (mousedown)="$event.preventDefault()">
+      @if (s.items.length === 0) {
+        <div class="p-2 text-sm text-muted-foreground">No results</div>
+      } @else {
+        <div class="px-2 pt-1.5 pb-1 text-xs text-muted-foreground">Basic blocks</div>
+        @for (item of s.items; track item.title; let i = $index) {
+          <button
+            type="button"
+            role="option"
+            class="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left"
+            [class.bg-accent]="i === s.active"
+            [attr.aria-selected]="i === s.active"
+            (mouseenter)="hoverSlash(i)"
+            (click)="pickSlash(i)"
+          >
+            <span class="grid size-9 shrink-0 place-items-center rounded-md border bg-background text-base">
+              @switch (item.icon) {
+                @case ('text') { <ng-icon name="lucideType" /> }
+                @case ('h1') { <ng-icon name="lucideHeading1" /> }
+                @case ('h2') { <ng-icon name="lucideHeading2" /> }
+                @case ('h3') { <ng-icon name="lucideHeading3" /> }
+                @case ('bullet') { <ng-icon name="lucideList" /> }
+                @case ('ordered') { <ng-icon name="lucideListOrdered" /> }
+                @case ('todo') { <ng-icon name="lucideListTodo" /> }
+                @case ('quote') { <ng-icon name="lucideQuote" /> }
+                @case ('code') { <ng-icon name="lucideFileCode" /> }
+                @case ('divider') { <ng-icon name="lucideMinus" /> }
+              }
+            </span>
+            <span class="flex min-w-0 flex-col">
+              <span class="text-sm font-medium">{{ item.title }}</span>
+              <span class="text-xs text-muted-foreground">{{ item.hint }}</span>
+            </span>
+          </button>
+        }
+      }
+    </div>
+  }
+</div>
