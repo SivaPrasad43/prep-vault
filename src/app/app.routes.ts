@@ -25,8 +25,17 @@ export const routes: Routes = [
             loadComponent: () =>
               import('./features/notes/note-empty/note-empty').then((m) => m.NoteEmpty),
           },
+          // Built-in, read-only guide (shipped with the app, not a DB note). Must precede ':id'.
+          {
+            path: 'guide',
+            loadComponent: () =>
+              import('./features/notes/guide/guide-page').then((m) => m.GuidePage),
+          },
+          // Absolute redirects: relative ones resolve wrongly in SSR on full page loads
+          // (e.g. /notes/abc/edit -> /notes/abc/:id).
+          { path: 'guide/edit', redirectTo: '/notes/guide' },
           // Edit and read are the same page now.
-          { path: ':id/edit', redirectTo: ':id' },
+          { path: ':id/edit', redirectTo: ({ params }) => `/notes/${params['id']}` },
           {
             // Also serves `notes/new`: one route so the component (and editor focus) survives the
             // redirect from /notes/new to /notes/:id after the note is first saved.

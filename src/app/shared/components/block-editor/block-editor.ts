@@ -294,6 +294,8 @@ export class BlockEditor implements OnDestroy {
   /** Markdown content. Re-applied only when it differs from what the editor last emitted. */
   readonly value = input<string>('');
   readonly placeholder = input<string>("Type '/' for commands…");
+  /** false = read-only (e.g. the built-in guide): no typing, menus or language picker. */
+  readonly editable = input(true);
   /** Emits markdown, only when the document really changed (not on load/normalisation). */
   readonly valueChange = output<string>();
 
@@ -324,6 +326,18 @@ export class BlockEditor implements OnDestroy {
 
   constructor() {
     afterNextRender(() => this.createEditor());
+
+    effect(() => {
+      const editable = this.editable();
+      untracked(() => {
+        if (this.editor && this.editor.isEditable !== editable) this.editor.setEditable(editable);
+        if (!editable) {
+          this.bubble.set(null);
+          this.slash.set(null);
+          this.langMenu.set(null);
+        }
+      });
+    });
 
     effect(() => {
       const v = this.value() ?? '';
@@ -415,6 +429,7 @@ export class BlockEditor implements OnDestroy {
         slashExtension,
       ],
       content: initial,
+      editable: this.editable(),
       editorProps: {
         attributes: { class: 'be-prose', spellcheck: 'true' },
         handleClickOn: (_view, _pos, _node, _nodePos, event) => {
@@ -427,7 +442,8 @@ export class BlockEditor implements OnDestroy {
           return false;
         },
       },
-      onUpdate: () => {
+      onUpdate: ({ editor }) => {
+        if (!editor.isEditable) return;
         const md = this.getMarkdown();
         if (md === this.lastMarkdown) return;
         this.lastMarkdown = md;

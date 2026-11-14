@@ -1,9 +1,9 @@
 import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
-import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, filter, switchMap } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideFlame, lucideSearch, lucideX } from '@ng-icons/lucide';
+import { lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight } from '@ng-icons/lucide';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { NoteCard } from '../../shared/components/note-card/note-card';
 import { AppSelect } from '../../shared/components/select/select';
@@ -21,9 +21,9 @@ import type { Category, ConfidenceLevel, Note, NoteFilters, NoteStats } from '..
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect],
+  imports: [RouterOutlet, RouterLink, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect],
   templateUrl: './dashboard.html',
-  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX })],
+  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight })],
   host: { class: 'block' },
 })
 export class Dashboard implements OnInit {

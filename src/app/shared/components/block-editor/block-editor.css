@@ -35,7 +35,13 @@
     padding-left: 1.5em;
     li { margin-bottom: 0.15em; }
     li > p { margin: 0; }
+    li::marker { color: var(--muted-foreground); }
   }
+
+  /* Tailwind's preflight strips list markers; restore them (task lists stay marker-less). */
+  ul:not([data-type='taskList']) { list-style: disc; }
+  ul:not([data-type='taskList']) ul:not([data-type='taskList']) { list-style: circle; }
+  ol { list-style: decimal; }
 
   ul[data-type='taskList'] {
     list-style: none;
