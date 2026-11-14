@@ -4,6 +4,7 @@ import { map, switchMap, tap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { RevisionsService } from './revisions.service';
+import { currentStreak, studyDays } from '../../shared/study-stats';
 import type { Note, CreateNotePayload, UpdateNotePayload, NoteFilters, NoteStats } from '../models';
 
 export type NoteChange = { type: 'upsert'; note: Note } | { type: 'delete'; id: string };
@@ -135,104 +136,26 @@ export class NotesService {
     );
   }
 
-  getNotesCountByDate(days: number): Observable<{ date: string; count: number }[]> {
-    const userId = this.auth.userId;
-    console.log('[NotesService] getNotesCountByDate days:', days, 'userId:', userId);
-    if (!userId) {
-      console.warn('[NotesService] no userId, returning empty');
-      return of([]);
-    }
-
-    const since = new Date();
-    since.setDate(since.getDate() - days + 1);
-    since.setHours(0, 0, 0, 0);
-    console.log('[NotesService] since (local):', since.toString(), 'since (ISO):', since.toISOString());
-
-    return from(
-      this.supabase.client
-        .from('notes')
-        .select('created_at')
-        .eq('user_id', userId)
-        .gte('created_at', since.toISOString()),
-    ).pipe(
-      map(({ data, error }) => {
-        console.log('[NotesService] Supabase response:', { data, error });
-        if (error) {
-          console.error('[NotesService] Supabase error:', error);
-          throw error;
-        }
-
-        const toLocalDate = (d: Date) => {
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const day = String(d.getDate()).padStart(2, '0');
-          return `${y}-${m}-${day}`;
-        };
-
-        const countMap = new Map<string, number>();
-        for (let i = 0; i < days; i++) {
-          const d = new Date(since);
-          d.setDate(d.getDate() + i);
-          countMap.set(toLocalDate(d), 0);
-        }
-        console.log('[NotesService] countMap keys:', Array.from(countMap.keys()));
-
-        const notes = data ?? [];
-        console.log('[NotesService] raw notes from Supabase:', notes.length);
-        for (const n of notes) {
-          const key = toLocalDate(new Date(n.created_at));
-          console.log('[NotesService] note created_at:', n.created_at, 'key:', key, 'in map:', countMap.has(key));
-          if (countMap.has(key)) {
-            countMap.set(key, countMap.get(key)! + 1);
-          }
-        }
-
-        const result = Array.from(countMap.entries()).map(([date, count]) => ({ date, count }));
-        console.log('[NotesService] final result:', JSON.stringify(result));
-        return result;
-      }),
-    );
-  }
-
+  /** Consecutive days with study activity: a note created or any note revised. */
   getStreak(): Observable<number> {
     const userId = this.auth.userId;
     if (!userId) return of(0);
 
-    return from(
-      this.supabase.client
-        .from('notes')
-        .select('created_at')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false }),
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        if (!data || data.length === 0) return 0;
-
-        const dates = data.map((d) => {
-          const date = new Date(d.created_at);
-          return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-        });
-
-        const uniqueDates = [...new Set(dates)].sort((a, b) => b - a);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const todayMs = today.getTime();
-        const msInDay = 24 * 60 * 60 * 1000;
-
-        const diff = (todayMs - uniqueDates[0]) / msInDay;
-        if (diff > 1) return 0;
-
-        let streak = 1;
-        for (let i = 1; i < uniqueDates.length; i++) {
-          if (Math.round((uniqueDates[i - 1] - uniqueDates[i]) / msInDay) === 1) {
-            streak++;
-          } else {
-            break;
-          }
-        }
-
-        return streak;
+    const created$ = from(
+      this.supabase.client.from('notes').select('created_at').eq('user_id', userId),
+    );
+    const revised$ = from(
+      this.supabase.client.from('revisions').select('revised_at').eq('user_id', userId),
+    );
+    return forkJoin([created$, revised$]).pipe(
+      map(([notes, revs]) => {
+        if (notes.error) throw notes.error;
+        if (revs.error) throw revs.error;
+        const days = studyDays(
+          (notes.data ?? []).map((n) => n.created_at as string),
+          (revs.data ?? []).map((r) => r.revised_at as string),
+        );
+        return currentStreak(days);
       }),
     );
   }
@@ -260,26 +183,4 @@ export class NotesService {
     );
   }
 
-  getCategoryDistribution(): Observable<{ categoryId: string; count: number }[]> {
-    const userId = this.auth.userId;
-    if (!userId) return of([]);
-
-    return from(
-      this.supabase.client
-        .from('notes')
-        .select('category_id')
-        .eq('user_id', userId),
-    ).pipe(
-      map(({ data, error }) => {
-        if (error) throw error;
-        const notes = data ?? [];
-        const map = new Map<string, number>();
-        for (const n of notes) {
-          const id = n.category_id;
-          map.set(id, (map.get(id) ?? 0) + 1);
-        }
-        return Array.from(map.entries()).map(([categoryId, count]) => ({ categoryId, count }));
-      }),
-    );
-  }
 }

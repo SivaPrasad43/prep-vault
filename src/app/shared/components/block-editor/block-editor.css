@@ -18,6 +18,7 @@
   > * + * { margin-top: 0.4em; }
 
   h1, h2, h3, h4, h5, h6 {
+    scroll-margin-top: 4.5rem; /* keep jumped-to headings clear of the sticky top bar */
     font-family: 'Fraunces', ui-serif, Georgia, serif;
     margin: 1.2em 0 0.3em;
     font-weight: 600;
@@ -338,4 +339,19 @@
 }
 .dark .neon-swatch {
   box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 80%, transparent);
+}
+
+/* ---------- In-note find ---------- */
+.block-editor__content .be-prose .be-find {
+  background: color-mix(in srgb, #ffd400 45%, transparent);
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #ffd400 60%, transparent);
+}
+.block-editor__content .be-prose .be-find--current {
+  background: #ff9632;
+  color: #0f1419;
+  box-shadow: 0 0 0 2px #ff9632;
+}
+.dark .block-editor__content .be-prose .be-find {
+  background: color-mix(in srgb, #ffd400 30%, transparent);
 }

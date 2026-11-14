@@ -15,9 +15,11 @@ import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideArrowLeft, lucideStar, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
-  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle,
+  lucideArrowLeft, lucideBookmark, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
+  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX, lucideSearch, lucideChevronUp, lucideChevronDown,
 } from '@ng-icons/lucide';
+import { NoteToc } from '../../../shared/components/note-toc/note-toc';
+import type { EditorHeading } from '../../../shared/components/block-editor/block-editor';
 import { ZardButtonComponent } from '@/shared/ui/button';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { ZardDropdownImports } from '@/shared/ui/dropdown';
@@ -55,16 +57,17 @@ const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
     ZardSkeletonComponent,
     ...ZardDropdownImports,
     AppSelect,
+    NoteToc,
     BlockEditor,
     Modal,
   ],
   templateUrl: './note-page.html',
   viewProviders: [
     provideIcons({
-      lucideArrowLeft, lucideStar, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
-      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle,
-      starSolid:
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"/></svg>',
+      lucideArrowLeft, lucideBookmark, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
+      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX, lucideSearch, lucideChevronUp, lucideChevronDown,
+      bookmarkSolid:
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
     }),
   ],
 })
@@ -77,6 +80,69 @@ export class NotePage implements OnDestroy {
   private destroyRef = inject(DestroyRef);
 
   private readonly editor = viewChild(BlockEditor);
+
+  // ---------- In-note find (Ctrl/Cmd+F) ----------
+  protected readonly findOpen = signal(false);
+  protected readonly findQuery = signal('');
+  protected readonly findResult = signal({ index: -1, count: 0 });
+  private readonly findInput = viewChild<ElementRef<HTMLInputElement>>('findInput');
+
+  protected openFind(): void {
+    const prefill = this.editor()?.selectedText() ?? '';
+    if (prefill) this.findQuery.set(prefill);
+    this.findOpen.set(true);
+    if (this.findQuery()) this.findResult.set(this.editor()?.find(this.findQuery()) ?? { index: -1, count: 0 });
+    setTimeout(() => {
+      const el = this.findInput()?.nativeElement;
+      el?.focus();
+      el?.select();
+    });
+  }
+
+  protected closeFind(): void {
+    this.findOpen.set(false);
+    this.editor()?.clearFind();
+    this.findResult.set({ index: -1, count: 0 });
+  }
+
+  protected onFindInput(value: string): void {
+    this.findQuery.set(value);
+    this.findResult.set(this.editor()?.find(value) ?? { index: -1, count: 0 });
+  }
+
+  protected findStep(dir: 1 | -1): void {
+    this.findResult.set(this.editor()?.findStep(dir) ?? { index: -1, count: 0 });
+  }
+
+  protected onFindKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.findStep(event.shiftKey ? -1 : 1);
+    } else if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      this.closeFind();
+    }
+  }
+
+  /**
+   * Ctrl/Cmd+F opens the note's own find bar instead of the browser's page search.
+   * Registered in the capture phase (see constructor) so it runs before the editor or
+   * anything else can swallow the event; `code` also covers non-Latin keyboard layouts.
+   */
+  private readonly onFindShortcut = (event: KeyboardEvent): void => {
+    const isF = event.code === 'KeyF' || event.key.toLowerCase() === 'f';
+    if (!(event.ctrlKey || event.metaKey) || event.shiftKey || event.altKey || !isF) return;
+    event.preventDefault();
+    if (!this.loading()) this.openFind();
+  };
+
+  // ---------- Table of contents ----------
+  /** Hidden by default; opened from the top-bar button or Ctrl/Cmd+Shift+O. */
+  protected readonly tocOpen = signal(false);
+  protected readonly headings = signal<EditorHeading[]>([]);
+  /** dock = side panel (≥1280px), overlay = card over the page (768–1279px), sheet = bottom sheet (<768px). */
+  protected readonly tocMode = signal<'dock' | 'overlay' | 'sheet'>(this.currentTocMode());
   private readonly titleRef = viewChild<ElementRef<HTMLTextAreaElement>>('titleInput');
 
   protected readonly noteId = signal<string | null>(null);
@@ -126,6 +192,13 @@ export class NotePage implements OnDestroy {
   private deleted = false;
 
   constructor() {
+    if (typeof window !== 'undefined') {
+      window.addEventListener('keydown', this.onFindShortcut, { capture: true });
+      this.destroyRef.onDestroy(() =>
+        window.removeEventListener('keydown', this.onFindShortcut, { capture: true }),
+      );
+    }
+
     this.loadCategories();
 
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
@@ -177,7 +250,40 @@ export class NotePage implements OnDestroy {
     return cats.find((c) => c.id === last)?.id ?? cats[0]?.id ?? '';
   }
 
+  private currentTocMode(): 'dock' | 'overlay' | 'sheet' {
+    if (typeof window === 'undefined') return 'dock';
+    if (window.matchMedia('(min-width: 1280px)').matches) return 'dock';
+    return window.matchMedia('(min-width: 768px)').matches ? 'overlay' : 'sheet';
+  }
+
+  @HostListener('window:resize')
+  protected onResize(): void {
+    this.tocMode.set(this.currentTocMode());
+  }
+
+  protected toggleToc(): void {
+    this.tocMode.set(this.currentTocMode());
+    this.tocOpen.update((o) => !o);
+  }
+
+  protected jumpToHeading(pos: number): void {
+    this.editor()?.scrollToHeading(pos);
+    if (this.tocMode() !== 'dock') this.tocOpen.set(false);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  protected onTocShortcut(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'o') {
+      event.preventDefault();
+      this.toggleToc();
+    } else if (event.key === 'Escape' && this.tocOpen() && this.tocMode() !== 'dock') {
+      this.tocOpen.set(false);
+    }
+  }
+
   private resetForNew(): void {
+    this.tocOpen.set(false);
+    this.closeFind();
     this.clearTimers();
     this.noteId.set(null);
     this.saved = null;
@@ -196,6 +302,8 @@ export class NotePage implements OnDestroy {
   }
 
   private loadNote(id: string): void {
+    this.tocOpen.set(false);
+    this.closeFind();
     this.clearTimers();
     this.loading.set(true);
     this.notesService.getById(id).subscribe({

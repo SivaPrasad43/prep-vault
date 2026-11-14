@@ -1,261 +1,140 @@
-import { Component, OnInit, OnDestroy, inject, signal, ViewChild, ElementRef, effect } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { RouterLink, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideFileText, lucideCalendar, lucideFlame, lucideSun } from '@ng-icons/lucide';
-import { ZardCardImports } from '@/shared/ui/card';
+import {
+  lucideFlame, lucideHistory, lucideNotebookPen, lucideTarget, lucideTrendingUp, lucideTrendingDown,
+  lucideChevronRight, lucideCircleCheck, lucideRotateCw,
+} from '@ng-icons/lucide';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
-import { Chart, registerables } from 'chart.js';
-import { combineLatest } from 'rxjs';
-import { NotesService } from '../../core/services/notes.service';
+import { ProgressService, type ProgressData } from '../../core/services/progress.service';
 import { CategoriesService } from '../../core/services/categories.service';
-import { ThemeService } from '../../core/services/theme.service';
-import type { NoteStats } from '../../core/models';
+import { FilterStateService } from '../../core/services/filter-state.service';
+import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
+import {
+  addDays, bestStreak, confidenceByCategory, countBetween, currentStreak, heatmap, reviewNext,
+  startOfDay, studyDays, trend,
+} from '../../shared/study-stats';
+import type { Category, ConfidenceLevel } from '../../core/models';
 
-Chart.register(...registerables);
+type Range = 7 | 30 | 90;
 
+const CONFIDENCE_META: { value: ConfidenceLevel; label: string; color: string }[] = [
+  { value: 'need_practice', label: 'Need practice', color: 'var(--confidence-need-practice)' },
+  { value: 'getting_there', label: 'Getting there', color: 'var(--confidence-getting-there)' },
+  { value: 'confident', label: 'Confident', color: 'var(--confidence-confident)' },
+];
+
+/** Progress page: what to study next, how consistent you are, and where you're weak. */
 @Component({
   selector: 'app-analytics',
-  imports: [NgIcon, ...ZardCardImports, ZardSkeletonComponent],
+  imports: [NgTemplateOutlet, RouterLink, NgIcon, ZardSkeletonComponent, CategoryIcon],
   templateUrl: './analytics.html',
-  viewProviders: [provideIcons({ lucideFileText, lucideCalendar, lucideFlame, lucideSun })],
+  viewProviders: [
+    provideIcons({
+      lucideFlame, lucideHistory, lucideNotebookPen, lucideTarget, lucideTrendingUp, lucideTrendingDown,
+      lucideChevronRight, lucideCircleCheck, lucideRotateCw,
+    }),
+  ],
 })
-export class Analytics implements OnInit, OnDestroy {
-  private notesService = inject(NotesService);
+export class Analytics {
+  private progress = inject(ProgressService);
   private categoriesService = inject(CategoriesService);
-  private themeService = inject(ThemeService);
-  private barChart: Chart | null = null;
-  private doughnutChart: Chart | null = null;
+  private filterState = inject(FilterStateService);
+  private router = inject(Router);
+
+  protected readonly ranges: Range[] = [7, 30, 90];
+  protected readonly range = signal<Range>(30);
+  protected readonly loading = signal(true);
+  protected readonly error = signal(false);
+  protected readonly data = signal<ProgressData>({ notes: [], revisions: [] });
+  protected readonly categories = signal<Map<string, Category>>(new Map());
+  protected readonly confidence = CONFIDENCE_META;
+  protected readonly weekdays = ['Mon', '', 'Wed', '', 'Fri', '', ''];
+
+  private readonly createdAt = computed(() => this.data().notes.map((n) => n.created_at));
+  private readonly revisedAt = computed(() => this.data().revisions.map((r) => r.revised_at));
+  private readonly days = computed(() => studyDays(this.createdAt(), this.revisedAt()));
+
+  protected readonly summary = computed(() => {
+    const r = this.range();
+    const end = addDays(startOfDay(), 1);
+    const start = addDays(end, -r);
+    const prevStart = addDays(start, -r);
+    const revisions = countBetween(this.revisedAt(), start, end);
+    const written = countBetween(this.createdAt(), start, end);
+    const notes = this.data().notes;
+    const total = notes.length;
+    const count = (l: ConfidenceLevel) => notes.filter((n) => n.confidence_level === l).length;
+    return {
+      streak: currentStreak(this.days()),
+      best: bestStreak(this.days()),
+      revisions,
+      revisionsTrend: trend(revisions, countBetween(this.revisedAt(), prevStart, start)),
+      written,
+      writtenTrend: trend(written, countBetween(this.createdAt(), prevStart, start)),
+      total,
+      confidentPct: total ? Math.round((count('confident') / total) * 100) : 0,
+      split: CONFIDENCE_META.map((c) => ({ ...c, count: count(c.value), pct: total ? (count(c.value) / total) * 100 : 0 })),
+    };
+  });
+
+  protected readonly heat = computed(() => heatmap(this.createdAt(), this.revisedAt(), this.range()));
+  /** 7d view: just the last 7 days in order (no padding cells). */
+  protected readonly lastWeek = computed(() => this.heat().flat().filter((c) => c.level !== -1));
+  protected readonly review = computed(() => reviewNext(this.data().notes, this.data().revisions, 5));
+  protected readonly byCategory = computed(() =>
+    confidenceByCategory(this.data().notes).map((row) => ({
+      ...row,
+      category: this.categories().get(row.categoryId) ?? null,
+      segments: CONFIDENCE_META.map((c) => ({ ...c, count: row[c.value], pct: (row[c.value] / row.total) * 100 })),
+    })),
+  );
 
   constructor() {
-    effect(() => {
-      this.themeService.isDark();
-      if (this.loading()) return;
-      // Wait a frame so ThemeService has toggled the .dark class before reading tokens.
-      requestAnimationFrame(() => {
-        this.renderBarChart();
-        this.renderDoughnutChart();
-      });
+    this.load();
+    this.categoriesService.seedDefaults().subscribe({
+      next: (cats) => this.categories.set(new Map(cats.map((c) => [c.id, c]))),
     });
   }
 
-  @ViewChild('barCanvas') barCanvas!: ElementRef<HTMLCanvasElement>;
-  @ViewChild('doughnutCanvas') doughnutCanvas!: ElementRef<HTMLCanvasElement>;
-
-  protected loading = signal(true);
-  protected stats = signal<NoteStats | null>(null);
-  protected weekData = signal<{ date: string; count: number }[]>([]);
-  protected todayCount = signal(0);
-  protected weekTotal = signal(0);
-  protected categoryDistribution = signal<{ categoryId: string; count: number; name: string; color: string }[]>([]);
-  protected maxCategoryCount = signal(1);
-
-  private pendingRequests = 3;
-
-  ngOnInit(): void {
-    this.notesService.getStats().subscribe((s) => {
-      this.stats.set(s);
-      this.checkLoaded();
-    });
-
-    this.notesService.getNotesCountByDate(7).subscribe({
-      next: (data) => {
-        this.weekData.set(data);
-        this.todayCount.set(data[data.length - 1]?.count ?? 0);
-        this.weekTotal.set(data.reduce((sum, d) => sum + d.count, 0));
-        this.checkLoaded();
+  protected load(): void {
+    this.loading.set(true);
+    this.error.set(false);
+    this.progress.load().subscribe({
+      next: (d) => {
+        this.data.set(d);
+        this.loading.set(false);
       },
-    });
-
-    combineLatest([
-      this.categoriesService.getAll(),
-      this.notesService.getCategoryDistribution(),
-    ]).subscribe(([categories, distribution]) => {
-      const catMap = new Map(categories.map((c) => [c.id, { name: c.name, color: c.color }]));
-      const merged = distribution
-        .map((d) => ({
-          ...d,
-          name: catMap.get(d.categoryId)?.name ?? 'Unknown',
-          color: catMap.get(d.categoryId)?.color ?? '#6b7280',
-        }))
-        .sort((a, b) => b.count - a.count);
-      this.categoryDistribution.set(merged);
-      this.maxCategoryCount.set(merged.length ? Math.max(...merged.map((d) => d.count)) : 1);
-      this.checkLoaded();
-    });
-  }
-
-  private checkLoaded(): void {
-    this.pendingRequests--;
-    if (this.pendingRequests === 0) {
-      this.loading.set(false);
-      setTimeout(() => {
-        this.renderBarChart();
-        this.renderDoughnutChart();
-      });
-    }
-  }
-
-  protected categoryPercent(count: number): number {
-    return (count / this.maxCategoryCount()) * 100;
-  }
-
-  /** Read a theme token (ZardUI CSS variable) from :root. */
-  private token(name: string, fallback: string): string {
-    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-  }
-
-  /** Add alpha to a #rrggbb / oklch() / rgb() color string; canvas accepts all. */
-  private withAlpha(color: string, alpha: number): string {
-    if (/^#[0-9a-f]{6}$/i.test(color)) {
-      return color + Math.round(alpha * 255).toString(16).padStart(2, '0');
-    }
-    return /^(oklch|rgb|hsl)\(/.test(color) && !color.includes('/')
-      ? color.replace(/\)\s*$/, ` / ${alpha})`)
-      : color;
-  }
-
-  private chartTheme() {
-    return {
-      primary: this.token('--primary', '#1a73e8'),
-      text: this.token('--foreground', '#1e293b'),
-      muted: this.token('--muted-foreground', '#94a3b8'),
-      border: this.token('--border', '#e2e8f0'),
-      surface: this.token('--popover', '#fff'),
-    };
-  }
-
-  private renderBarChart(): void {
-    if (this.barChart) {
-      this.barChart.destroy();
-      this.barChart = null;
-    }
-
-    const canvas = this.barCanvas?.nativeElement;
-    if (!canvas) return;
-
-    const data = this.weekData();
-    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    const labels = data.map((d) => days[new Date(d.date).getDay()]);
-    const values = data.map((d) => d.count);
-
-    const t = this.chartTheme();
-    const textMuted = t.muted;
-    const border = t.border;
-
-    this.barChart = new Chart(canvas, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Notes',
-          data: values,
-          backgroundColor: this.withAlpha(t.primary, 0.8),
-          hoverBackgroundColor: t.primary,
-          borderWidth: 0,
-          borderRadius: 6,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: t.surface,
-            titleColor: t.text,
-            bodyColor: t.muted,
-            borderColor: t.border,
-            borderWidth: 1,
-            padding: 10,
-            cornerRadius: 8,
-            displayColors: false,
-          },
-        },
-        scales: {
-          x: {
-            grid: { display: false },
-            ticks: { color: textMuted, font: { size: 12 } },
-          },
-          y: {
-            beginAtZero: true,
-            grid: { color: border },
-            ticks: {
-              color: textMuted,
-              font: { size: 12 },
-              stepSize: 1,
-            },
-          },
-        },
+      error: () => {
+        this.error.set(true);
+        this.loading.set(false);
       },
     });
   }
 
-  private renderDoughnutChart(): void {
-    if (this.doughnutChart) {
-      this.doughnutChart.destroy();
-      this.doughnutChart = null;
-    }
-
-    const canvas = this.doughnutCanvas?.nativeElement;
-    if (!canvas || !this.stats()) return;
-
-    const s = this.stats()!;
-    const t = this.chartTheme();
-
-    const needPracticeColor = this.token('--confidence-need-practice', '#f87171');
-    const gettingThereColor = this.token('--confidence-getting-there', '#fbbf24');
-    const confidentColor = this.token('--confidence-confident', '#34d399');
-
-    this.doughnutChart = new Chart(canvas, {
-      type: 'doughnut',
-      data: {
-        labels: ['Need Practice', 'Getting There', 'Confident'],
-        datasets: [{
-          data: [s.needPractice, s.gettingThere, s.confident],
-          backgroundColor: [needPracticeColor, gettingThereColor, confidentColor],
-          borderWidth: 0,
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: '60%',
-        plugins: {
-          legend: {
-            position: 'bottom',
-            labels: {
-              color: t.muted,
-              font: { size: 12 },
-              padding: 16,
-              usePointStyle: true,
-              pointStyle: 'circle',
-            },
-          },
-          tooltip: {
-            backgroundColor: t.surface,
-            titleColor: t.text,
-            bodyColor: t.muted,
-            borderColor: t.border,
-            borderWidth: 1,
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: {
-              label: (ctx) => {
-                const total = (ctx.dataset.data as number[]).reduce((a, b) => a + b, 0);
-                const value = ctx.parsed;
-                const pct = total ? Math.round((value / total) * 100) : 0;
-                return ` ${ctx.label}: ${value} (${pct}%)`;
-              },
-            },
-          },
-        },
-      },
-    });
+  protected categoryFor(id: string): Category | null {
+    return this.categories().get(id) ?? null;
   }
 
-  ngOnDestroy(): void {
-    this.barChart?.destroy();
-    this.barChart = null;
-    this.doughnutChart?.destroy();
-    this.doughnutChart = null;
+  protected heatLabel(c: { date: Date; notes: number; revisions: number }): string {
+    const d = c.date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    return `${d}: ${c.notes} ${c.notes === 1 ? 'note' : 'notes'}, ${c.revisions} ${c.revisions === 1 ? 'revision' : 'revisions'}`;
+  }
+
+  protected revisedLabel(lastRevised: Date | null, daysSince: number): string {
+    if (!lastRevised) return daysSince === 0 ? 'Never revised · added today' : `Never revised · added ${daysSince}d ago`;
+    if (daysSince === 0) return 'Revised today';
+    if (daysSince === 1) return 'Revised yesterday';
+    return `Revised ${daysSince} days ago`;
+  }
+
+  /** Jump to the notes list with the given filters (others cleared). */
+  protected openNotes(filters: { categoryId?: string | null; confidence?: ConfidenceLevel | null }): void {
+    this.filterState.setSearchQuery('');
+    this.filterState.setSmartFilter(null);
+    this.filterState.setCategoryId(filters.categoryId ?? null);
+    this.filterState.setConfidenceLevel(filters.confidence ?? null);
+    this.router.navigate(['/notes']);
   }
 }

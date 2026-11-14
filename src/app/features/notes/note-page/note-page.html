@@ -1,4 +1,5 @@
-<div class="relative min-h-dvh bg-page lg:mx-auto lg:my-6 lg:min-h-[calc(100dvh-3rem)] lg:max-w-[54rem] lg:rounded-md lg:shadow-page">
+<div class="xl:flex xl:items-start xl:justify-center xl:gap-5">
+<div class="relative min-h-dvh bg-page lg:mx-auto lg:my-6 lg:min-h-[calc(100dvh-3rem)] lg:max-w-[54rem] lg:rounded-md lg:shadow-page xl:mx-0 xl:min-w-0 xl:flex-1">
   <!-- Top bar -->
   <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-page/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-page/75 sm:px-4 lg:rounded-t-md">
     <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()" title="Back to notes">
@@ -7,13 +8,70 @@
     </button>
 
     <div class="ml-auto flex items-center gap-1">
-      <span class="flex items-center gap-1.5 px-2 text-xs text-muted-foreground" aria-live="polite">
+      @if (updatedAt()) {
+        <span
+          class="flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground"
+          [title]="'Last edited ' + (updatedAt() | date: 'medium')"
+        >
+          <ng-icon name="lucideClock" class="max-sm:hidden" />
+          <span class="max-sm:hidden">Edited</span>
+          {{ updatedAt() | date: 'MMM d, h:mm a' }}
+        </span>
+        @if (saveStatus() !== 'idle') {
+          <span class="text-muted-foreground/50" aria-hidden="true">·</span>
+        }
+      }
+      <span class="flex items-center gap-1.5 px-2 text-xs whitespace-nowrap text-muted-foreground" aria-live="polite">
         @switch (saveStatus()) {
           @case ('saving') { <ng-icon name="lucideLoaderCircle" class="animate-spin" /> Saving… }
           @case ('saved') { <ng-icon name="lucideCircleCheck" /> Saved }
           @case ('error') { <span class="flex items-center gap-1.5 text-destructive"><ng-icon name="lucideCloudOff" /> Not saved — retrying</span> }
         }
       </span>
+
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        [class.bg-muted]="findOpen()"
+        [class.text-primary]="findOpen()"
+        (click)="findOpen() ? closeFind() : openFind()"
+        [attr.aria-pressed]="findOpen()"
+        aria-label="Find in note"
+        title="Find in note (Ctrl+F)"
+      >
+        <ng-icon name="lucideSearch" class="text-lg" />
+      </button>
+
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        [class.bg-muted]="tocOpen()"
+        [class.text-primary]="tocOpen()"
+        (click)="toggleToc()"
+        [attr.aria-pressed]="tocOpen()"
+        aria-label="Contents"
+        title="Contents (Ctrl+Shift+O)"
+      >
+        <ng-icon name="lucideListTree" class="text-lg" />
+      </button>
+
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        [class.text-primary]="favorite()"
+        (click)="toggleFavorite()"
+        [attr.aria-pressed]="favorite()"
+        [attr.aria-label]="favorite() ? 'Remove from saved' : 'Save note'"
+        [title]="favorite() ? 'Saved (click to remove)' : 'Save note'"
+      >
+        <ng-icon [name]="favorite() ? 'bookmarkSolid' : 'lucideBookmark'" class="text-lg" />
+      </button>
 
       @if (!isNew()) {
         <button z-button zType="ghost" zSize="icon-lg" zShape="circle" z-dropdown [zDropdownMenu]="actions" aria-label="More actions">
@@ -28,6 +86,43 @@
       }
     </div>
   </header>
+
+  @if (findOpen()) {
+    <!-- Find bar: floats under the top bar without pushing the note down -->
+    <div class="sticky top-14 z-20 h-0">
+      <div
+        class="absolute top-2 right-2 left-2 flex items-center gap-1 rounded-xl border bg-popover p-1 pl-3 shadow-sheet animate-in fade-in-0 slide-in-from-top-1 sm:left-auto sm:w-96"
+        role="search"
+        aria-label="Find in note"
+      >
+        <ng-icon name="lucideSearch" class="shrink-0 text-muted-foreground" />
+        <input
+          #findInput
+          type="text"
+          class="h-8 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          placeholder="Find in note"
+          aria-label="Find in note"
+          [value]="findQuery()"
+          (input)="onFindInput($any($event.target).value)"
+          (keydown)="onFindKeydown($event)"
+        />
+        <span class="shrink-0 px-1 text-xs whitespace-nowrap tabular-nums" [class]="findQuery() && !findResult().count ? 'text-destructive' : 'text-muted-foreground'" aria-live="polite">
+          @if (findQuery()) {
+            {{ findResult().count ? (findResult().index + 1) + ' of ' + findResult().count : 'No results' }}
+          }
+        </span>
+        <button type="button" class="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40" [disabled]="!findResult().count" (click)="findStep(-1)" aria-label="Previous match" title="Previous (Shift+Enter)">
+          <ng-icon name="lucideChevronUp" />
+        </button>
+        <button type="button" class="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40" [disabled]="!findResult().count" (click)="findStep(1)" aria-label="Next match" title="Next (Enter)">
+          <ng-icon name="lucideChevronDown" />
+        </button>
+        <button type="button" class="grid size-8 shrink-0 place-items-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" (click)="closeFind()" aria-label="Close find" title="Close (Esc)">
+          <ng-icon name="lucideX" />
+        </button>
+      </div>
+    </div>
+  }
 
   <article class="mx-auto w-full max-w-3xl px-5 pt-4 pb-16 sm:px-14 sm:pt-8">
     @if (loading()) {
@@ -50,69 +145,55 @@
         (keydown)="onTitleKeydown($event)"
       ></textarea>
 
-      <!-- Properties -->
-      <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b border-dashed pb-4 text-sm text-muted-foreground">
-        <app-select
-          variant="ghost"
-          class="max-w-56 text-foreground"
-          ariaLabel="Category"
-          placeholder="Category"
-          searchPlaceholder="Find a category…"
-          [options]="categoryOptions()"
-          [value]="categoryId()"
-          (valueChange)="onCategoryChange($event)"
-        />
+      <!-- Properties: one line on sm+; on mobile two rows (what it is / revision status) -->
+      <div class="mt-3 mb-6 flex flex-col gap-1 border-b border-dashed pb-4 text-sm whitespace-nowrap text-muted-foreground sm:no-scrollbar sm:flex-row sm:items-center sm:gap-1.5 sm:overflow-x-auto">
+        <div class="flex min-w-0 items-center gap-1.5 sm:flex-none">
+          <app-select
+            variant="ghost"
+            class="max-w-56 min-w-0 shrink text-foreground"
+            ariaLabel="Category"
+            placeholder="Category"
+            searchPlaceholder="Find a category…"
+            [options]="categoryOptions()"
+            [value]="categoryId()"
+            (valueChange)="onCategoryChange($event)"
+          />
 
-        <app-select
-          variant="ghost"
-          class="text-foreground"
-          ariaLabel="Confidence"
-          [searchable]="false"
-          [menuWidth]="200"
-          [options]="confidenceOptions"
-          [value]="confidence()"
-          (valueChange)="onConfidenceChange($event)"
-        />
+          <app-select
+            variant="ghost"
+            class="shrink-0 text-foreground"
+            ariaLabel="Confidence"
+            [searchable]="false"
+            [menuWidth]="200"
+            [options]="confidenceOptions"
+            [value]="confidence()"
+            (valueChange)="onConfidenceChange($event)"
+          />
+        </div>
 
-        <button
-          type="button"
-          class="grid size-8 place-items-center rounded-md hover:bg-muted"
-          [class.text-primary]="favorite()"
-          (click)="toggleFavorite()"
-          [attr.aria-pressed]="favorite()"
-          [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"
-          [title]="favorite() ? 'Bookmarked' : 'Bookmark'"
-        >
-          <ng-icon [name]="favorite() ? 'starSolid' : 'lucideStar'" class="text-base" />
-        </button>
+        <div class="flex shrink-0 items-center gap-1.5">
+          @if (!isNew()) {
+            <span class="flex h-8 shrink-0 items-center gap-1.5 px-2" [title]="(revisionCount() ?? 0) + ' revisions'">
+              <ng-icon name="lucideHistory" />
+              {{ revisionCount() ?? '–' }}<span class="lg:max-xl:hidden">&nbsp;{{ revisionCount() === 1 ? 'revision' : 'revisions' }}</span>
+            </span>
+            <button
+              z-button
+              zType="outline"
+              zSize="sm"
+              class="shrink-0 rounded-full"
+              (click)="markRevised()"
+              [zDisabled]="markingRevised()"
+            >
+              {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+            </button>
+          }
 
-        @if (!isNew()) {
-          <span class="flex h-8 items-center gap-1.5 px-2" title="Revisions">
-            <ng-icon name="lucideHistory" />
-            {{ revisionCount() ?? '–' }} {{ revisionCount() === 1 ? 'revision' : 'revisions' }}
-          </span>
-          <button
-            z-button
-            zType="outline"
-            zSize="sm"
-            class="rounded-full"
-            (click)="markRevised()"
-            [zDisabled]="markingRevised()"
-          >
-            {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
-          </button>
-        }
-
-        @if (updatedAt()) {
-          <span class="ml-auto flex h-8 items-center gap-1.5 px-2 text-xs">
-            <ng-icon name="lucideClock" />
-            Edited {{ updatedAt() | date: 'MMM d, h:mm a' }}
-          </span>
-        }
+        </div>
       </div>
 
       @for (key of [editorKey()]; track key) {
-        <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" />
+        <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" (headingsChange)="headings.set($event)" />
       }
     }
   </article>
@@ -126,4 +207,44 @@
       </button>
     </ng-container>
   </app-modal>
+</div>
+
+@if (tocOpen()) {
+  @switch (tocMode()) {
+    @case ('dock') {
+      <!-- ≥1280px: docked beside the page -->
+      <aside class="bento scrollbar-thin sticky top-6 my-6 max-h-[calc(100dvh-3rem)] w-60 shrink-0 overflow-y-auto p-2" aria-label="Contents">
+        <app-note-toc [headings]="headings()" (jump)="jumpToHeading($event)" />
+      </aside>
+    }
+    @case ('overlay') {
+      <!-- 768–1279px: card over the right edge of the page -->
+      <div class="fixed inset-0 z-40" (click)="tocOpen.set(false)" aria-hidden="true"></div>
+      <aside class="bento scrollbar-thin fixed top-20 right-6 z-50 max-h-[70vh] w-72 overflow-y-auto p-2 animate-in fade-in-0 slide-in-from-right-4" aria-label="Contents">
+        <app-note-toc [headings]="headings()" (jump)="jumpToHeading($event)" />
+      </aside>
+    }
+    @case ('sheet') {
+      <!-- <768px: bottom sheet -->
+      <div class="fixed inset-0 z-40 bg-black/40 animate-in fade-in-0" (click)="tocOpen.set(false)" aria-hidden="true"></div>
+      <aside
+        class="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col rounded-t-2xl border-t bg-page pb-[env(safe-area-inset-bottom)] shadow-sheet animate-in slide-in-from-bottom"
+        role="dialog"
+        aria-label="Contents"
+      >
+        <div class="flex items-center justify-between px-3 pt-2">
+          <span class="mx-auto h-1.5 w-10 rounded-full bg-muted-foreground/25" aria-hidden="true"></span>
+        </div>
+        <div class="flex justify-end px-2">
+          <button type="button" class="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-muted" aria-label="Close contents" (click)="tocOpen.set(false)">
+            <ng-icon name="lucideX" />
+          </button>
+        </div>
+        <div class="scrollbar-thin overflow-y-auto px-2 pb-4">
+          <app-note-toc [headings]="headings()" (jump)="jumpToHeading($event)" />
+        </div>
+      </aside>
+    }
+  }
+}
 </div>
