@@ -89,7 +89,9 @@ export function deriveLegacyFields(md: string): {
   const description = blocks
     .filter((b) => b.type === 'text')
     .map((b) => b.content)
-    .join('\n\n');
+    .join('\n\n')
+    // Drop inline HTML (e.g. <mark data-color="lime"> highlights) so search/previews see plain text.
+    .replace(/<\/?[a-z][^>]*>/gi, '');
   return {
     description: description || null,
     code_snippets: blocks

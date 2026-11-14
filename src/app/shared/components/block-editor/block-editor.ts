@@ -22,6 +22,7 @@ import { TableKit } from '@tiptap/extension-table';
 import CodeBlockLowlight, { type CodeBlockLowlightOptions } from '@tiptap/extension-code-block-lowlight';
 import Suggestion, { type SuggestionProps } from '@tiptap/suggestion';
 import { createLowlight, all } from 'lowlight';
+import Highlight from '@tiptap/extension-highlight';
 import { Markdown } from 'tiptap-markdown';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { SelectMenu } from '../select/select-menu';
@@ -29,7 +30,39 @@ import type { SelectOption } from '../select/select-option';
 import {
   lucideBold, lucideItalic, lucideCode, lucideLink, lucideHeading1, lucideHeading2, lucideHeading3,
   lucideList, lucideListOrdered, lucideListTodo, lucideQuote, lucideFileCode, lucideMinus, lucideType,
+  lucideHighlighter, lucideBan,
 } from '@ng-icons/lucide';
+
+/** Neon highlight palette. Stored by name (data-color) so CSS can theme each per light/dark. */
+export const NEON_COLORS = [
+  { name: 'lime', label: 'Neon lime', swatch: '#39ff14' },
+  { name: 'cyan', label: 'Neon cyan', swatch: '#00f0ff' },
+  { name: 'pink', label: 'Neon pink', swatch: '#ff2bd6' },
+  { name: 'yellow', label: 'Neon yellow', swatch: '#fff200' },
+  { name: 'orange', label: 'Neon orange', swatch: '#ff8a00' },
+  { name: 'violet', label: 'Neon violet', swatch: '#b026ff' },
+] as const;
+export type NeonColor = (typeof NEON_COLORS)[number]['name'];
+const NEON_NAMES = new Set<string>(NEON_COLORS.map((c) => c.name));
+
+/**
+ * Highlight mark keyed by neon color *name*: renders `<mark data-color="lime">` with no inline
+ * style, so light/dark themes can style it, and markdown keeps it as compact inline HTML.
+ */
+const NeonHighlight = Highlight.extend({
+  addAttributes() {
+    return {
+      color: {
+        default: 'yellow',
+        parseHTML: (el: HTMLElement) => {
+          const c = el.getAttribute('data-color');
+          return c && NEON_NAMES.has(c) ? c : 'yellow';
+        },
+        renderHTML: (attrs: { color?: string }) => ({ 'data-color': attrs.color ?? 'yellow' }),
+      },
+    };
+  },
+}).configure({ multicolor: true });
 
 /** Same grammar set highlight.js used for the old markdown renderer (all languages). */
 const lowlight = createLowlight(all);
@@ -239,6 +272,8 @@ interface BubbleState {
   italic: boolean;
   code: boolean;
   link: boolean;
+  /** Active neon color name, or null. */
+  highlight: string | null;
 }
 
 @Component({
@@ -250,6 +285,7 @@ interface BubbleState {
     provideIcons({
       lucideBold, lucideItalic, lucideCode, lucideLink, lucideHeading1, lucideHeading2, lucideHeading3,
       lucideList, lucideListOrdered, lucideListTodo, lucideQuote, lucideFileCode, lucideMinus, lucideType,
+      lucideHighlighter, lucideBan,
     }),
   ],
   encapsulation: ViewEncapsulation.None,
@@ -360,6 +396,7 @@ export class BlockEditor implements OnDestroy {
         }),
         TaskList,
         TaskItem.configure({ nested: true }),
+        NeonHighlight,
         Image,
         TableKit.configure({ table: { resizable: false } }),
         Placeholder.configure({
@@ -514,6 +551,7 @@ export class BlockEditor implements OnDestroy {
     const { from, to, empty } = editor.state.selection;
     if (empty || !editor.isFocused || editor.isActive('codeBlock') || !editor.isEditable) {
       this.bubble.set(null);
+      this.highlightMenu.set(false);
       return;
     }
     const start = editor.view.coordsAtPos(from);
@@ -527,6 +565,9 @@ export class BlockEditor implements OnDestroy {
       italic: editor.isActive('italic'),
       code: editor.isActive('code'),
       link: editor.isActive('link'),
+      highlight: editor.isActive('highlight')
+        ? ((editor.getAttributes('highlight')['color'] as string) ?? 'yellow')
+        : null,
     });
   }
 
@@ -536,6 +577,39 @@ export class BlockEditor implements OnDestroy {
     if (mark === 'bold') chain.toggleBold().run();
     else if (mark === 'italic') chain.toggleItalic().run();
     else chain.toggleCode().run();
+    this.updateBubble();
+  }
+
+  // ---------- Neon highlight ----------
+
+  protected readonly neonColors = NEON_COLORS;
+  protected readonly highlightMenu = signal(false);
+  /** Last used color, reused by the main highlighter button and Ctrl/Cmd+Shift+H. */
+  protected readonly lastNeon = signal<NeonColor>('yellow');
+
+  protected toggleHighlightMenu(): void {
+    this.highlightMenu.update((o) => !o);
+  }
+
+  /** Main button: apply the last color, or remove the highlight if it's already on. */
+  protected quickHighlight(): void {
+    const editor = this.editor;
+    if (!editor) return;
+    if (editor.isActive('highlight')) editor.chain().focus().unsetHighlight().run();
+    else editor.chain().focus().setHighlight({ color: this.lastNeon() }).run();
+    this.updateBubble();
+  }
+
+  protected applyHighlight(color: NeonColor): void {
+    this.lastNeon.set(color);
+    this.editor?.chain().focus().setHighlight({ color }).run();
+    this.highlightMenu.set(false);
+    this.updateBubble();
+  }
+
+  protected removeHighlight(): void {
+    this.editor?.chain().focus().unsetHighlight().run();
+    this.highlightMenu.set(false);
     this.updateBubble();
   }
 

@@ -272,3 +272,64 @@
     h3 { font-size: 1rem; }
   }
 }
+
+/* ---------- Neon highlights ----------
+ * Marks are stored as <mark data-color="lime|cyan|pink|yellow|orange|violet">.
+ * Light: highlighter-pen stroke behind dark text. Dark: glowing neon text on a faint tint.
+ */
+.block-editor {
+  --neon-lime: #39ff14;
+  --neon-cyan: #00f0ff;
+  --neon-pink: #ff2bd6;
+  --neon-yellow: #fff200;
+  --neon-orange: #ff8a00;
+  --neon-violet: #b026ff;
+}
+
+.dark .block-editor { --neon-violet: #c77dff; } /* pure #b026ff is too dim on black */
+.block-editor mark { --neon: var(--neon-yellow); } /* default; data-color rules below win */
+.block-editor [data-color='lime'] { --neon: var(--neon-lime); }
+.block-editor [data-color='cyan'] { --neon: var(--neon-cyan); }
+.block-editor [data-color='pink'] { --neon: var(--neon-pink); }
+.block-editor [data-color='yellow'] { --neon: var(--neon-yellow); }
+.block-editor [data-color='orange'] { --neon: var(--neon-orange); }
+.block-editor [data-color='violet'] { --neon: var(--neon-violet); }
+
+.block-editor__content .be-prose mark {
+  color: inherit;
+  padding: 0.05em 0.2em;
+  margin: 0 -0.05em;
+  border-radius: 0.3em 0.15em 0.35em 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  /* Marker stroke: slightly uneven top/bottom edges like a real highlighter. */
+  background:
+    linear-gradient(
+      100deg,
+      color-mix(in srgb, var(--neon) 55%, transparent) 0%,
+      color-mix(in srgb, var(--neon) 75%, transparent) 50%,
+      color-mix(in srgb, var(--neon) 50%, transparent) 100%
+    );
+}
+
+/* Lighter neons need more ink to read on white. */
+.block-editor__content .be-prose mark:is([data-color='violet'], [data-color='pink']) {
+  background: color-mix(in srgb, var(--neon) 38%, transparent);
+}
+
+.dark .block-editor__content .be-prose mark {
+  color: var(--neon);
+  background: color-mix(in srgb, var(--neon) 13%, transparent);
+  text-shadow:
+    0 0 6px color-mix(in srgb, var(--neon) 70%, transparent),
+    0 0 14px color-mix(in srgb, var(--neon) 35%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--neon) 60%, transparent);
+}
+
+/* Palette swatches + the color bar under the highlighter icon. */
+.neon-swatch {
+  background: var(--neon);
+}
+.dark .neon-swatch {
+  box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 80%, transparent);
+}
