@@ -1,4 +1,5 @@
-<div class="relative min-h-dvh bg-page lg:mx-auto lg:my-6 lg:min-h-[calc(100dvh-3rem)] lg:max-w-[54rem] lg:rounded-md lg:shadow-page">
+<div class="xl:flex xl:items-start xl:justify-center xl:gap-5">
+<div class="relative min-h-dvh bg-page lg:mx-auto lg:my-6 lg:min-h-[calc(100dvh-3rem)] lg:max-w-[54rem] lg:rounded-md lg:shadow-page xl:mx-0 xl:min-w-0 xl:flex-1">
   <!-- Top bar -->
   <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-page/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-page/75 sm:px-4 lg:rounded-t-md">
     <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()" title="Back to notes">
@@ -27,6 +28,21 @@
           @case ('error') { <span class="flex items-center gap-1.5 text-destructive"><ng-icon name="lucideCloudOff" /> Not saved — retrying</span> }
         }
       </span>
+
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        [class.bg-muted]="tocOpen()"
+        [class.text-primary]="tocOpen()"
+        (click)="toggleToc()"
+        [attr.aria-pressed]="tocOpen()"
+        aria-label="Contents"
+        title="Contents (Ctrl+Shift+O)"
+      >
+        <ng-icon name="lucideListTree" class="text-lg" />
+      </button>
 
       <button
         z-button
@@ -125,7 +141,7 @@
       </div>
 
       @for (key of [editorKey()]; track key) {
-        <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" />
+        <app-block-editor [value]="initialBody()" (valueChange)="onBodyChange($event)" (headingsChange)="headings.set($event)" />
       }
     }
   </article>
@@ -139,4 +155,44 @@
       </button>
     </ng-container>
   </app-modal>
+</div>
+
+@if (tocOpen()) {
+  @switch (tocMode()) {
+    @case ('dock') {
+      <!-- ≥1280px: docked beside the page -->
+      <aside class="bento scrollbar-thin sticky top-6 my-6 max-h-[calc(100dvh-3rem)] w-60 shrink-0 overflow-y-auto p-2" aria-label="Contents">
+        <app-note-toc [headings]="headings()" (jump)="jumpToHeading($event)" />
+      </aside>
+    }
+    @case ('overlay') {
+      <!-- 768–1279px: card over the right edge of the page -->
+      <div class="fixed inset-0 z-40" (click)="tocOpen.set(false)" aria-hidden="true"></div>
+      <aside class="bento scrollbar-thin fixed top-20 right-6 z-50 max-h-[70vh] w-72 overflow-y-auto p-2 animate-in fade-in-0 slide-in-from-right-4" aria-label="Contents">
+        <app-note-toc [headings]="headings()" (jump)="jumpToHeading($event)" />
+      </aside>
+    }
+    @case ('sheet') {
+      <!-- <768px: bottom sheet -->
+      <div class="fixed inset-0 z-40 bg-black/40 animate-in fade-in-0" (click)="tocOpen.set(false)" aria-hidden="true"></div>
+      <aside
+        class="fixed inset-x-0 bottom-0 z-50 flex max-h-[70vh] flex-col rounded-t-2xl border-t bg-page pb-[env(safe-area-inset-bottom)] shadow-sheet animate-in slide-in-from-bottom"
+        role="dialog"
+        aria-label="Contents"
+      >
+        <div class="flex items-center justify-between px-3 pt-2">
+          <span class="mx-auto h-1.5 w-10 rounded-full bg-muted-foreground/25" aria-hidden="true"></span>
+        </div>
+        <div class="flex justify-end px-2">
+          <button type="button" class="grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-muted" aria-label="Close contents" (click)="tocOpen.set(false)">
+            <ng-icon name="lucideX" />
+          </button>
+        </div>
+        <div class="scrollbar-thin overflow-y-auto px-2 pb-4">
+          <app-note-toc [headings]="headings()" (jump)="jumpToHeading($event)" />
+        </div>
+      </aside>
+    }
+  }
+}
 </div>

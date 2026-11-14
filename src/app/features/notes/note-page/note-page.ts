@@ -16,8 +16,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft, lucideBookmark, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
-  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle,
+  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX,
 } from '@ng-icons/lucide';
+import { NoteToc } from '../../../shared/components/note-toc/note-toc';
+import type { EditorHeading } from '../../../shared/components/block-editor/block-editor';
 import { ZardButtonComponent } from '@/shared/ui/button';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { ZardDropdownImports } from '@/shared/ui/dropdown';
@@ -55,6 +57,7 @@ const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
     ZardSkeletonComponent,
     ...ZardDropdownImports,
     AppSelect,
+    NoteToc,
     BlockEditor,
     Modal,
   ],
@@ -62,7 +65,7 @@ const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
   viewProviders: [
     provideIcons({
       lucideArrowLeft, lucideBookmark, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
-      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle,
+      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX,
       bookmarkSolid:
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
     }),
@@ -77,6 +80,13 @@ export class NotePage implements OnDestroy {
   private destroyRef = inject(DestroyRef);
 
   private readonly editor = viewChild(BlockEditor);
+
+  // ---------- Table of contents ----------
+  /** Hidden by default; opened from the top-bar button or Ctrl/Cmd+Shift+O. */
+  protected readonly tocOpen = signal(false);
+  protected readonly headings = signal<EditorHeading[]>([]);
+  /** dock = side panel (≥1280px), overlay = card over the page (768–1279px), sheet = bottom sheet (<768px). */
+  protected readonly tocMode = signal<'dock' | 'overlay' | 'sheet'>(this.currentTocMode());
   private readonly titleRef = viewChild<ElementRef<HTMLTextAreaElement>>('titleInput');
 
   protected readonly noteId = signal<string | null>(null);
@@ -177,7 +187,39 @@ export class NotePage implements OnDestroy {
     return cats.find((c) => c.id === last)?.id ?? cats[0]?.id ?? '';
   }
 
+  private currentTocMode(): 'dock' | 'overlay' | 'sheet' {
+    if (typeof window === 'undefined') return 'dock';
+    if (window.matchMedia('(min-width: 1280px)').matches) return 'dock';
+    return window.matchMedia('(min-width: 768px)').matches ? 'overlay' : 'sheet';
+  }
+
+  @HostListener('window:resize')
+  protected onResize(): void {
+    this.tocMode.set(this.currentTocMode());
+  }
+
+  protected toggleToc(): void {
+    this.tocMode.set(this.currentTocMode());
+    this.tocOpen.update((o) => !o);
+  }
+
+  protected jumpToHeading(pos: number): void {
+    this.editor()?.scrollToHeading(pos);
+    if (this.tocMode() !== 'dock') this.tocOpen.set(false);
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  protected onTocShortcut(event: KeyboardEvent): void {
+    if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === 'o') {
+      event.preventDefault();
+      this.toggleToc();
+    } else if (event.key === 'Escape' && this.tocOpen() && this.tocMode() !== 'dock') {
+      this.tocOpen.set(false);
+    }
+  }
+
   private resetForNew(): void {
+    this.tocOpen.set(false);
     this.clearTimers();
     this.noteId.set(null);
     this.saved = null;
@@ -196,6 +238,7 @@ export class NotePage implements OnDestroy {
   }
 
   private loadNote(id: string): void {
+    this.tocOpen.set(false);
     this.clearTimers();
     this.loading.set(true);
     this.notesService.getById(id).subscribe({

@@ -33,6 +33,8 @@ Select any text to get the formatting toolbar: **bold**, *italic*, \`inline code
 - [ ] Write your first note
 - [ ] Mark a topic as revised
 
+Long note? Click the **Contents** button (list icon, top right) to open a collapsible outline of your headings and jump to any section.
+
 ## Code blocks
 
 Pick the language from the menu in the block's top-left corner to get syntax highlighting, and use **Copy** in the top-right corner to copy the code.
@@ -84,6 +86,7 @@ Open **Progress** from the side menu to see:
 | Action | Shortcut |
 | --- | --- |
 | Save now | Ctrl/Cmd + S |
+| Show / hide contents | Ctrl/Cmd + Shift + O |
 | Block menu | / |
 | Bold / Italic | Ctrl/Cmd + B / I |
 | Inline code | Ctrl/Cmd + E |

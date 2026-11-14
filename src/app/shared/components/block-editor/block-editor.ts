@@ -265,6 +265,15 @@ interface SlashState {
   left: number;
 }
 
+/** A heading in the document, for the note's table of contents. */
+export interface EditorHeading {
+  id: string;
+  level: number;
+  text: string;
+  /** ProseMirror position of the heading node. */
+  pos: number;
+}
+
 interface BubbleState {
   top: number;
   left: number;
@@ -298,6 +307,9 @@ export class BlockEditor implements OnDestroy {
   readonly editable = input(true);
   /** Emits markdown, only when the document really changed (not on load/normalisation). */
   readonly valueChange = output<string>();
+  /** Emitted whenever the document's headings change (also on load). */
+  readonly headingsChange = output<EditorHeading[]>();
+  private headingsKey = '';
 
   protected readonly slash = signal<SlashState | null>(null);
   protected readonly bubble = signal<BubbleState | null>(null);
@@ -346,6 +358,7 @@ export class BlockEditor implements OnDestroy {
         this.lastValue = v;
         this.editor.commands.setContent(v, { emitUpdate: false });
         this.lastMarkdown = this.getMarkdown();
+        this.emitHeadings();
       });
     });
   }
@@ -443,6 +456,7 @@ export class BlockEditor implements OnDestroy {
         },
       },
       onUpdate: ({ editor }) => {
+        this.emitHeadings();
         if (!editor.isEditable) return;
         const md = this.getMarkdown();
         if (md === this.lastMarkdown) return;
@@ -461,7 +475,38 @@ export class BlockEditor implements OnDestroy {
 
     this.lastValue = initial;
     this.lastMarkdown = this.getMarkdown();
+    this.emitHeadings();
     window.addEventListener('scroll', this.onScroll, true);
+  }
+
+  // ---------- Headings / table of contents ----------
+
+  private emitHeadings(): void {
+    const editor = this.editor;
+    if (!editor) return;
+    const list: EditorHeading[] = [];
+    editor.state.doc.descendants((node, pos) => {
+      if (node.type.name === 'heading') {
+        list.push({ id: `h-${pos}`, level: node.attrs['level'] as number, text: node.textContent.trim(), pos });
+        return false; // headings have no nested headings
+      }
+      return true;
+    });
+    const key = list.map((h) => `${h.pos}:${h.level}:${h.text}`).join('|');
+    if (key === this.headingsKey) return;
+    this.headingsKey = key;
+    this.headingsChange.emit(list);
+  }
+
+  /** Scroll a heading into view (just below the sticky top bar) and put the cursor on it. */
+  scrollToHeading(pos: number): void {
+    const editor = this.editor;
+    if (!editor) return;
+    const dom = editor.view.nodeDOM(pos);
+    if (dom instanceof HTMLElement) dom.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (editor.isEditable) {
+      editor.chain().setTextSelection(pos + 1).focus(undefined, { scrollIntoView: false }).run();
+    }
   }
 
   private getMarkdown(): string {
