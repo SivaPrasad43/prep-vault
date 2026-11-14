@@ -411,6 +411,19 @@ export class NotePage implements OnDestroy {
     if (!this.destroyed) this.retryTimer = setTimeout(() => this.flush(), RETRY_MS);
   }
 
+  /** Ctrl/Cmd+S: save now instead of waiting for the autosave debounce. */
+  @HostListener('window:keydown', ['$event'])
+  protected onSaveShortcut(event: KeyboardEvent): void {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLowerCase() !== 's') return;
+    event.preventDefault(); // never open the browser's "Save page" dialog
+    if (this.deleted || this.loading()) return;
+
+    const dirty = this.isDirty();
+    this.flush();
+    // Existing note with nothing new to persist: still confirm it's saved.
+    if (!dirty && !this.inFlight && this.saved !== null) this.saveStatus.set('saved');
+  }
+
   @HostListener('window:beforeunload', ['$event'])
   protected onBeforeUnload(event: BeforeUnloadEvent): void {
     if (this.deleted || (!this.inFlight && !this.isDirty())) return;
