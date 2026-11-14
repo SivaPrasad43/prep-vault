@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { from, Observable } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { map, switchMap, shareReplay, catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import type { Category } from '../models';
@@ -51,7 +52,30 @@ export class CategoriesService {
     );
   }
 
+  private seeded: { userId: string | null; result$: Observable<Category[]> } | null = null;
+
+  /**
+   * Returns the user's categories, inserting the defaults on first use.
+   * Memoized per user so concurrent callers (layout rail + dashboard) don't
+   * both try to insert the defaults for a brand-new account.
+   */
   seedDefaults(): Observable<Category[]> {
+    const userId = this.auth.userId;
+    if (this.seeded?.userId === userId) {
+      return this.seeded.result$;
+    }
+    const result$ = this.loadOrSeed().pipe(
+      catchError((err) => {
+        this.seeded = null; // allow retry after a failure
+        return throwError(() => err);
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
+    );
+    this.seeded = { userId, result$ };
+    return result$;
+  }
+
+  private loadOrSeed(): Observable<Category[]> {
     return from(
       this.supabase.client
         .from('categories')

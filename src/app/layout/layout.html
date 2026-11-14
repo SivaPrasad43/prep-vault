@@ -1,20 +1,180 @@
-<div class="layout" [class.layout--sidebar-open]="sidebarOpen()">
-  <app-sidebar
-    [isOpen]="sidebarOpen()"
-    [sidebarVisible]="showSidebar()"
-    (closeSidebar)="onCloseSidebar()"
-  />
-  <div class="layout__main" [class.layout__main--shifted]="showSidebar()">
-    @if (showSidebar()) {
-      <header class="layout__navbar">
-        <button class="layout__hamburger" (click)="onToggleSidebar()" aria-label="Toggle sidebar">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+<div class="min-h-dvh bg-background text-foreground">
+  @if (showShell()) {
+    <!-- Top app bar -->
+    <header
+      class="sticky top-0 z-30 flex h-16 items-center gap-2 border-b bg-background/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/70 sm:px-4"
+    >
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        (click)="toggleNav()"
+        aria-label="Toggle navigation"
+      >
+        <ng-icon name="lucideMenu" class="text-xl" />
+      </button>
+
+      <a routerLink="/my-notes" class="mr-2 flex shrink-0 items-center gap-2" (click)="showAllNotes()">
+        <span class="grid size-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+          <ng-icon name="lucideVault" class="text-lg" />
+        </span>
+        <span class="hidden text-xl font-medium tracking-tight sm:inline">PrepVault</span>
+      </a>
+
+      <!-- Search -->
+      <label
+        class="group mx-auto flex h-12 w-full max-w-2xl items-center gap-3 rounded-full bg-muted px-4 transition-colors focus-within:bg-background focus-within:shadow-md focus-within:ring-1 focus-within:ring-border"
+      >
+        <ng-icon name="lucideSearch" class="shrink-0 text-lg text-muted-foreground" />
+        <input
+          #search
+          type="search"
+          class="h-full w-full min-w-0 bg-transparent text-base outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+          placeholder="Search notes"
+          aria-label="Search notes"
+          [value]="filterState.searchQuery()"
+          (input)="onSearch(search.value)"
+        />
+        @if (filterState.searchQuery()) {
+          <button
+            z-button
+            zType="ghost"
+            zSize="icon-sm"
+            zShape="circle"
+            aria-label="Clear search"
+            (click)="search.value = ''; onSearch('')"
+          >
+            <ng-icon name="lucideX" />
+          </button>
+        }
+      </label>
+
+      <div class="ml-auto flex shrink-0 items-center gap-1">
+        <button
+          z-button
+          zType="ghost"
+          zSize="icon-lg"
+          zShape="circle"
+          [zTooltip]="themeService.isDark() ? 'Light mode' : 'Dark mode'"
+          zPosition="bottom"
+          (click)="themeService.toggle()"
+          [attr.aria-label]="themeService.isDark() ? 'Switch to light mode' : 'Switch to dark mode'"
+        >
+          <ng-icon [name]="themeService.isDark() ? 'lucideSun' : 'lucideMoon'" class="text-lg" />
         </button>
-        <span class="layout__brand">PrepVault</span>
-        <div class="layout__navbar-spacer"></div>
-      </header>
+
+        <button
+          type="button"
+          class="rounded-full p-1 outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+          z-dropdown
+          [zDropdownMenu]="userMenu"
+          aria-label="Account menu"
+        >
+          <z-avatar [zSrc]="user().avatar" [zFallback]="user().initial" [zAlt]="user().name" class="size-8" />
+        </button>
+        <z-dropdown-menu-content #userMenu="zDropdownMenuContent" zAlign="end" class="w-64">
+          <div class="flex items-center gap-3 px-2 py-2">
+            <z-avatar [zSrc]="user().avatar" [zFallback]="user().initial" [zAlt]="user().name" class="size-10" />
+            <div class="min-w-0">
+              <p class="truncate text-sm font-medium">{{ user().name }}</p>
+              <p class="truncate text-xs text-muted-foreground">{{ user().email }}</p>
+            </div>
+          </div>
+          <z-dropdown-menu-separator />
+          <z-dropdown-menu-item (click)="signOut()">
+            <ng-icon name="lucideLogOut" />
+            Sign out
+          </z-dropdown-menu-item>
+        </z-dropdown-menu-content>
+      </div>
+    </header>
+
+    <!-- Mobile drawer backdrop -->
+    @if (drawerOpen()) {
+      <div class="fixed inset-0 z-30 bg-black/40 md:hidden" (click)="drawerOpen.set(false)" aria-hidden="true"></div>
     }
-    <main class="layout__content">
+
+  }
+
+  <div class="flex">
+    @if (showShell()) {
+      <!-- Nav rail -->
+      <nav
+        aria-label="Main"
+        [class]="railClasses()"
+      >
+        <ng-template #navItem let-icon="icon" let-label="label" let-active="active" let-dot="dot" let-category="category">
+          <span
+            class="flex h-12 items-center gap-5 rounded-r-full pr-4 pl-6 text-sm font-medium transition-colors"
+            [class.bg-nav-active]="active"
+            [class.text-nav-active-foreground]="active"
+            [class.hover:bg-muted]="!active"
+          >
+            @if (dot) {
+              <span class="grid size-5 shrink-0 place-items-center"><span class="size-2.5 rounded-full" [class]="dot"></span></span>
+            } @else if (category) {
+              <app-category-icon [icon]="category" class="shrink-0 text-xl" />
+            } @else {
+              <ng-icon [name]="icon" class="shrink-0 text-xl" />
+            }
+            <span class="truncate" [class.md:hidden]="!railExpanded()">{{ label }}</span>
+          </span>
+        </ng-template>
+
+        <div class="flex items-center gap-2 px-4 pb-2 md:hidden">
+          <span class="text-lg font-medium">PrepVault</span>
+        </div>
+
+        <ul class="space-y-0.5 pr-3">
+          <li>
+            <button type="button" class="w-full text-left" (click)="showAllNotes()" [zTooltip]="railExpanded() ? null : 'Notes'" zPosition="right">
+              <ng-container *ngTemplateOutlet="navItem; context: { icon: 'lucideNotebookPen', label: 'Notes', active: isAllNotesActive() }" />
+            </button>
+          </li>
+          <li>
+            <button type="button" class="w-full text-left" (click)="toggleBookmarks()" [zTooltip]="railExpanded() ? null : 'Bookmarks'" zPosition="right">
+              <ng-container *ngTemplateOutlet="navItem; context: { icon: 'lucideBookmark', label: 'Bookmarks', active: filterState.smartFilter() === 'bookmarks' }" />
+            </button>
+          </li>
+          <li>
+            <a routerLink="/analytics" class="block" [zTooltip]="railExpanded() ? null : 'Analytics'" zPosition="right">
+              <ng-container *ngTemplateOutlet="navItem; context: { icon: 'lucideChartColumn', label: 'Analytics', active: activePath() === '/analytics' }" />
+            </a>
+          </li>
+        </ul>
+
+        <p class="mt-4 mb-1 px-6 text-xs font-medium tracking-wide text-muted-foreground uppercase" [class.md:invisible]="!railExpanded()">
+          Confidence
+        </p>
+        <ul class="space-y-0.5 pr-3">
+          @for (level of confidenceLevels; track level.value) {
+            <li>
+              <button type="button" class="w-full text-left" (click)="toggleConfidence(level.value)" [zTooltip]="railExpanded() ? null : level.label" zPosition="right">
+                <ng-container *ngTemplateOutlet="navItem; context: { dot: level.dot, label: level.label, active: filterState.confidenceLevel() === level.value }" />
+              </button>
+            </li>
+          }
+        </ul>
+
+        @if (categories().length) {
+          <p class="mt-4 mb-1 px-6 text-xs font-medium tracking-wide text-muted-foreground uppercase" [class.md:invisible]="!railExpanded()">
+            Categories
+          </p>
+          <ul class="space-y-0.5 pr-3">
+            @for (cat of categories(); track cat.id) {
+              <li>
+                <button type="button" class="w-full text-left" (click)="toggleCategory(cat.id)" [zTooltip]="railExpanded() ? null : cat.name" zPosition="right">
+                  <ng-container *ngTemplateOutlet="navItem; context: { category: cat.icon, label: cat.name, active: filterState.categoryId() === cat.id }" />
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      </nav>
+    }
+
+    <main class="min-w-0 flex-1">
       <router-outlet />
     </main>
   </div>

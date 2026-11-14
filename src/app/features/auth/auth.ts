@@ -2,14 +2,16 @@ import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { filter, first } from 'rxjs/operators';
-import { LucideAlertCircle, LucideLoader } from '@lucide/angular';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideCircleAlert, lucideLoaderCircle, lucideVault } from '@ng-icons/lucide';
+import { ZardCardImports } from '@/shared/ui/card';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-auth',
-  imports: [LucideAlertCircle, LucideLoader],
+  imports: [NgIcon, ...ZardCardImports],
   templateUrl: './auth.html',
-  styleUrl: './auth.scss',
+  viewProviders: [provideIcons({ lucideCircleAlert, lucideLoaderCircle, lucideVault })],
 })
 export class Auth implements OnInit {
   private authService = inject(AuthService);

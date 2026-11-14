@@ -1,20 +1,22 @@
 import { Component, OnInit, OnDestroy, inject, signal, ViewChild, ElementRef, effect } from '@angular/core';
-import { LucideFileText, LucideCalendar, LucideFlame } from '@lucide/angular';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideFileText, lucideCalendar, lucideFlame, lucideSun } from '@ng-icons/lucide';
+import { ZardCardImports } from '@/shared/ui/card';
+import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { Chart, registerables } from 'chart.js';
 import { combineLatest } from 'rxjs';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { ThemeService } from '../../core/services/theme.service';
-import { AnalyticsSkeleton } from './analytics-skeleton';
 import type { NoteStats } from '../../core/models';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-analytics',
-  imports: [LucideFileText, LucideCalendar, LucideFlame, AnalyticsSkeleton],
+  imports: [NgIcon, ...ZardCardImports, ZardSkeletonComponent],
   templateUrl: './analytics.html',
-  styleUrl: './analytics.scss',
+  viewProviders: [provideIcons({ lucideFileText, lucideCalendar, lucideFlame, lucideSun })],
 })
 export class Analytics implements OnInit, OnDestroy {
   private notesService = inject(NotesService);
@@ -27,8 +29,11 @@ export class Analytics implements OnInit, OnDestroy {
     effect(() => {
       this.themeService.isDark();
       if (this.loading()) return;
-      this.renderBarChart();
-      this.renderDoughnutChart();
+      // Wait a frame so ThemeService has toggled the .dark class before reading tokens.
+      requestAnimationFrame(() => {
+        this.renderBarChart();
+        this.renderDoughnutChart();
+      });
     });
   }
 
@@ -93,11 +98,26 @@ export class Analytics implements OnInit, OnDestroy {
     return (count / this.maxCategoryCount()) * 100;
   }
 
-  private hexToRgb(hex: string): string {
-    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result
-      ? `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
-      : '79, 110, 247';
+  /** Read a theme token (ZardUI CSS variable) from :root. */
+  private token(name: string, fallback: string): string {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+  }
+
+  /** Add alpha to an oklch()/rgb() color string; canvas accepts both. */
+  private withAlpha(color: string, alpha: number): string {
+    return /^(oklch|rgb|hsl)\(/.test(color) && !color.includes('/')
+      ? color.replace(/\)\s*$/, ` / ${alpha})`)
+      : color;
+  }
+
+  private chartTheme() {
+    return {
+      primary: this.token('--primary', '#1a73e8'),
+      text: this.token('--foreground', '#1e293b'),
+      muted: this.token('--muted-foreground', '#94a3b8'),
+      border: this.token('--border', '#e2e8f0'),
+      surface: this.token('--popover', '#fff'),
+    };
   }
 
   private renderBarChart(): void {
@@ -114,11 +134,9 @@ export class Analytics implements OnInit, OnDestroy {
     const labels = data.map((d) => days[new Date(d.date).getDay()]);
     const values = data.map((d) => d.count);
 
-    const style = getComputedStyle(document.documentElement);
-    const primaryHex = style.getPropertyValue('--color-primary').trim() || '#4f6ef7';
-    const primaryRgb = this.hexToRgb(primaryHex);
-    const textMuted = style.getPropertyValue('--color-text-muted').trim() || '#94a3b8';
-    const border = style.getPropertyValue('--color-border-light').trim() || '#f1f5f9';
+    const t = this.chartTheme();
+    const textMuted = t.muted;
+    const border = t.border;
 
     this.barChart = new Chart(canvas, {
       type: 'bar',
@@ -127,10 +145,10 @@ export class Analytics implements OnInit, OnDestroy {
         datasets: [{
           label: 'Notes',
           data: values,
-          backgroundColor: `rgba(${primaryRgb}, 0.75)`,
-          borderColor: `rgb(${primaryRgb})`,
-          borderWidth: 1.5,
-          borderRadius: 4,
+          backgroundColor: this.withAlpha(t.primary, 0.8),
+          hoverBackgroundColor: t.primary,
+          borderWidth: 0,
+          borderRadius: 6,
         }],
       },
       options: {
@@ -139,10 +157,10 @@ export class Analytics implements OnInit, OnDestroy {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: style.getPropertyValue('--color-surface').trim() || '#fff',
-            titleColor: style.getPropertyValue('--color-text').trim() || '#1e293b',
-            bodyColor: style.getPropertyValue('--color-text-secondary').trim() || '#64748b',
-            borderColor: style.getPropertyValue('--color-border').trim() || '#e2e8f0',
+            backgroundColor: t.surface,
+            titleColor: t.text,
+            bodyColor: t.muted,
+            borderColor: t.border,
             borderWidth: 1,
             padding: 10,
             cornerRadius: 8,
@@ -178,11 +196,11 @@ export class Analytics implements OnInit, OnDestroy {
     if (!canvas || !this.stats()) return;
 
     const s = this.stats()!;
-    const style = getComputedStyle(document.documentElement);
+    const t = this.chartTheme();
 
-    const needPracticeColor = style.getPropertyValue('--color-confidence-need-practice').trim() || '#f87171';
-    const gettingThereColor = style.getPropertyValue('--color-confidence-getting-there').trim() || '#fbbf24';
-    const confidentColor = style.getPropertyValue('--color-confidence-confident').trim() || '#34d399';
+    const needPracticeColor = this.token('--confidence-need-practice', '#f87171');
+    const gettingThereColor = this.token('--confidence-getting-there', '#fbbf24');
+    const confidentColor = this.token('--confidence-confident', '#34d399');
 
     this.doughnutChart = new Chart(canvas, {
       type: 'doughnut',
@@ -202,7 +220,7 @@ export class Analytics implements OnInit, OnDestroy {
           legend: {
             position: 'bottom',
             labels: {
-              color: style.getPropertyValue('--color-text-secondary').trim() || '#64748b',
+              color: t.muted,
               font: { size: 12 },
               padding: 16,
               usePointStyle: true,
@@ -210,10 +228,10 @@ export class Analytics implements OnInit, OnDestroy {
             },
           },
           tooltip: {
-            backgroundColor: style.getPropertyValue('--color-surface').trim() || '#fff',
-            titleColor: style.getPropertyValue('--color-text').trim() || '#1e293b',
-            bodyColor: style.getPropertyValue('--color-text-secondary').trim() || '#64748b',
-            borderColor: style.getPropertyValue('--color-border').trim() || '#e2e8f0',
+            backgroundColor: t.surface,
+            titleColor: t.text,
+            bodyColor: t.muted,
+            borderColor: t.border,
             borderWidth: 1,
             padding: 10,
             cornerRadius: 8,

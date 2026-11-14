@@ -1,32 +1,30 @@
-import { Component, OnInit, AfterViewInit, inject, signal, ViewChild, ElementRef, DestroyRef } from '@angular/core';
+import { Component, OnInit, inject, signal, ElementRef, viewChild, effect } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucidePlus, lucideFlame, lucidePencilLine } from '@ng-icons/lucide';
+import { ZardButtonComponent } from '@/shared/ui/button';
+import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { LucidePlus, LucideFlame } from '@lucide/angular';
 import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, switchMap, fromEvent } from 'rxjs';
+import { debounceTime, switchMap } from 'rxjs';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
 
 import { NoteCard } from '../../shared/components/note-card/note-card';
-import { SearchBar } from '../../shared/components/search-bar/search-bar';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
-import { SkeletonCard } from '../../shared/components/skeleton-card/skeleton-card';
 import type { Note, Category, NoteStats, NoteFilters } from '../../core/models';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, FormsModule, LucidePlus, LucideFlame, NoteCard, SearchBar, EmptyState, CategoryIcon, SkeletonCard],
+  imports: [RouterLink, DatePipe, NgIcon, ZardButtonComponent, ZardSkeletonComponent, NoteCard, EmptyState, CategoryIcon],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.scss',
+  viewProviders: [provideIcons({ lucidePlus, lucideFlame, lucidePencilLine })],
 })
-export class Dashboard implements OnInit, AfterViewInit {
+export class Dashboard implements OnInit {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
-  private hostRef = inject(ElementRef);
-  private destroyRef = inject(DestroyRef);
   protected filterState = inject(FilterStateService);
   private readonly PAGE_SIZE = 10;
 
@@ -41,9 +39,8 @@ export class Dashboard implements OnInit, AfterViewInit {
 
   private currentFilters?: NoteFilters;
   private loadMoreEpoch = 0;
-  private scrollContainer: HTMLElement | null = null;
-
-  @ViewChild('categoriesContainer') categoriesContainer?: ElementRef<HTMLElement>;
+  private sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
+  protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   protected greeting = this.getGreeting();
   protected today = new Date();
@@ -65,6 +62,7 @@ export class Dashboard implements OnInit, AfterViewInit {
       )
       .subscribe({
         next: (result) => {
+          this.error = '';
           this.displayedNotes.set(result.data);
           this.allLoaded.set(result.count <= this.PAGE_SIZE);
           this.loading.set(false);
@@ -75,6 +73,20 @@ export class Dashboard implements OnInit, AfterViewInit {
         },
       });
   }
+
+  /** Infinite scroll: load the next page when the sentinel below the grid nears the viewport. */
+  private readonly infiniteScroll = effect((onCleanup) => {
+    const el = this.sentinel()?.nativeElement;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) this.loadMore();
+      },
+      { rootMargin: '400px' },
+    );
+    io.observe(el);
+    onCleanup(() => io.disconnect());
+  });
 
   ngOnInit(): void {
     this.categoriesService.seedDefaults().subscribe({
@@ -93,22 +105,9 @@ export class Dashboard implements OnInit, AfterViewInit {
     });
   }
 
-  protected onSearch(query: string): void {
-    this.filterState.setSearchQuery(query);
-  }
-
   protected selectCategory(id: string | null): void {
     const current = this.filterState.categoryId();
     this.filterState.setCategoryId(current === id ? null : id);
-
-    setTimeout(() => {
-      const container = this.categoriesContainer?.nativeElement;
-      if (!container) return;
-      const active = container.querySelector('.dashboard__cat-tab.--active') as HTMLElement | null;
-      if (active) {
-        active.scrollIntoView({ inline: 'start', behavior: 'smooth', block: 'nearest' });
-      }
-    });
   }
 
   protected getCategory(note: Note): Category | null {
@@ -141,28 +140,6 @@ export class Dashboard implements OnInit, AfterViewInit {
         if (epoch === this.loadMoreEpoch) this.loadingMore.set(false);
       },
     });
-  }
-
-  ngAfterViewInit(): void {
-    let el: HTMLElement | null = this.hostRef.nativeElement;
-    while (el) {
-      const style = getComputedStyle(el);
-      if (style.overflowY === 'auto' || style.overflowY === 'scroll') break;
-      el = el.parentElement;
-    }
-
-    if (el) {
-      this.scrollContainer = el;
-      fromEvent(el, 'scroll')
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe(() => {
-          if (this.loadingMore() || this.allLoaded() || this.loading()) return;
-          const { scrollTop, scrollHeight, clientHeight } = this.scrollContainer!;
-          if (scrollTop + clientHeight >= scrollHeight - 400) {
-            this.loadMore();
-          }
-        });
-    }
   }
 
   private getGreeting(): string {

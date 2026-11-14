@@ -1,32 +1,37 @@
-<article class="card" (click)="openNote()">
-  <div class="card__top">
-    <div class="card__meta">
-      @if (category()) {
-        <app-category-badge [category]="category()!" />
-      }
-      <app-confidence-indicator [level]="note().confidence_level" />
-    </div>
-    <div class="card__actions">
-      <svg
-        class="card__bookmark"
-        [class.card__bookmark--active]="note().is_favorite"
-        (click)="toggleFavorite.emit(note()); $event.stopPropagation()"
-        [attr.aria-label]="note().is_favorite ? 'Remove from bookmarks' : 'Add to bookmarks'"
-        lucideBookmark
-        [style.fill]="note().is_favorite ? '#3b82f6' : 'none'"
-      ></svg>
-    </div>
+<article
+  class="group relative flex cursor-pointer flex-col gap-2 rounded-xl border bg-card p-4 text-card-foreground transition-shadow hover:shadow-md focus-within:shadow-md"
+  (click)="openNote()"
+>
+  <div class="flex items-start gap-2">
+    <a
+      [routerLink]="['/notes', note().id]"
+      class="min-w-0 flex-1 text-base leading-snug font-medium outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
+      (click)="$event.stopPropagation()"
+    >
+      {{ note().title }}
+    </a>
+    <button
+      type="button"
+      class="relative z-10 -m-1 grid size-8 shrink-0 place-items-center rounded-full transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover:opacity-100"
+      [class.opacity-0]="!note().is_favorite"
+      [class.text-primary]="note().is_favorite"
+      [attr.aria-pressed]="note().is_favorite"
+      [attr.aria-label]="note().is_favorite ? 'Remove bookmark' : 'Bookmark'"
+      (click)="toggleFavorite.emit(note()); $event.stopPropagation()"
+    >
+      <ng-icon [name]="note().is_favorite ? 'heroBookmarkSolid' : 'lucideBookmark'" class="text-lg" />
+    </button>
   </div>
 
-  <span class="card__title">
-    {{ note().title }}
-  </span>
-
-  @if (note().description) {
-    <p class="card__preview">{{ note().description }}</p>
+  @if (preview(); as text) {
+    <p class="line-clamp-6 text-sm whitespace-pre-line text-muted-foreground">{{ text }}</p>
   }
 
-  <div class="card__footer">
-    <span class="card__date">{{ note().updated_at | date : 'MMM d, yyyy' }}</span>
+  <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5">
+    @if (category()) {
+      <app-category-badge [category]="category()!" />
+    }
+    <app-confidence-indicator [level]="note().confidence_level" />
+    <span class="ml-auto text-xs text-muted-foreground">{{ note().updated_at | date: 'MMM d' }}</span>
   </div>
 </article>

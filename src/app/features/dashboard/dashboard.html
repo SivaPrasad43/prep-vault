@@ -1,61 +1,81 @@
-<div class="dashboard">
-  <div class="dashboard__banner">
-    <div class="dashboard__greeting">
-      <h1 class="dashboard__greeting-text">{{ greeting }}!</h1>
-      <p class="dashboard__greeting-date">{{ today | date : 'fullDate' }}</p>
+<div class="mx-auto w-full max-w-6xl px-4 pt-6 pb-24 sm:px-6">
+  <!-- Greeting + streak -->
+  <section class="mb-6 flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <h1 class="text-2xl font-normal tracking-tight sm:text-3xl">{{ greeting }}</h1>
+      <p class="mt-1 text-sm text-muted-foreground">{{ today | date: 'EEEE, MMMM d' }}</p>
     </div>
     @if (stats(); as s) {
-      <div class="dashboard__streak">
-        <svg lucideFlame></svg>
-        <span class="dashboard__streak-value">{{ s.currentStreak }}</span>
-        <span class="dashboard__streak-label">Day Streak</span>
+      <div class="flex items-center gap-2 rounded-full border px-4 py-2 text-sm" aria-label="Current streak">
+        <ng-icon name="lucideFlame" class="text-lg text-orange-500" />
+        <span class="font-medium">{{ s.currentStreak }}</span>
+        <span class="text-muted-foreground">day streak</span>
       </div>
     }
-  </div>
+  </section>
 
-  <div class="dashboard__toolbar">
-    <app-search-bar (searchChange)="onSearch($event)" />
-    <a class="dashboard__add-btn" routerLink="/notes/new" title="Add Note"><svg lucidePlus></svg></a>
-  </div>
+  <!-- Quick capture (Keep "Take a note…") -->
+  <a
+    routerLink="/notes/new"
+    class="mx-auto mb-6 flex h-12 max-w-2xl items-center gap-3 rounded-xl border bg-card px-4 text-muted-foreground shadow-sm transition-shadow hover:shadow-md"
+  >
+    <ng-icon name="lucidePencilLine" class="text-lg" />
+    <span class="text-base">Take a note…</span>
+  </a>
 
-  <a class="dashboard__fab" routerLink="/notes/new" title="Add Note"><svg lucidePlus></svg></a>
-
-  <div class="dashboard__categories" #categoriesContainer>
-    <button
-      class="dashboard__cat-tab"
-      [class.--active]="!filterState.categoryId()"
-      (click)="filterState.setCategoryId(null)"
-    >All</button>
-    @for (cat of categoriesList(); track cat.id) {
+  <!-- Category chips -->
+  @if (categoriesList().length) {
+    <div class="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0" role="toolbar" aria-label="Filter by category">
       <button
-        class="dashboard__cat-tab"
-        [class.--active]="filterState.categoryId() === cat.id"
-        (click)="selectCategory(cat.id)"
+        type="button"
+        class="h-8 shrink-0 rounded-lg border px-3 text-sm transition-colors"
+        [class]="!filterState.categoryId() ? 'border-transparent bg-nav-active text-nav-active-foreground' : 'hover:bg-muted'"
+        [attr.aria-pressed]="!filterState.categoryId()"
+        (click)="filterState.setCategoryId(null)"
       >
-        <app-category-icon [icon]="cat.icon" />
-        {{ cat.name }}
+        All
       </button>
-    }
-  </div>
+      @for (cat of categoriesList(); track cat.id) {
+        <button
+          type="button"
+          class="flex h-8 shrink-0 items-center gap-1.5 rounded-lg border px-3 text-sm transition-colors"
+          [class]="filterState.categoryId() === cat.id ? 'border-transparent bg-nav-active text-nav-active-foreground' : 'hover:bg-muted'"
+          [attr.aria-pressed]="filterState.categoryId() === cat.id"
+          (click)="selectCategory(cat.id)"
+        >
+          <app-category-icon [icon]="cat.icon" />
+          {{ cat.name }}
+        </button>
+      }
+    </div>
+  }
 
   @if (loading()) {
-    <div class="dashboard__feed">
-      <app-skeleton-card />
-      <app-skeleton-card />
-      <app-skeleton-card />
-      <app-skeleton-card />
+    <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
+      @for (i of skeletons; track i) {
+        <div class="mb-4 break-inside-avoid space-y-3 rounded-xl border p-4">
+          <z-skeleton class="h-5 w-2/3" />
+          <z-skeleton class="h-3 w-full" />
+          <z-skeleton class="h-3 w-4/5" />
+          <div class="flex gap-2 pt-1">
+            <z-skeleton class="h-5 w-20 rounded-full" />
+            <z-skeleton class="h-5 w-16 rounded-full" />
+          </div>
+        </div>
+      }
     </div>
   } @else if (error) {
-    <div class="dashboard__error">{{ error }}</div>
+    <div class="rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">{{ error }}</div>
   } @else if (displayedNotes().length === 0) {
     <app-empty-state
-      title="No notes yet"
-      message="Add your first topic, question, or resource to start preparing."
+      [title]="filterState.hasActiveFilters() ? 'No matching notes' : 'No notes yet'"
+      [message]="filterState.hasActiveFilters() ? 'Try a different search or filter.' : 'Add your first topic, question, or resource to start preparing.'"
     />
   } @else {
-    <div class="dashboard__feed">
+    <div class="columns-1 gap-4 sm:columns-2 lg:columns-3">
       @for (note of displayedNotes(); track note.id) {
         <app-note-card
+          class="mb-4 block break-inside-avoid"
           [note]="note"
           [category]="getCategory(note)"
           (toggleFavorite)="toggleFavorite($event)"
@@ -63,17 +83,23 @@
       }
     </div>
 
-    @if (loadingMore()) {
-      <div class="dashboard__loader">
-        <div class="dashboard__loader-spinner"></div>
-        <span>Loading more notes…</span>
-      </div>
-    }
+    <div #sentinel class="h-px" aria-hidden="true"></div>
 
-    @if (allLoaded() && displayedNotes().length > 0) {
-      <div class="dashboard__end">
-        <span>You've reached the end of your notes</span>
-      </div>
+    @if (loadingMore()) {
+      <p class="py-6 text-center text-sm text-muted-foreground">Loading more notes…</p>
+    } @else if (allLoaded()) {
+      <p class="py-6 text-center text-sm text-muted-foreground">You've reached the end</p>
     }
   }
 </div>
+
+<!-- Mobile FAB -->
+<a
+  z-button
+  routerLink="/notes/new"
+  zShape="circle"
+  class="fixed right-5 bottom-5 z-20 size-14 shadow-lg md:hidden"
+  aria-label="New note"
+>
+  <ng-icon name="lucidePlus" class="text-2xl" />
+</a>
