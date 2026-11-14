@@ -26,6 +26,70 @@
         <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.italic" [class.bg-muted]="b.italic" (click)="toggleMark('italic')" title="Italic (Ctrl+I)" aria-label="Italic"><ng-icon name="lucideItalic" /></button>
         <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.code" [class.bg-muted]="b.code" (click)="toggleMark('code')" title="Inline code (Ctrl+E)" aria-label="Inline code"><ng-icon name="lucideCode" /></button>
         <button type="button" class="grid size-8 place-items-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground" [class.!text-primary]="b.link" [class.bg-muted]="b.link" (click)="openLinkInput()" title="Link" aria-label="Link"><ng-icon name="lucideLink" /></button>
+        <span class="mx-0.5 my-1.5 w-px bg-border" aria-hidden="true"></span>
+        <!-- Neon highlighter: main button applies last color; caret opens the palette -->
+        <div class="relative flex items-center">
+          <button
+            type="button"
+            class="grid size-8 place-items-center rounded-l-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            [class.bg-muted]="b.highlight"
+            (click)="quickHighlight()"
+            [title]="b.highlight ? 'Remove highlight (Ctrl+Shift+H)' : 'Highlight (Ctrl+Shift+H)'"
+            [attr.aria-label]="b.highlight ? 'Remove highlight' : 'Highlight'"
+            [attr.aria-pressed]="!!b.highlight"
+          >
+            <span class="relative grid place-items-center">
+              <ng-icon name="lucideHighlighter" />
+              <span class="neon-swatch absolute -bottom-1.5 h-[3px] w-4 rounded-full" [attr.data-color]="b.highlight ?? lastNeon()"></span>
+            </span>
+          </button>
+          <button
+            type="button"
+            class="grid h-8 w-4 place-items-center rounded-r-md text-muted-foreground hover:bg-accent hover:text-foreground"
+            [class.bg-muted]="highlightMenu()"
+            (click)="toggleHighlightMenu()"
+            aria-label="Highlight colors"
+            aria-haspopup="true"
+            [attr.aria-expanded]="highlightMenu()"
+          >
+            <svg viewBox="0 0 24 24" class="size-3" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+          </button>
+
+          @if (highlightMenu()) {
+            <div
+              class="absolute top-full right-0 z-10 mt-2 w-max rounded-xl border bg-popover p-2 shadow-sheet"
+              role="menu"
+              aria-label="Highlight color"
+            >
+              <div class="grid grid-cols-6 gap-1.5">
+                @for (c of neonColors; track c.name) {
+                  <button
+                    type="button"
+                    role="menuitemradio"
+                    class="neon-swatch grid size-7 place-items-center rounded-full ring-offset-2 ring-offset-popover transition-transform hover:scale-110 focus-visible:ring-2 focus-visible:ring-ring"
+                    [attr.data-color]="c.name"
+                    [class.ring-2]="b.highlight === c.name"
+                    [class.ring-foreground]="b.highlight === c.name"
+                    [attr.aria-checked]="b.highlight === c.name"
+                    [title]="c.label"
+                    [attr.aria-label]="c.label"
+                    (click)="applyHighlight(c.name)"
+                  ></button>
+                }
+              </div>
+              <button
+                type="button"
+                role="menuitem"
+                class="mt-2 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-40"
+                [disabled]="!b.highlight"
+                (click)="removeHighlight()"
+              >
+                <ng-icon name="lucideBan" />
+                Remove highlight
+              </button>
+            </div>
+          }
+        </div>
       }
     </div>
   }
@@ -74,7 +138,7 @@
     <div class="fixed inset-0 z-40" (mousedown)="closeLanguageMenu()" aria-hidden="true"></div>
     <app-select-menu
       class="fixed z-50"
-      [style.width.px]="220"
+      width="14rem"
       [style.top.px]="m.top"
       [style.left.px]="m.left"
       label="Code language"

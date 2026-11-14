@@ -14,6 +14,7 @@ const BOOKMARK_SOLID =
 function toPlainText(md: string): string {
   return md
     .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/<\/?[a-z][^>]*>/gi, '') // inline HTML such as <mark data-color="…"> highlights
     .replace(/`([^`]*)`/g, '$1')
     .replace(/!\[[^\]]*\]\([^)]*\)/g, '')
     .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')

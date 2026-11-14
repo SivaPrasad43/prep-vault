@@ -25,8 +25,11 @@ let nextId = 0;
   imports: [NgIcon, CategoryIcon],
   viewProviders: [provideIcons({ lucideCheck, lucideSearch })],
   host: {
+    // Width comes from the `width` input and is always capped to the viewport,
+    // so the menu can never stretch across the page whatever its container is.
     class:
-      'flex max-h-80 w-full flex-col overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-sheet',
+      'flex max-h-80 max-w-[calc(100vw-1rem)] flex-col overflow-hidden rounded-xl border bg-popover text-popover-foreground shadow-sheet',
+    '[style.width]': 'width()',
     '(keydown)': 'onKeydown($event)',
   },
   template: `
@@ -95,6 +98,8 @@ export class SelectMenu {
   readonly searchable = input(false);
   readonly searchPlaceholder = input('Search…');
   readonly label = input('Options');
+  /** CSS width of the menu (default 15rem). app-select passes 100% of its overlay pane. */
+  readonly width = input('15rem');
 
   readonly picked = output<string>();
   readonly closed = output<void>();

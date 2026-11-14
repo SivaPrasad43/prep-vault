@@ -12,8 +12,8 @@
   <script>
     // Apply saved theme before first paint (no flash). Mirrors ThemeService.
     try {
-      var t = localStorage.getItem('prep-vault-theme') || 'dark';
-      if (t === 'dark') document.documentElement.classList.add('dark');
+      // Light by default; dark only when the user chose it (key matches ThemeService).
+      if (localStorage.getItem('prep-vault-theme-v2') === 'dark') document.documentElement.classList.add('dark');
     } catch (e) {}
   </script>
 </head>

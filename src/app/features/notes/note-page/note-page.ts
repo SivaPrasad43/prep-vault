@@ -131,13 +131,13 @@ export class NotePage implements OnDestroy {
     this.route.paramMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
       const id = params.get('id');
       if (!id || id === 'new') {
-        if (this.noteId() !== null) this.flush();
+        if (this.noteId() !== null && !this.discardIfEmpty()) this.flush();
         this.resetForNew();
         return;
       }
       // Our own redirect after creating the note: keep editor state as-is.
       if (id === this.noteId()) return;
-      this.flush();
+      if (!this.discardIfEmpty()) this.flush();
       this.loadNote(id);
     });
 
@@ -375,6 +375,13 @@ export class NotePage implements OnDestroy {
       return;
     }
 
+    // Existing note cleared to nothing: keep the last real content in the DB for now;
+    // it is deleted when the user leaves the note (discardIfEmpty), not mid-edit.
+    if (!this.hasContent(cur)) {
+      this.saveStatus.set('idle');
+      return;
+    }
+
     const payload = this.changes(cur);
     if (Object.keys(payload).length === 0) {
       if (this.saveStatus() === 'saving') this.saveStatus.set('saved');
@@ -411,8 +418,22 @@ export class NotePage implements OnDestroy {
     if (!this.destroyed) this.retryTimer = setTimeout(() => this.flush(), RETRY_MS);
   }
 
+  /** Ctrl/Cmd+S: save now instead of waiting for the autosave debounce. */
+  @HostListener('window:keydown', ['$event'])
+  protected onSaveShortcut(event: KeyboardEvent): void {
+    if (!(event.ctrlKey || event.metaKey) || event.altKey || event.key.toLowerCase() !== 's') return;
+    event.preventDefault(); // never open the browser's "Save page" dialog
+    if (this.deleted || this.loading()) return;
+
+    const dirty = this.isDirty();
+    this.flush();
+    // Existing note with nothing new to persist: still confirm it's saved.
+    if (!dirty && !this.inFlight && this.saved !== null) this.saveStatus.set('saved');
+  }
+
   @HostListener('window:beforeunload', ['$event'])
   protected onBeforeUnload(event: BeforeUnloadEvent): void {
+    if (this.discardIfEmpty()) return;
     if (this.deleted || (!this.inFlight && !this.isDirty())) return;
     this.flush();
     event.preventDefault();
@@ -421,8 +442,8 @@ export class NotePage implements OnDestroy {
 
   ngOnDestroy(): void {
     this.destroyed = true;
-    // Fire the pending save; the request completes even though the page is gone.
-    this.flush();
+    // Fire the pending save (or the empty-note delete); requests complete after the page is gone.
+    if (!this.discardIfEmpty()) this.flush();
     if (this.retryTimer) clearTimeout(this.retryTimer);
   }
 
@@ -430,6 +451,20 @@ export class NotePage implements OnDestroy {
 
   protected askDelete(): void {
     this.showDeleteConfirm.set(true);
+  }
+
+  /**
+   * Leaving a saved note whose title and body are both empty deletes it, so cleared
+   * notes don't pile up as "Untitled". Returns true when the note was discarded.
+   */
+  private discardIfEmpty(): boolean {
+    const id = this.noteId();
+    if (!id || this.saved === null || this.deleted || this.hasContent(this.current())) return false;
+    this.clearTimers();
+    this.saved = null; // nothing left to persist for this note
+    this.queued = false;
+    this.notesService.delete(id).subscribe({ error: () => undefined });
+    return true;
   }
 
   protected onDelete(): void {

@@ -74,6 +74,23 @@
     </header>
 
     <div class="px-3 pb-6">
+      <!-- Built-in read-only guide (same for everyone, not a note) -->
+      <a
+        routerLink="/notes/guide"
+        class="group mb-3 flex items-center gap-3 rounded-2xl border px-4 py-3 transition-colors"
+        [class]="selectedId() === 'guide' ? 'border-primary/60 bg-accent' : 'border-dashed border-primary/40 bg-accent/50 hover:bg-accent'"
+        [attr.aria-current]="selectedId() === 'guide' ? 'page' : null"
+      >
+        <span class="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+          <ng-icon name="lucideBookOpenText" class="text-lg" />
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-sm font-semibold">New here? Read the PrepVault guide</span>
+          <span class="block truncate text-xs text-muted-foreground">Shortcuts, highlights, code blocks & more</span>
+        </span>
+        <ng-icon name="lucideChevronRight" class="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      </a>
+
       @if (loading()) {
         <ul class="space-y-2.5">
           @for (i of skeletons; track i) {
@@ -119,7 +136,7 @@
   <!-- Open note: a sheet on the desk -->
   <section
     aria-label="Selected note"
-    class="min-w-0 flex-1 lg:scrollbar-thin lg:overflow-y-auto lg:py-3 lg:pr-3"
+    class="min-w-0 flex-1 lg:scrollbar-thin lg:overflow-y-auto lg:pr-6 lg:pl-3"
     [class.max-lg:hidden]="!noteOpen()"
   >
     <router-outlet />

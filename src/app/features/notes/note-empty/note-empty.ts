@@ -9,7 +9,7 @@ import { lucidePlus, lucideBookOpenText } from '@ng-icons/lucide';
   imports: [RouterLink, NgIcon],
   viewProviders: [provideIcons({ lucidePlus, lucideBookOpenText })],
   template: `
-    <div class="grid h-full min-h-[calc(100dvh-1.5rem)] place-items-center rounded-2xl border-2 border-dashed p-8 text-center">
+    <div class="mx-auto my-6 grid min-h-[calc(100dvh-3rem)] max-w-[54rem] place-items-center rounded-md border-2 border-dashed border-muted-foreground/20 p-8 text-center">
       <div class="flex max-w-xs flex-col items-center gap-3">
         <ng-icon name="lucideBookOpenText" class="text-4xl text-muted-foreground/60" />
         <h2 class="font-serif text-xl font-semibold">Pick a note to study</h2>
