@@ -2,7 +2,7 @@ import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { from, Observable, BehaviorSubject, of } from 'rxjs';
 import { map, tap, shareReplay, catchError, filter, first, switchMap } from 'rxjs/operators';
-import type { User, Session } from '@supabase/supabase-js';
+import type { Session } from '@supabase/supabase-js';
 import { SupabaseService } from './supabase.service';
 import type { UserProfile, AuthState } from '../models';
 
@@ -37,7 +37,10 @@ export class AuthService {
   }
 
   private initializeAuth(): void {
-    this.supabase.client.auth.onAuthStateChange((_event, session) => {
+    this.supabase.client.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') {
+        this.setLastActive();
+      }
       this.setAuthState(session);
     });
 
@@ -138,11 +141,13 @@ export class AuthService {
 
   private setAuthState(session: Session | null): void {
     if (session?.user) {
+      const meta = session.user.user_metadata ?? {};
       const profile: UserProfile = {
         id: session.user.id,
         email: session.user.email ?? '',
-        display_name: session.user.user_metadata?.['display_name'],
-        avatar_url: session.user.user_metadata?.['avatar_url'],
+        display_name:
+          meta['display_name'] ?? meta['full_name'] ?? meta['name'],
+        avatar_url: meta['avatar_url'] ?? meta['picture'],
         created_at: session.user.created_at,
       };
       this.authState.next({ user: profile, session, loading: false });
@@ -151,23 +156,23 @@ export class AuthService {
     }
   }
 
-  signUp(email: string, password: string): Observable<{ user: User | null; session: Session | null }> {
+  /**
+   * Redirects the browser to Google's consent screen via Supabase OAuth.
+   * On return, supabase-js picks the session up from the URL and
+   * `onAuthStateChange` fires `SIGNED_IN`.
+   */
+  signInWithGoogle(): Observable<void> {
     return from(
-      this.supabase.client.auth.signUp({ email, password }),
-    ).pipe(map(({ data, error }) => {
-      if (error) throw error;
-      return { user: data.user, session: data.session };
-    }));
-  }
-
-  signIn(email: string, password: string): Observable<{ user: User | null; session: Session | null }> {
-    return from(
-      this.supabase.client.auth.signInWithPassword({ email, password }),
+      this.supabase.client.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/my-notes`,
+          queryParams: { prompt: 'select_account' },
+        },
+      }),
     ).pipe(
-      tap(() => this.setLastActive()),
-      map(({ data, error }) => {
+      map(({ error }) => {
         if (error) throw error;
-        return { user: data.user, session: data.session };
       }),
     );
   }

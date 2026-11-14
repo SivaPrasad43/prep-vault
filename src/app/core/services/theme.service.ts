@@ -78,6 +78,7 @@ export class ThemeService {
     }
 
     root.setAttribute('data-theme', mode);
+    root.classList.toggle('dark', mode === 'dark');
   }
 
   private loadSavedTheme(): ThemeMode {

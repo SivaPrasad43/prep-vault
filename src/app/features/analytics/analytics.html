@@ -1,87 +1,85 @@
-@if (loading()) {
-  <app-analytics-skeleton />
-} @else {
-  <div class="analytics">
-    <h1 class="analytics__title">Analytics</h1>
+<div class="mx-auto w-full max-w-6xl px-4 pt-6 pb-16 sm:px-6">
+  <h1 class="mb-6 text-2xl font-normal tracking-tight sm:text-3xl">Analytics</h1>
 
-    <div class="analytics__cards">
-      <div class="analytics__card">
-        <svg lucideFileText></svg>
-        <div class="analytics__card-info">
-          <span class="analytics__card-value">{{ stats()?.total ?? 0 }}</span>
-          <span class="analytics__card-label">Total Notes</span>
+  @if (loading()) {
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      @for (i of [0, 1, 2, 3]; track i) {
+        <div class="space-y-3 rounded-xl border p-5">
+          <z-skeleton class="size-6" />
+          <z-skeleton class="h-7 w-12" />
+          <z-skeleton class="h-3 w-20" />
         </div>
-      </div>
-      <div class="analytics__card">
-        <svg lucideCalendar></svg>
-        <div class="analytics__card-info">
-          <span class="analytics__card-value">{{ weekTotal() }}</span>
-          <span class="analytics__card-label">This Week</span>
-        </div>
-      </div>
-      <div class="analytics__card">
-        <svg lucideFlame></svg>
-        <div class="analytics__card-info">
-          <span class="analytics__card-value">{{ todayCount() }}</span>
-          <span class="analytics__card-label">Today</span>
-        </div>
-      </div>
-      <div class="analytics__card">
-        <svg lucideFlame></svg>
-        <div class="analytics__card-info">
-          <span class="analytics__card-value">{{ stats()?.currentStreak ?? 0 }}</span>
-          <span class="analytics__card-label">Streak</span>
-        </div>
-      </div>
+      }
+    </div>
+    <z-skeleton class="mt-4 h-72 w-full rounded-xl" />
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <z-skeleton class="h-64 rounded-xl" />
+      <z-skeleton class="h-64 rounded-xl" />
+    </div>
+  } @else {
+    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      @for (card of [
+        { icon: 'lucideFileText', value: stats()?.total ?? 0, label: 'Total notes' },
+        { icon: 'lucideCalendar', value: weekTotal(), label: 'This week' },
+        { icon: 'lucideSun', value: todayCount(), label: 'Today' },
+        { icon: 'lucideFlame', value: stats()?.currentStreak ?? 0, label: 'Day streak' }
+      ]; track card.label) {
+        <z-card class="gap-1 p-5">
+          <ng-icon [name]="card.icon" class="text-xl text-primary" />
+          <span class="mt-2 text-3xl font-medium tabular-nums">{{ card.value }}</span>
+          <span class="text-sm text-muted-foreground">{{ card.label }}</span>
+        </z-card>
+      }
     </div>
 
-    <div class="analytics__chart-card">
-      <div class="analytics__chart-header">
-        <h2 class="analytics__chart-title">Last 7 Days</h2>
-      </div>
-      <div class="analytics__chart-body">
-        <canvas #barCanvas></canvas>
-      </div>
-    </div>
+    <z-card class="mt-4">
+      <z-card-header>
+        <z-card-title>Last 7 days</z-card-title>
+        <z-card-description>Notes created per day</z-card-description>
+      </z-card-header>
+      <z-card-content>
+        <div class="relative h-64">
+          <canvas #barCanvas aria-label="Notes created per day, last 7 days" role="img"></canvas>
+        </div>
+      </z-card-content>
+    </z-card>
 
-    <div class="analytics__grid">
-      <div class="analytics__chart-card">
-        <div class="analytics__chart-header">
-          <h2 class="analytics__chart-title">Confidence</h2>
-        </div>
-        <div class="analytics__chart-body analytics__chart-body--compact">
-          <canvas #doughnutCanvas></canvas>
-        </div>
-      </div>
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <z-card>
+        <z-card-header>
+          <z-card-title>Confidence</z-card-title>
+        </z-card-header>
+        <z-card-content>
+          <div class="relative h-56">
+            <canvas #doughnutCanvas aria-label="Notes by confidence level" role="img"></canvas>
+          </div>
+        </z-card-content>
+      </z-card>
 
-      <div class="analytics__chart-card">
-        <div class="analytics__chart-header">
-          <h2 class="analytics__chart-title">Categories</h2>
-        </div>
-        <div class="analytics__chart-body analytics__chart-body--compact">
+      <z-card>
+        <z-card-header>
+          <z-card-title>Categories</z-card-title>
+        </z-card-header>
+        <z-card-content>
           @if (categoryDistribution().length) {
-            <div class="analytics__categories">
+            <ul class="space-y-3">
               @for (cat of categoryDistribution(); track cat.categoryId) {
-                <div class="analytics__category">
-                  <div class="analytics__category-info">
-                    <span class="analytics__category-name">{{ cat.name }}</span>
-                    <span class="analytics__category-count">{{ cat.count }}</span>
+                <li>
+                  <div class="mb-1 flex justify-between text-sm">
+                    <span class="truncate">{{ cat.name }}</span>
+                    <span class="tabular-nums text-muted-foreground">{{ cat.count }}</span>
                   </div>
-                  <div class="analytics__category-track">
-                    <div
-                      class="analytics__category-fill"
-                      [style.width.%]="categoryPercent(cat.count)"
-                      [style.background]="cat.color"
-                    ></div>
+                  <div class="h-2 overflow-hidden rounded-full bg-muted">
+                    <div class="h-full rounded-full" [style.width.%]="categoryPercent(cat.count)" [style.background]="cat.color"></div>
                   </div>
-                </div>
+                </li>
               }
-            </div>
+            </ul>
           } @else {
-            <p class="analytics__empty">No notes yet</p>
+            <p class="py-8 text-center text-sm text-muted-foreground">No notes yet</p>
           }
-        </div>
-      </div>
+        </z-card-content>
+      </z-card>
     </div>
-  </div>
-}
+  }
+</div>

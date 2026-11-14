@@ -53,12 +53,17 @@
               }
             ],
             "styles": [
+              "src/styles.css",
               "src/styles.scss"
             ],
             "server": "src/main.server.ts",
             "outputMode": "server",
             "security": {
-              "allowedHosts": ["*", "localhost", "192.168.0.112"]
+              "allowedHosts": [
+                "*",
+                "localhost",
+                "192.168.0.112"
+              ]
             },
             "ssr": {
               "entry": "src/server.ts"
