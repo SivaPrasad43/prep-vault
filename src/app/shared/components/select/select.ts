@@ -62,11 +62,14 @@ const POSITIONS: ConnectedPosition[] = [
       [cdkConnectedOverlayOpen]="open()"
       [cdkConnectedOverlayPositions]="positions"
       [cdkConnectedOverlayMinWidth]="menuMinWidth()"
-      [cdkConnectedOverlayWidth]="menuWidth() ?? ''"
+      [cdkConnectedOverlayWidth]="menuWidth() ?? menuMinWidth()"
+      [cdkConnectedOverlayPush]="true"
+      [cdkConnectedOverlayViewportMargin]="8"
       (overlayOutsideClick)="close(false)"
       (detach)="open.set(false)"
     >
       <app-select-menu
+        width="100%"
         [options]="options()"
         [value]="value()"
         [searchable]="isSearchable()"
@@ -100,7 +103,7 @@ export class AppSelect {
     () => this.options().find((o) => o.value === this.value()) ?? null,
   );
   protected readonly isSearchable = computed(() => this.searchable() ?? this.options().length > 7);
-  protected readonly menuMinWidth = computed(() => Math.max(this.triggerWidth(), 200));
+  protected readonly menuMinWidth = computed(() => Math.min(Math.max(this.triggerWidth(), 248), 320));
 
   protected readonly triggerClasses = computed(() =>
     this.variant() === 'ghost'

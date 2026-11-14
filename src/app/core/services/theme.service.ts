@@ -3,7 +3,9 @@ import { isPlatformBrowser } from '@angular/common';
 
 type ThemeMode = 'light' | 'dark';
 
-const STORAGE_KEY = 'prep-vault-theme';
+// v2 key: the old key auto-saved 'dark' for everyone (dark was the default), so it
+// can't tell an explicit choice from the old default. Light is the default now.
+const STORAGE_KEY = 'prep-vault-theme-v2';
 
 /**
  * Light/dark mode via the `.dark` class on <html> (ZardUI/Tailwind tokens).
@@ -36,7 +38,7 @@ export class ThemeService {
   }
 
   private loadSaved(): ThemeMode {
-    if (!this.isBrowser) return 'dark';
-    return localStorage.getItem(STORAGE_KEY) === 'light' ? 'light' : 'dark';
+    if (!this.isBrowser) return 'light';
+    return localStorage.getItem(STORAGE_KEY) === 'dark' ? 'dark' : 'light';
   }
 }

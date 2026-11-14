@@ -13,7 +13,8 @@
  */
 :root {
   --radius: 0.75rem;
-  --desk: #ffffff;
+  --desk: #f3f5f6;
+  --page: #ffffff;
   --background: #ffffff;
   --foreground: #0f1419;
   --card: #ffffff;
@@ -53,10 +54,20 @@
   --nav-active-foreground: var(--accent-foreground);
   /* Hairline outline + soft lift, X-style (popovers/sheets). */
   --sheet-shadow: 0 0 0 1px var(--border), 0 8px 24px -12px rgb(101 119 134 / 0.25);
+  /* Note page: soft lift + two sheets stacked underneath (bottom-right), like a pad of paper. */
+  --page-shadow:
+    0 0 0 1px rgb(15 20 25 / 0.05),
+    0 1px 2px rgb(15 20 25 / 0.06),
+    0 18px 44px -18px rgb(15 20 25 / 0.28),
+    6px 6px 0 -1px var(--page),
+    6px 6px 0 0 rgb(15 20 25 / 0.09),
+    12px 12px 0 -2px var(--page),
+    12px 12px 0 -1px rgb(15 20 25 / 0.06);
 }
 
 .dark {
   --desk: #000000;
+  --page: #0f1113;
   --background: #000000;
   --foreground: #e7e9ea;
   --card: #000000;
@@ -96,6 +107,13 @@
   --nav-active-foreground: var(--foreground);
   /* X dark popovers: faint white glow outline. */
   --sheet-shadow: 0 0 0 1px var(--border), 0 0 15px rgb(255 255 255 / 0.08);
+  --page-shadow:
+    0 0 0 1px #2f3336,
+    0 24px 60px -24px rgb(0 0 0 / 0.9),
+    6px 6px 0 -1px var(--page),
+    6px 6px 0 0 #2a2d30,
+    12px 12px 0 -2px var(--page),
+    12px 12px 0 -1px #202326;
 }
 
 
@@ -103,6 +121,8 @@
   --font-sans: 'Google Sans', 'Roboto', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
   --color-desk: var(--desk);
+  --color-page: var(--page);
+  --shadow-page: var(--page-shadow);
   --shadow-sheet: var(--sheet-shadow);
   --color-confidence-need-practice: var(--confidence-need-practice);
   --color-confidence-getting-there: var(--confidence-getting-there);

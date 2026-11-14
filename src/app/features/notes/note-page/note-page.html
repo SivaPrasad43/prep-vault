@@ -1,6 +1,6 @@
-<div class="min-h-dvh bg-card lg:min-h-full lg:rounded-2xl lg:shadow-sheet">
+<div class="relative min-h-dvh bg-page lg:mx-auto lg:my-6 lg:min-h-[calc(100dvh-3rem)] lg:max-w-[54rem] lg:rounded-md lg:shadow-page">
   <!-- Top bar -->
-  <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-card/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:px-4 lg:rounded-t-2xl">
+  <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-page/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-page/75 sm:px-4 lg:rounded-t-md">
     <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()" title="Back to notes">
       <ng-icon name="lucideArrowLeft" class="text-lg" />
       <span class="lg:sr-only">Notes</span>
@@ -29,7 +29,7 @@
     </div>
   </header>
 
-  <article class="mx-auto w-full max-w-3xl px-5 pt-4 pb-10 sm:px-12 sm:pt-8">
+  <article class="mx-auto w-full max-w-3xl px-5 pt-4 pb-16 sm:px-14 sm:pt-8">
     @if (loading()) {
       <div class="space-y-4">
         <z-skeleton class="h-10 w-3/5" />

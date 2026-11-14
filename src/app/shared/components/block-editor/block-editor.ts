@@ -306,7 +306,7 @@ export class BlockEditor implements OnDestroy {
 
   private openLanguageMenu(anchor: HTMLElement, value: string, apply: (l: string) => void): void {
     const r = anchor.getBoundingClientRect();
-    const width = 220;
+    const width = Math.min(224, window.innerWidth - 16); // matches w-56 / viewport cap
     const left = Math.min(r.left, window.innerWidth - width - 8);
     const below = window.innerHeight - r.bottom > 340;
     this.langMenu.set({
