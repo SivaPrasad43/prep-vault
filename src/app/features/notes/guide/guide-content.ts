@@ -64,12 +64,20 @@ In light mode they look like a highlighter pen. In dark mode they glow. Press **
 
 - **Category:** pick one from the menu under the title. Use the category filter above your notes to narrow the list.
 - **Confidence:** <mark data-color="pink">Need practice</mark> → <mark data-color="yellow">Getting there</mark> → <mark data-color="lime">Confident</mark>. The coloured dots above your notes filter by it.
-- **Bookmark** a note with the ☆ button to find it under **Saved**.
+- **Bookmark** a note with the bookmark icon in its top-right corner to find it under **Saved**.
 - **Mark revised** each time you review a topic. It counts your revisions and keeps your day streak going.
 
 ## Find things fast
 
 Use the search box above your notes to search titles and content. Combine it with the category and confidence filters.
+
+## Track your progress
+
+Open **Progress** from the side menu to see:
+
+- **Review next:** the notes that most need a revision. Weak and long-untouched notes come first.
+- Your **day streak**. A day counts when you write a note or mark one revised.
+- An **activity** calendar, and your **confidence by category** so weak areas stand out. Click any bar to open those notes.
 
 ## Keyboard shortcuts
 

@@ -7,13 +7,40 @@
     </button>
 
     <div class="ml-auto flex items-center gap-1">
-      <span class="flex items-center gap-1.5 px-2 text-xs text-muted-foreground" aria-live="polite">
+      @if (updatedAt()) {
+        <span
+          class="flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground"
+          [title]="'Last edited ' + (updatedAt() | date: 'medium')"
+        >
+          <ng-icon name="lucideClock" class="max-sm:hidden" />
+          <span class="max-sm:hidden">Edited</span>
+          {{ updatedAt() | date: 'MMM d, h:mm a' }}
+        </span>
+        @if (saveStatus() !== 'idle') {
+          <span class="text-muted-foreground/50" aria-hidden="true">·</span>
+        }
+      }
+      <span class="flex items-center gap-1.5 px-2 text-xs whitespace-nowrap text-muted-foreground" aria-live="polite">
         @switch (saveStatus()) {
           @case ('saving') { <ng-icon name="lucideLoaderCircle" class="animate-spin" /> Saving… }
           @case ('saved') { <ng-icon name="lucideCircleCheck" /> Saved }
           @case ('error') { <span class="flex items-center gap-1.5 text-destructive"><ng-icon name="lucideCloudOff" /> Not saved — retrying</span> }
         }
       </span>
+
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        [class.text-primary]="favorite()"
+        (click)="toggleFavorite()"
+        [attr.aria-pressed]="favorite()"
+        [attr.aria-label]="favorite() ? 'Remove from saved' : 'Save note'"
+        [title]="favorite() ? 'Saved (click to remove)' : 'Save note'"
+      >
+        <ng-icon [name]="favorite() ? 'bookmarkSolid' : 'lucideBookmark'" class="text-lg" />
+      </button>
 
       @if (!isNew()) {
         <button z-button zType="ghost" zSize="icon-lg" zShape="circle" z-dropdown [zDropdownMenu]="actions" aria-label="More actions">
@@ -50,65 +77,51 @@
         (keydown)="onTitleKeydown($event)"
       ></textarea>
 
-      <!-- Properties -->
-      <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b border-dashed pb-4 text-sm text-muted-foreground">
-        <app-select
-          variant="ghost"
-          class="max-w-56 text-foreground"
-          ariaLabel="Category"
-          placeholder="Category"
-          searchPlaceholder="Find a category…"
-          [options]="categoryOptions()"
-          [value]="categoryId()"
-          (valueChange)="onCategoryChange($event)"
-        />
+      <!-- Properties: one line on sm+; on mobile two rows (what it is / revision status) -->
+      <div class="mt-3 mb-6 flex flex-col gap-1 border-b border-dashed pb-4 text-sm whitespace-nowrap text-muted-foreground sm:no-scrollbar sm:flex-row sm:items-center sm:gap-1.5 sm:overflow-x-auto">
+        <div class="flex min-w-0 items-center gap-1.5 sm:flex-none">
+          <app-select
+            variant="ghost"
+            class="max-w-56 min-w-0 shrink text-foreground"
+            ariaLabel="Category"
+            placeholder="Category"
+            searchPlaceholder="Find a category…"
+            [options]="categoryOptions()"
+            [value]="categoryId()"
+            (valueChange)="onCategoryChange($event)"
+          />
 
-        <app-select
-          variant="ghost"
-          class="text-foreground"
-          ariaLabel="Confidence"
-          [searchable]="false"
-          [menuWidth]="200"
-          [options]="confidenceOptions"
-          [value]="confidence()"
-          (valueChange)="onConfidenceChange($event)"
-        />
+          <app-select
+            variant="ghost"
+            class="shrink-0 text-foreground"
+            ariaLabel="Confidence"
+            [searchable]="false"
+            [menuWidth]="200"
+            [options]="confidenceOptions"
+            [value]="confidence()"
+            (valueChange)="onConfidenceChange($event)"
+          />
+        </div>
 
-        <button
-          type="button"
-          class="grid size-8 place-items-center rounded-md hover:bg-muted"
-          [class.text-primary]="favorite()"
-          (click)="toggleFavorite()"
-          [attr.aria-pressed]="favorite()"
-          [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"
-          [title]="favorite() ? 'Bookmarked' : 'Bookmark'"
-        >
-          <ng-icon [name]="favorite() ? 'starSolid' : 'lucideStar'" class="text-base" />
-        </button>
+        <div class="flex shrink-0 items-center gap-1.5">
+          @if (!isNew()) {
+            <span class="flex h-8 shrink-0 items-center gap-1.5 px-2" [title]="(revisionCount() ?? 0) + ' revisions'">
+              <ng-icon name="lucideHistory" />
+              {{ revisionCount() ?? '–' }}<span class="lg:max-xl:hidden">&nbsp;{{ revisionCount() === 1 ? 'revision' : 'revisions' }}</span>
+            </span>
+            <button
+              z-button
+              zType="outline"
+              zSize="sm"
+              class="shrink-0 rounded-full"
+              (click)="markRevised()"
+              [zDisabled]="markingRevised()"
+            >
+              {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+            </button>
+          }
 
-        @if (!isNew()) {
-          <span class="flex h-8 items-center gap-1.5 px-2" title="Revisions">
-            <ng-icon name="lucideHistory" />
-            {{ revisionCount() ?? '–' }} {{ revisionCount() === 1 ? 'revision' : 'revisions' }}
-          </span>
-          <button
-            z-button
-            zType="outline"
-            zSize="sm"
-            class="rounded-full"
-            (click)="markRevised()"
-            [zDisabled]="markingRevised()"
-          >
-            {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
-          </button>
-        }
-
-        @if (updatedAt()) {
-          <span class="ml-auto flex h-8 items-center gap-1.5 px-2 text-xs">
-            <ng-icon name="lucideClock" />
-            Edited {{ updatedAt() | date: 'MMM d, h:mm a' }}
-          </span>
-        }
+        </div>
       </div>
 
       @for (key of [editorKey()]; track key) {

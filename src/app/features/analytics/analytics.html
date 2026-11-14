@@ -1,85 +1,280 @@
-<div class="mx-auto w-full max-w-6xl px-4 pt-6 pb-16 sm:px-6">
-  <h1 class="mb-6 font-serif text-3xl font-semibold tracking-tight">Your progress</h1>
+<div class="min-h-dvh bg-desk">
+  <div class="mx-auto w-full max-w-6xl px-4 pt-6 pb-16 sm:px-6">
+    <!-- Header + range -->
+    <header class="mb-6 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <p class="text-xs text-muted-foreground">Keep the streak going</p>
+        <h1 class="font-serif text-3xl font-semibold tracking-tight">Your progress</h1>
+      </div>
+      <div class="flex rounded-full border bg-card p-1 text-xs" role="radiogroup" aria-label="Time range">
+        @for (r of ranges; track r) {
+          <button
+            type="button"
+            role="radio"
+            class="h-7 rounded-full px-3 font-medium transition-colors"
+            [class]="range() === r ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+            [attr.aria-checked]="range() === r"
+            (click)="range.set(r)"
+          >
+            {{ r }}d
+          </button>
+        }
+      </div>
+    </header>
 
-  @if (loading()) {
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      @for (i of [0, 1, 2, 3]; track i) {
-        <div class="space-y-3 rounded-xl border p-5">
-          <z-skeleton class="size-6" />
-          <z-skeleton class="h-7 w-12" />
-          <z-skeleton class="h-3 w-20" />
-        </div>
-      }
-    </div>
-    <z-skeleton class="mt-4 h-72 w-full rounded-xl" />
-    <div class="mt-4 grid gap-4 md:grid-cols-2">
-      <z-skeleton class="h-64 rounded-xl" />
-      <z-skeleton class="h-64 rounded-xl" />
-    </div>
-  } @else {
-    <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
-      @for (card of [
-        { icon: 'lucideFileText', value: stats()?.total ?? 0, label: 'Total notes' },
-        { icon: 'lucideCalendar', value: weekTotal(), label: 'This week' },
-        { icon: 'lucideSun', value: todayCount(), label: 'Today' },
-        { icon: 'lucideFlame', value: stats()?.currentStreak ?? 0, label: 'Day streak' }
-      ]; track card.label) {
-        <z-card class="gap-1 p-5">
-          <ng-icon [name]="card.icon" class="text-xl text-primary" />
-          <span class="mt-2 text-3xl font-medium tabular-nums">{{ card.value }}</span>
-          <span class="text-sm text-muted-foreground">{{ card.label }}</span>
-        </z-card>
-      }
-    </div>
-
-    <z-card class="mt-4">
-      <z-card-header>
-        <z-card-title>Last 7 days</z-card-title>
-        <z-card-description>Notes created per day</z-card-description>
-      </z-card-header>
-      <z-card-content>
-        <div class="relative h-64">
-          <canvas #barCanvas aria-label="Notes created per day, last 7 days" role="img"></canvas>
-        </div>
-      </z-card-content>
-    </z-card>
-
-    <div class="mt-4 grid gap-4 md:grid-cols-2">
-      <z-card>
-        <z-card-header>
-          <z-card-title>Confidence</z-card-title>
-        </z-card-header>
-        <z-card-content>
-          <div class="relative h-56">
-            <canvas #doughnutCanvas aria-label="Notes by confidence level" role="img"></canvas>
+    @if (error()) {
+      <div class="flex items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/10 p-4 text-sm text-destructive" role="alert">
+        Couldn't load your progress.
+        <button type="button" class="flex items-center gap-1.5 rounded-full border border-destructive/40 px-3 py-1 font-medium hover:bg-destructive/10" (click)="load()">
+          <ng-icon name="lucideRotateCw" /> Retry
+        </button>
+      </div>
+    } @else if (loading()) {
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        @for (i of [0, 1, 2, 3]; track i) {
+          <div class="bento space-y-3 p-4">
+            <z-skeleton class="size-6" />
+            <z-skeleton class="h-7 w-16" />
+            <z-skeleton class="h-3 w-24" />
           </div>
-        </z-card-content>
-      </z-card>
+        }
+      </div>
+      <div class="mt-4 grid gap-4 lg:grid-cols-2">
+        <z-skeleton class="h-72 rounded-2xl" />
+        <z-skeleton class="h-72 rounded-2xl" />
+      </div>
+      <z-skeleton class="mt-4 h-60 rounded-2xl" />
+    } @else {
+      @let s = summary();
 
-      <z-card>
-        <z-card-header>
-          <z-card-title>Categories</z-card-title>
-        </z-card-header>
-        <z-card-content>
-          @if (categoryDistribution().length) {
-            <ul class="space-y-3">
-              @for (cat of categoryDistribution(); track cat.categoryId) {
+      <!-- Summary -->
+      <section class="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Summary">
+        <div class="bento p-4">
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <span class="grid size-7 place-items-center rounded-full bg-orange-500/12 text-orange-500"><ng-icon name="lucideFlame" /></span>
+            Day streak
+          </div>
+          <p class="mt-3 text-3xl font-bold tabular-nums">{{ s.streak }}<span class="ml-1 text-sm font-normal text-muted-foreground">{{ s.streak === 1 ? 'day' : 'days' }}</span></p>
+          <p class="mt-1 text-xs text-muted-foreground">Best: {{ s.best }} {{ s.best === 1 ? 'day' : 'days' }}</p>
+        </div>
+
+        <div class="bento p-4">
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <span class="grid size-7 place-items-center rounded-full bg-primary/12 text-primary"><ng-icon name="lucideHistory" /></span>
+            Revisions
+          </div>
+          <p class="mt-3 text-3xl font-bold tabular-nums">{{ s.revisions }}</p>
+          <ng-container *ngTemplateOutlet="trendTpl; context: { $implicit: s.revisionsTrend }" />
+        </div>
+
+        <div class="bento p-4">
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <span class="grid size-7 place-items-center rounded-full bg-violet-500/12 text-violet-500"><ng-icon name="lucideNotebookPen" /></span>
+            Notes written
+          </div>
+          <p class="mt-3 text-3xl font-bold tabular-nums">{{ s.written }}</p>
+          <ng-container *ngTemplateOutlet="trendTpl; context: { $implicit: s.writtenTrend }" />
+        </div>
+
+        <div class="bento p-4">
+          <div class="flex items-center gap-2 text-xs text-muted-foreground">
+            <span class="grid size-7 place-items-center rounded-full bg-emerald-500/12 text-emerald-500"><ng-icon name="lucideTarget" /></span>
+            Confident
+          </div>
+          <p class="mt-3 text-3xl font-bold tabular-nums">{{ s.confidentPct }}<span class="text-lg">%</span></p>
+          <div class="mt-2 flex h-1.5 overflow-hidden rounded-full bg-muted" [title]="s.total + ' notes'">
+            @for (seg of s.split; track seg.value) {
+              <span class="h-full" [style.width.%]="seg.pct" [style.background]="seg.color"></span>
+            }
+          </div>
+          <p class="mt-1 text-xs text-muted-foreground">of {{ s.total }} {{ s.total === 1 ? 'note' : 'notes' }}</p>
+        </div>
+      </section>
+
+      <ng-template #trendTpl let-t>
+        @if (t === null) {
+          <p class="mt-1 text-xs text-muted-foreground">in the last {{ range() }} days</p>
+        } @else if (t === 0) {
+          <p class="mt-1 text-xs text-muted-foreground">No change vs previous {{ range() }}d</p>
+        } @else {
+          <p class="mt-1 flex items-center gap-1 text-xs" [class]="t > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'">
+            <ng-icon [name]="t > 0 ? 'lucideTrendingUp' : 'lucideTrendingDown'" />
+            {{ t > 0 ? '+' : '' }}{{ t }}%
+            <span class="text-muted-foreground">vs previous {{ range() }}d</span>
+          </p>
+        }
+      </ng-template>
+
+      <div class="mt-4 grid gap-4 lg:grid-cols-2">
+        <!-- Review next -->
+        <section class="bento p-5" aria-labelledby="review-title">
+          <div class="mb-3 flex items-baseline justify-between gap-2">
+            <h2 id="review-title" class="font-serif text-lg font-semibold">Review next</h2>
+            <span class="text-xs text-muted-foreground">Weakest &amp; most overdue first</span>
+          </div>
+          @if (review().length) {
+            <ol class="-mx-2 space-y-0.5">
+              @for (item of review(); track item.note.id; let i = $index) {
+                @let cat = categoryFor(item.note.category_id);
                 <li>
-                  <div class="mb-1 flex justify-between text-sm">
-                    <span class="truncate">{{ cat.name }}</span>
-                    <span class="tabular-nums text-muted-foreground">{{ cat.count }}</span>
-                  </div>
-                  <div class="h-2 overflow-hidden rounded-full bg-muted">
-                    <div class="h-full rounded-full" [style.width.%]="categoryPercent(cat.count)" [style.background]="cat.color"></div>
-                  </div>
+                  <a
+                    [routerLink]="['/notes', item.note.id]"
+                    class="group flex items-center gap-3 rounded-xl px-2 py-2.5 transition-colors hover:bg-muted"
+                  >
+                    <span class="grid size-7 shrink-0 place-items-center rounded-full bg-muted text-xs font-semibold tabular-nums text-muted-foreground">{{ i + 1 }}</span>
+                    <span class="min-w-0 flex-1">
+                      <span class="block truncate text-sm font-semibold">{{ item.note.title || 'Untitled' }}</span>
+                      <span class="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
+                        <span class="flex items-center gap-1">
+                          @for (c of confidence; track c.value) {
+                            @if (c.value === item.note.confidence_level) {
+                              <span class="size-2 rounded-full" [style.background]="c.color" [title]="c.label"></span>
+                            }
+                          }
+                        </span>
+                        @if (cat) {
+                          <span class="truncate" [style.color]="cat.color">{{ cat.name }}</span>
+                          <span aria-hidden="true">·</span>
+                        }
+                        <span class="shrink-0">{{ revisedLabel(item.lastRevised, item.daysSince) }}</span>
+                      </span>
+                    </span>
+                    <ng-icon name="lucideChevronRight" class="shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                  </a>
                 </li>
               }
-            </ul>
+            </ol>
           } @else {
-            <p class="py-8 text-center text-sm text-muted-foreground">No notes yet</p>
+            <div class="flex flex-col items-center gap-2 py-10 text-center">
+              <ng-icon name="lucideCircleCheck" class="text-3xl text-emerald-500" />
+              <p class="text-sm font-medium">You're all caught up</p>
+              <p class="text-xs text-muted-foreground">Nothing needs revising right now.</p>
+            </div>
           }
-        </z-card-content>
-      </z-card>
-    </div>
-  }
+        </section>
+
+        <!-- Activity heatmap -->
+        <section class="bento p-5" aria-labelledby="activity-title">
+          <div class="mb-4 flex items-baseline justify-between gap-2">
+            <h2 id="activity-title" class="font-serif text-lg font-semibold">Activity</h2>
+            <span class="text-xs text-muted-foreground">Notes written + revisions per day</span>
+          </div>
+          @if (range() === 7) {
+            <!-- Last 7 days as a row of day tiles -->
+            <div class="grid grid-cols-7 gap-2">
+              @for (c of lastWeek(); track c.key) {
+                <div class="flex flex-col items-center gap-1.5">
+                  <span
+                    class="heat-cell grid aspect-square w-full max-w-14 place-items-center rounded-lg text-xs font-semibold tabular-nums"
+                    [class.text-primary-foreground]="c.level >= 3"
+                    [attr.data-level]="c.level"
+                    [title]="heatLabel(c)"
+                    [attr.aria-label]="heatLabel(c)"
+                    role="img"
+                  >{{ c.total || '' }}</span>
+                  <span class="text-[0.6875rem] text-muted-foreground">{{ c.date.toLocaleDateString(undefined, { weekday: 'short' }) }}</span>
+                </div>
+              }
+            </div>
+          } @else {
+            <div class="flex justify-center gap-1.5 overflow-x-auto pb-1">
+              <div class="grid shrink-0 grid-rows-7 gap-1 pr-1 text-[0.625rem] leading-none text-muted-foreground" aria-hidden="true">
+                @for (d of weekdays; track $index) {
+                  <span class="flex h-4 items-center sm:h-5">{{ d }}</span>
+                }
+              </div>
+              <div class="flex gap-1">
+                @for (week of heat(); track $index) {
+                  <div class="grid grid-rows-7 gap-1">
+                    @for (c of week; track c.key) {
+                      @if (c.level === -1) {
+                        <span class="size-4 sm:size-5"></span>
+                      } @else {
+                        <span
+                          class="heat-cell size-4 rounded-[4px] sm:size-5"
+                          [attr.data-level]="c.level"
+                          [title]="heatLabel(c)"
+                          [attr.aria-label]="heatLabel(c)"
+                          role="img"
+                        ></span>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          }
+          <div class="mt-3 flex items-center justify-end gap-1 text-[0.6875rem] text-muted-foreground">
+            Less
+            @for (l of [0, 1, 2, 3, 4]; track l) {
+              <span class="heat-cell size-3 rounded-[3px]" [attr.data-level]="l"></span>
+            }
+            More
+          </div>
+        </section>
+      </div>
+
+      <!-- Confidence by category -->
+      <section class="mt-4 bento p-5" aria-labelledby="cat-title">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 id="cat-title" class="font-serif text-lg font-semibold">Confidence by category</h2>
+            <p class="text-xs text-muted-foreground">Weakest categories first · click to open those notes</p>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            @for (c of confidence; track c.value) {
+              <button
+                type="button"
+                class="flex h-7 items-center gap-1.5 rounded-full border px-2.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                (click)="openNotes({ confidence: c.value })"
+                [title]="'Open all ' + c.label + ' notes'"
+              >
+                <span class="size-2 rounded-full" [style.background]="c.color"></span>
+                {{ c.label }}
+              </button>
+            }
+          </div>
+        </div>
+
+        @if (byCategory().length) {
+          <ul class="space-y-3">
+            @for (row of byCategory(); track row.categoryId) {
+              <li class="grid items-center gap-x-4 gap-y-1.5 sm:grid-cols-[12rem_1fr_auto]">
+                <button
+                  type="button"
+                  class="flex min-w-0 items-center gap-2 text-left text-sm hover:underline"
+                  (click)="openNotes({ categoryId: row.categoryId })"
+                >
+                  @if (row.category) {
+                    <app-category-icon [icon]="row.category.icon" class="shrink-0" [style.color]="row.category.color" />
+                  }
+                  <span class="truncate font-medium">{{ row.category?.name ?? 'Uncategorised' }}</span>
+                </button>
+                <div class="flex h-3 overflow-hidden rounded-full bg-muted" role="group" [attr.aria-label]="(row.category?.name ?? 'Category') + ' confidence'">
+                  @for (seg of row.segments; track seg.value) {
+                    @if (seg.count) {
+                      <button
+                        type="button"
+                        class="h-full transition-opacity hover:opacity-80 focus-visible:opacity-80 focus-visible:outline-none"
+                        [style.width.%]="seg.pct"
+                        [style.background]="seg.color"
+                        [title]="seg.count + ' ' + seg.label + ' · click to open'"
+                        [attr.aria-label]="seg.count + ' ' + seg.label + ' notes'"
+                        (click)="openNotes({ categoryId: row.categoryId, confidence: seg.value })"
+                      ></button>
+                    }
+                  }
+                </div>
+                <span class="text-xs text-muted-foreground tabular-nums sm:text-right">
+                  {{ row.total }} {{ row.total === 1 ? 'note' : 'notes' }}
+                </span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="py-8 text-center text-sm text-muted-foreground">Write a few notes to see your strengths and gaps.</p>
+        }
+      </section>
+    }
+  </div>
 </div>

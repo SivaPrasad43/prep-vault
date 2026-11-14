@@ -3,7 +3,7 @@ import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, filter, switchMap } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight } from '@ng-icons/lucide';
+import { lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight, lucideCheck } from '@ng-icons/lucide';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { NoteCard } from '../../shared/components/note-card/note-card';
 import { AppSelect } from '../../shared/components/select/select';
@@ -23,7 +23,7 @@ import type { Category, ConfidenceLevel, Note, NoteFilters, NoteStats } from '..
   selector: 'app-dashboard',
   imports: [RouterOutlet, RouterLink, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect],
   templateUrl: './dashboard.html',
-  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight })],
+  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight, lucideCheck })],
   host: { class: 'block' },
 })
 export class Dashboard implements OnInit {
@@ -54,10 +54,10 @@ export class Dashboard implements OnInit {
 
   protected greeting = this.getGreeting();
 
-  protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; dot: string }[] = [
-    { value: 'need_practice', label: 'Practice', dot: 'bg-confidence-need-practice' },
-    { value: 'getting_there', label: 'Getting there', dot: 'bg-confidence-getting-there' },
-    { value: 'confident', label: 'Confident', dot: 'bg-confidence-confident' },
+  protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; dot: string; color: string }[] = [
+    { value: 'need_practice', label: 'Need practice', dot: 'bg-confidence-need-practice', color: 'var(--confidence-need-practice)' },
+    { value: 'getting_there', label: 'Getting there', dot: 'bg-confidence-getting-there', color: 'var(--confidence-getting-there)' },
+    { value: 'confident', label: 'Confident', dot: 'bg-confidence-confident', color: 'var(--confidence-confident)' },
   ];
 
   protected readonly categoryOptions = computed<SelectOption[]>(() => [
