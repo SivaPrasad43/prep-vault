@@ -1,39 +1,44 @@
-import { Component } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, DestroyRef, OnInit, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { LucideMail, LucideLock, LucideLogIn, LucideEye, LucideEyeOff, LucideAlertCircle, LucideVault, LucideLoader } from '@lucide/angular';
+import { filter, first } from 'rxjs/operators';
+import { LucideAlertCircle, LucideLoader } from '@lucide/angular';
 import { AuthService } from '../../core/services/auth.service';
 
 @Component({
   selector: 'app-auth',
-  imports: [FormsModule, LucideMail, LucideLock, LucideLogIn, LucideEye, LucideEyeOff, LucideAlertCircle, LucideVault, LucideLoader],
+  imports: [LucideAlertCircle, LucideLoader],
   templateUrl: './auth.html',
   styleUrl: './auth.scss',
 })
-export class Auth {
-  protected email = '';
-  protected password = '';
-  protected error = '';
-  protected loading = false;
-  protected passwordVisible = false;
+export class Auth implements OnInit {
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private destroyRef = inject(DestroyRef);
 
-  constructor(
-    private authService: AuthService,
-    private router: Router,
-  ) {}
+  protected error = signal('');
+  protected loading = signal(false);
 
-  protected onSubmit(): void {
-    this.error = '';
-    this.loading = true;
+  ngOnInit(): void {
+    // Already signed in (or just returned from Google) → go straight to the vault.
+    this.authService.authState$
+      .pipe(
+        filter((s) => !s.loading && s.user !== null),
+        first(),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.router.navigate(['/my-notes']));
+  }
 
-    this.authService.signIn(this.email, this.password).subscribe({
-      next: () => {
-        this.loading = false;
-        this.router.navigate(['/my-notes']);
-      },
+  protected signInWithGoogle(): void {
+    this.error.set('');
+    this.loading.set(true);
+
+    // On success the browser leaves the page, so loading stays on.
+    this.authService.signInWithGoogle().subscribe({
       error: (err) => {
-        this.loading = false;
-        this.error = err.message || 'An error occurred';
+        this.loading.set(false);
+        this.error.set(err?.message || 'Could not start Google sign-in');
       },
     });
   }

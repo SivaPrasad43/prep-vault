@@ -82,6 +82,10 @@ export class Sidebar {
     return this.authService.user?.email || '';
   }
 
+  protected getUserAvatar(): string | null {
+    return this.authService.user?.avatar_url || null;
+  }
+
   protected getUserInitial(): string {
     const u = this.authService.user;
     if (!u) return '?';

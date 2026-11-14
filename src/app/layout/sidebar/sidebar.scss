@@ -212,6 +212,11 @@
   flex-shrink: 0;
 }
 
+.sidebar__user-avatar--img {
+  object-fit: cover;
+  background: var(--color-surface-hover);
+}
+
 .sidebar__user-info {
   flex: 1;
   min-width: 0;
