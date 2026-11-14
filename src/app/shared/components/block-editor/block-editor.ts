@@ -161,7 +161,29 @@ const CodeBlockWithLanguage = CodeBlockLowlight.extend({
           })
           .run();
       });
-      header.appendChild(select);
+      const copyIcon =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
+      const checkIcon =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+      const copy = document.createElement('button');
+      copy.type = 'button';
+      copy.className = 'be-code__copy';
+      copy.setAttribute('aria-label', 'Copy code');
+      copy.innerHTML = copyIcon + '<span>Copy</span>';
+      let copyTimer: ReturnType<typeof setTimeout> | undefined;
+      copy.addEventListener('click', () => {
+        navigator.clipboard?.writeText(current.textContent).then(() => {
+          copy.dataset['copied'] = 'true';
+          copy.innerHTML = checkIcon + '<span>Copied</span>';
+          clearTimeout(copyTimer);
+          copyTimer = setTimeout(() => {
+            delete copy.dataset['copied'];
+            copy.innerHTML = copyIcon + '<span>Copy</span>';
+          }, 1500);
+        });
+      });
+
+      header.append(select, copy);
 
       const pre = document.createElement('pre');
       pre.className = 'hljs';
@@ -181,6 +203,7 @@ const CodeBlockWithLanguage = CodeBlockLowlight.extend({
           return true;
         },
         stopEvent: (event) => header.contains(event.target as Node),
+        destroy: () => clearTimeout(copyTimer),
         ignoreMutation: (mutation) => header.contains(mutation.target as Node),
       };
     };
