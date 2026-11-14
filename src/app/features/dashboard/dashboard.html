@@ -40,20 +40,14 @@
 
       <!-- Filters: category + confidence -->
       <div class="mt-2 flex items-center gap-2">
-        <label class="relative flex h-8 min-w-0 flex-1 items-center rounded-md border bg-card text-xs">
-          <select
-            class="h-full w-full min-w-0 cursor-pointer appearance-none truncate bg-transparent pr-7 pl-2.5 outline-none"
-            aria-label="Filter by category"
-            [value]="filterState.categoryId() ?? ''"
-            (change)="onCategoryChange($event)"
-          >
-            <option value="">All categories</option>
-            @for (cat of categoriesList(); track cat.id) {
-              <option [value]="cat.id" [selected]="filterState.categoryId() === cat.id">{{ cat.name }}</option>
-            }
-          </select>
-          <ng-icon name="lucideChevronDown" class="pointer-events-none absolute right-2 text-muted-foreground" />
-        </label>
+        <app-select
+          class="h-8 min-w-0 flex-1 [&_button]:h-8 [&_button]:text-xs"
+          ariaLabel="Filter by category"
+          searchPlaceholder="Find a category…"
+          [options]="categoryOptions()"
+          [value]="filterState.categoryId() ?? ''"
+          (valueChange)="filterState.setCategoryId($event || null)"
+        />
         <div class="flex shrink-0 items-center rounded-md border bg-card p-0.5" role="group" aria-label="Filter by confidence">
           @for (level of confidenceLevels; track level.value) {
             <button

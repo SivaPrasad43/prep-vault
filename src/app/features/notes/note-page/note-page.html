@@ -52,25 +52,27 @@
 
       <!-- Properties -->
       <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b border-dashed pb-4 text-sm text-muted-foreground">
-        <label class="flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-muted" title="Category">
-          @if (category(); as cat) {
-            <app-category-icon [icon]="cat.icon" [style.color]="cat.color" />
-          }
-          <select
-            class="cursor-pointer bg-transparent text-foreground outline-none"
-            [value]="categoryId()"
-            (change)="onCategoryChange($event)"
-            aria-label="Category"
-          >
-            @for (cat of categories(); track cat.id) {
-              <option [value]="cat.id" [selected]="cat.id === categoryId()">{{ cat.name }}</option>
-            }
-          </select>
-        </label>
+        <app-select
+          variant="ghost"
+          class="max-w-56 text-foreground"
+          ariaLabel="Category"
+          placeholder="Category"
+          searchPlaceholder="Find a category…"
+          [options]="categoryOptions()"
+          [value]="categoryId()"
+          (valueChange)="onCategoryChange($event)"
+        />
 
-        <button type="button" class="flex h-8 items-center rounded-md px-2 hover:bg-muted" (click)="cycleConfidence()" title="Confidence — click to change">
-          <app-confidence-indicator [level]="confidence()" />
-        </button>
+        <app-select
+          variant="ghost"
+          class="text-foreground"
+          ariaLabel="Confidence"
+          [searchable]="false"
+          [menuWidth]="200"
+          [options]="confidenceOptions"
+          [value]="confidence()"
+          (valueChange)="onConfidenceChange($event)"
+        />
 
         <button
           type="button"

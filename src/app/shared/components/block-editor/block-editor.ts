@@ -19,11 +19,13 @@ import TaskList from '@tiptap/extension-task-list';
 import TaskItem from '@tiptap/extension-task-item';
 import Image from '@tiptap/extension-image';
 import { TableKit } from '@tiptap/extension-table';
-import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import CodeBlockLowlight, { type CodeBlockLowlightOptions } from '@tiptap/extension-code-block-lowlight';
 import Suggestion, { type SuggestionProps } from '@tiptap/suggestion';
 import { createLowlight, all } from 'lowlight';
 import { Markdown } from 'tiptap-markdown';
 import { NgIcon, provideIcons } from '@ng-icons/core';
+import { SelectMenu } from '../select/select-menu';
+import type { SelectOption } from '../select/select-option';
 import {
   lucideBold, lucideItalic, lucideCode, lucideLink, lucideHeading1, lucideHeading2, lucideHeading3,
   lucideList, lucideListOrdered, lucideListTodo, lucideQuote, lucideFileCode, lucideMinus, lucideType,
@@ -120,9 +122,21 @@ function filterSlashItems(query: string): SlashItem[] {
   );
 }
 
+/** Opens the app's language menu next to `anchor`; `apply` sets the chosen language. */
+export type PickLanguageFn = (anchor: HTMLElement, current: string, apply: (lang: string) => void) => void;
+
+function languageLabel(lang: string): string {
+  return CODE_LANGUAGES.find((l) => l.value === lang)?.label ?? (lang || 'Plain text');
+}
+
 /** Code block with a language picker rendered above the highlighted code. */
-const CodeBlockWithLanguage = CodeBlockLowlight.extend({
+const CodeBlockWithLanguage = CodeBlockLowlight.extend<CodeBlockLowlightOptions & { onPickLanguage?: PickLanguageFn }>({
+  addOptions() {
+    return { ...this.parent!(), onPickLanguage: undefined };
+  },
+
   addNodeView() {
+    const onPickLanguage = this.options.onPickLanguage;
     return ({ node, editor, getPos }) => {
       let current = node;
       const dom = document.createElement('div');
@@ -132,35 +146,36 @@ const CodeBlockWithLanguage = CodeBlockLowlight.extend({
       header.className = 'be-code__header';
       header.contentEditable = 'false';
 
-      const select = document.createElement('select');
-      select.className = 'be-code__lang';
-      select.setAttribute('aria-label', 'Code language');
-      const fillOptions = (lang: string) => {
-        select.replaceChildren();
-        const options = CODE_LANGUAGES.some((l) => l.value === lang)
-          ? CODE_LANGUAGES
-          : [...CODE_LANGUAGES, { value: lang, label: lang }];
-        for (const l of options) {
-          const opt = document.createElement('option');
-          opt.value = l.value;
-          opt.textContent = l.label;
-          select.appendChild(opt);
-        }
-        select.value = lang;
+      const chevron =
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>';
+      const langBtn = document.createElement('button');
+      langBtn.type = 'button';
+      langBtn.className = 'be-code__lang';
+      langBtn.setAttribute('aria-haspopup', 'listbox');
+      const renderLang = (lang: string) => {
+        langBtn.innerHTML = '';
+        const span = document.createElement('span');
+        span.textContent = languageLabel(lang);
+        langBtn.append(span);
+        langBtn.insertAdjacentHTML('beforeend', chevron);
+        langBtn.setAttribute('aria-label', `Code language: ${languageLabel(lang)}`);
       };
-      fillOptions(current.attrs['language'] ?? '');
-      select.disabled = !editor.isEditable;
-      select.addEventListener('change', () => {
-        const pos = typeof getPos === 'function' ? getPos() : undefined;
-        if (pos == null) return;
-        editor
-          .chain()
-          .command(({ tr }) => {
-            tr.setNodeMarkup(pos, undefined, { ...current.attrs, language: select.value || null });
-            return true;
-          })
-          .run();
+      renderLang(current.attrs['language'] ?? '');
+      langBtn.disabled = !editor.isEditable;
+      langBtn.addEventListener('click', () => {
+        onPickLanguage?.(langBtn, current.attrs['language'] ?? '', (lang) => {
+          const pos = typeof getPos === 'function' ? getPos() : undefined;
+          if (pos == null) return;
+          editor
+            .chain()
+            .command(({ tr }) => {
+              tr.setNodeMarkup(pos, undefined, { ...current.attrs, language: lang || null });
+              return true;
+            })
+            .run();
+        });
       });
+
       const copyIcon =
         '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>';
       const checkIcon =
@@ -183,7 +198,7 @@ const CodeBlockWithLanguage = CodeBlockLowlight.extend({
         });
       });
 
-      header.append(select, copy);
+      header.append(langBtn, copy);
 
       const pre = document.createElement('pre');
       pre.className = 'hljs';
@@ -198,7 +213,7 @@ const CodeBlockWithLanguage = CodeBlockLowlight.extend({
         update: (updated) => {
           if (updated.type !== current.type) return false;
           const lang = updated.attrs['language'] ?? '';
-          if (lang !== (current.attrs['language'] ?? '')) fillOptions(lang);
+          if (lang !== (current.attrs['language'] ?? '')) renderLang(lang);
           current = updated;
           return true;
         },
@@ -228,7 +243,7 @@ interface BubbleState {
 
 @Component({
   selector: 'app-block-editor',
-  imports: [NgIcon],
+  imports: [NgIcon, SelectMenu],
   templateUrl: './block-editor.html',
   styleUrl: './block-editor.css',
   viewProviders: [
@@ -248,6 +263,9 @@ export class BlockEditor implements OnDestroy {
 
   protected readonly slash = signal<SlashState | null>(null);
   protected readonly bubble = signal<BubbleState | null>(null);
+  /** Open code-language menu (fixed position under the block's language button). */
+  protected readonly langMenu = signal<{ top: number; left: number; value: string; apply: (l: string) => void } | null>(null);
+  protected readonly languageOptions: SelectOption[] = CODE_LANGUAGES.map((l) => ({ value: l.value, label: l.label }));
   protected readonly linkMode = signal(false);
   protected readonly linkValue = signal('');
 
@@ -260,7 +278,13 @@ export class BlockEditor implements OnDestroy {
   /** Raw `value()` last applied or emitted, to ignore our own echo. */
   private lastValue: string | null = null;
   private slashProps: SuggestionProps<SlashItem> | null = null;
-  private readonly onScroll = () => this.updateBubble();
+  private readonly onScroll = (e: Event) => {
+    this.updateBubble();
+    // Close the language menu when the page scrolls (but not when its own list scrolls).
+    if (this.langMenu() && !(e.target instanceof Element && e.target.closest('app-select-menu'))) {
+      this.langMenu.set(null);
+    }
+  };
 
   constructor() {
     afterNextRender(() => this.createEditor());
@@ -278,6 +302,31 @@ export class BlockEditor implements OnDestroy {
 
   focus(position: 'start' | 'end' = 'start'): void {
     this.editor?.commands.focus(position);
+  }
+
+  private openLanguageMenu(anchor: HTMLElement, value: string, apply: (l: string) => void): void {
+    const r = anchor.getBoundingClientRect();
+    const width = 220;
+    const left = Math.min(r.left, window.innerWidth - width - 8);
+    const below = window.innerHeight - r.bottom > 340;
+    this.langMenu.set({
+      top: below ? r.bottom + 6 : Math.max(8, r.top - 6 - 320),
+      left: Math.max(8, left),
+      value,
+      apply,
+    });
+  }
+
+  protected pickLanguage(lang: string): void {
+    const m = this.langMenu();
+    this.langMenu.set(null);
+    m?.apply(lang);
+    this.editor?.commands.focus();
+  }
+
+  protected closeLanguageMenu(): void {
+    this.langMenu.set(null);
+    this.editor?.commands.focus();
   }
 
   ngOnDestroy(): void {
@@ -298,7 +347,11 @@ export class BlockEditor implements OnDestroy {
           link: false,
           heading: { levels: [1, 2, 3, 4, 5, 6] },
         }),
-        CodeBlockWithLanguage.configure({ lowlight, defaultLanguage: null }),
+        CodeBlockWithLanguage.configure({
+          lowlight,
+          defaultLanguage: null,
+          onPickLanguage: (anchor, value, apply) => this.openLanguageMenu(anchor, value, apply),
+        }),
         Link.configure({
           openOnClick: false,
           autolink: true,
