@@ -69,4 +69,21 @@
       }
     </div>
   }
+
+  @if (langMenu(); as m) {
+    <div class="fixed inset-0 z-40" (mousedown)="closeLanguageMenu()" aria-hidden="true"></div>
+    <app-select-menu
+      class="fixed z-50"
+      [style.width.px]="220"
+      [style.top.px]="m.top"
+      [style.left.px]="m.left"
+      label="Code language"
+      searchPlaceholder="Search languages…"
+      [searchable]="true"
+      [options]="languageOptions"
+      [value]="m.value"
+      (picked)="pickLanguage($event)"
+      (closed)="closeLanguageMenu()"
+    />
+  }
 </div>

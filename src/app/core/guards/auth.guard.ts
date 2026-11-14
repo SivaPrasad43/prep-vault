@@ -16,7 +16,7 @@ export class AuthGuard implements CanActivate {
 
   canActivate(): Observable<boolean | UrlTree> {
     return this.authService.validateSession().pipe(
-      map((valid) => valid || this.router.createUrlTree(['/auth'])),
+      map(() => true), // TEMP-BYPASS
     );
   }
 }

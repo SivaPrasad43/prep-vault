@@ -21,12 +21,12 @@ import {
 import { ZardButtonComponent } from '@/shared/ui/button';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { ZardDropdownImports } from '@/shared/ui/dropdown';
-import { CategoryIcon } from '../../../shared/components/category-icon/category-icon';
+import { AppSelect } from '../../../shared/components/select/select';
+import type { SelectOption } from '../../../shared/components/select/select-option';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RevisionsService } from '../../../core/services/revisions.service';
 import { BlockEditor } from '../../../shared/components/block-editor/block-editor';
-import { ConfidenceIndicator } from '../../../shared/components/confidence-indicator/confidence-indicator';
 import { Modal } from '../../../shared/components/modal/modal';
 import { deriveLegacyFields, noteToMarkdown } from '../../../shared/note-markdown';
 import type { Category, ConfidenceLevel, Note, UpdateNotePayload } from '../../../core/models';
@@ -45,7 +45,6 @@ type SaveStatus = 'idle' | 'saving' | 'saved' | 'error';
 const SAVE_DEBOUNCE_MS = 800;
 const RETRY_MS = 5000;
 const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
-const CONFIDENCE_ORDER: ConfidenceLevel[] = ['need_practice', 'getting_there', 'confident'];
 
 @Component({
   selector: 'app-note-page',
@@ -55,9 +54,8 @@ const CONFIDENCE_ORDER: ConfidenceLevel[] = ['need_practice', 'getting_there', '
     ZardButtonComponent,
     ZardSkeletonComponent,
     ...ZardDropdownImports,
-    CategoryIcon,
+    AppSelect,
     BlockEditor,
-    ConfidenceIndicator,
     Modal,
   ],
   templateUrl: './note-page.html',
@@ -101,6 +99,16 @@ export class NotePage implements OnDestroy {
   protected readonly saveStatus = signal<SaveStatus>('idle');
   protected readonly showDeleteConfirm = signal(false);
   protected readonly deleting = signal(false);
+
+  protected readonly categoryOptions = computed<SelectOption[]>(() =>
+    this.categories().map((c) => ({ value: c.id, label: c.name, icon: c.icon, color: c.color })),
+  );
+
+  protected readonly confidenceOptions: SelectOption[] = [
+    { value: 'need_practice', label: 'Need practice', dot: true, color: 'var(--confidence-need-practice)' },
+    { value: 'getting_there', label: 'Getting there', dot: true, color: 'var(--confidence-getting-there)' },
+    { value: 'confident', label: 'Confident', dot: true, color: 'var(--confidence-confident)' },
+  ];
 
   protected readonly isNew = computed(() => this.noteId() === null);
   protected readonly category = computed(
@@ -240,8 +248,8 @@ export class NotePage implements OnDestroy {
     this.scheduleSave();
   }
 
-  protected onCategoryChange(event: Event): void {
-    const id = (event.target as HTMLSelectElement).value;
+  protected onCategoryChange(id: string | null): void {
+    if (!id) return;
     this.categoryId.set(id);
     try {
       localStorage.setItem(LAST_CATEGORY_KEY, id);
@@ -251,9 +259,9 @@ export class NotePage implements OnDestroy {
     this.flush();
   }
 
-  protected cycleConfidence(): void {
-    const i = CONFIDENCE_ORDER.indexOf(this.confidence());
-    this.confidence.set(CONFIDENCE_ORDER[(i + 1) % CONFIDENCE_ORDER.length]);
+  protected onConfidenceChange(level: string | null): void {
+    if (!level || level === this.confidence()) return;
+    this.confidence.set(level as ConfidenceLevel);
     this.flush();
   }
 

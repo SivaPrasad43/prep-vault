@@ -3,9 +3,11 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, filter, switchMap } from 'rxjs';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideFlame, lucideSearch, lucideX, lucideChevronDown } from '@ng-icons/lucide';
+import { lucideFlame, lucideSearch, lucideX } from '@ng-icons/lucide';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { NoteCard } from '../../shared/components/note-card/note-card';
+import { AppSelect } from '../../shared/components/select/select';
+import type { SelectOption } from '../../shared/components/select/select-option';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
@@ -19,9 +21,9 @@ import type { Category, ConfidenceLevel, Note, NoteFilters, NoteStats } from '..
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState],
+  imports: [RouterOutlet, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect],
   templateUrl: './dashboard.html',
-  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideChevronDown })],
+  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX })],
   host: { class: 'block' },
 })
 export class Dashboard implements OnInit {
@@ -57,6 +59,11 @@ export class Dashboard implements OnInit {
     { value: 'getting_there', label: 'Getting there', dot: 'bg-confidence-getting-there' },
     { value: 'confident', label: 'Confident', dot: 'bg-confidence-confident' },
   ];
+
+  protected readonly categoryOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'All categories', icon: 'folder' },
+    ...this.categoriesList().map((c) => ({ value: c.id, label: c.name, icon: c.icon, color: c.color })),
+  ]);
 
   protected readonly heading = computed(() =>
     this.filterState.smartFilter() === 'bookmarks' ? 'Saved notes' : 'Your notes',
@@ -141,11 +148,6 @@ export class Dashboard implements OnInit {
     this.notesService.getStats().subscribe({
       next: (s) => this.stats.set(s),
     });
-  }
-
-  protected onCategoryChange(event: Event): void {
-    const value = (event.target as HTMLSelectElement).value;
-    this.filterState.setCategoryId(value || null);
   }
 
   protected toggleConfidence(level: ConfidenceLevel): void {
