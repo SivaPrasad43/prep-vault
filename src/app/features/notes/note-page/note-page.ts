@@ -192,7 +192,7 @@ export class NotePage implements OnDestroy {
     this.loading.set(true);
     this.notesService.getById(id).subscribe({
       next: (note) => this.applyNote(note),
-      error: () => this.router.navigate(['/my-notes']),
+      error: () => this.router.navigate(['/notes']),
     });
     this.revisionsService.getRevisionCount(id).subscribe({
       next: (count) => this.revisionCount.set(count),
@@ -432,7 +432,7 @@ export class NotePage implements OnDestroy {
       next: () => {
         this.deleted = true;
         this.clearTimers();
-        this.router.navigate(['/my-notes']);
+        this.router.navigate(['/notes']);
       },
       error: () => {
         this.deleting.set(false);
@@ -442,6 +442,6 @@ export class NotePage implements OnDestroy {
   }
 
   protected goBack(): void {
-    this.router.navigate(['/my-notes']);
+    this.router.navigate(['/notes']);
   }
 }

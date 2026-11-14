@@ -166,7 +166,7 @@ export class AuthService {
       this.supabase.client.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/my-notes`,
+          redirectTo: `${window.location.origin}/notes`,
           queryParams: { prompt: 'select_account' },
         },
       }),

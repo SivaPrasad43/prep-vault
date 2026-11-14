@@ -1,13 +1,19 @@
 import { Injectable } from '@angular/core';
-import { from, Observable, combineLatest, forkJoin, of } from 'rxjs';
-import { map, switchMap } from 'rxjs/operators';
+import { from, Observable, Subject, combineLatest, forkJoin, of } from 'rxjs';
+import { map, switchMap, tap } from 'rxjs/operators';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { RevisionsService } from './revisions.service';
 import type { Note, CreateNotePayload, UpdateNotePayload, NoteFilters, NoteStats } from '../models';
 
+export type NoteChange = { type: 'upsert'; note: Note } | { type: 'delete'; id: string };
+
 @Injectable({ providedIn: 'root' })
 export class NotesService {
+  private readonly _changes = new Subject<NoteChange>();
+  /** Emits after every successful create/update/delete so open lists can patch themselves. */
+  readonly changes$ = this._changes.asObservable();
+
   constructor(
     private supabase: SupabaseService,
     private auth: AuthService,
@@ -81,6 +87,7 @@ export class NotesService {
         if (error) throw error;
         return data;
       }),
+      tap((note) => this._changes.next({ type: 'upsert', note })),
     );
   }
 
@@ -97,6 +104,7 @@ export class NotesService {
         if (error) throw error;
         return data;
       }),
+      tap((note) => this._changes.next({ type: 'upsert', note })),
     );
   }
 
@@ -107,6 +115,7 @@ export class NotesService {
       map(({ error }) => {
         if (error) throw error;
       }),
+      tap(() => this._changes.next({ type: 'delete', id })),
     );
   }
 

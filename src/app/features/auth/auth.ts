@@ -29,7 +29,7 @@ export class Auth implements OnInit {
         first(),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.router.navigate(['/my-notes']));
+      .subscribe(() => this.router.navigate(['/notes']));
   }
 
   protected signInWithGoogle(): void {

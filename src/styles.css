@@ -8,87 +8,104 @@
 @custom-variant dark (&:is(.dark *));
 
 
+/*
+ * Twitter/X-style palette: white ("Default") and pure black ("Lights out")
+ * surfaces, hairline borders instead of shadows, X blue accent.
+ * --desk is the page behind cards/sheets; --card is the surface on top of it.
+ */
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.546 0.2 259);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-  --confidence-need-practice: oklch(0.637 0.237 25.331);
-  --confidence-getting-there: oklch(0.795 0.184 86.047);
-  --confidence-confident: oklch(0.696 0.17 162.48);
-  --nav-active: oklch(0.93 0.06 85);
-  --nav-active-foreground: oklch(0.3 0.05 70);
+  --radius: 0.75rem;
+  --desk: #ffffff;
+  --background: #ffffff;
+  --foreground: #0f1419;
+  --card: #ffffff;
+  --card-foreground: #0f1419;
+  --popover: #ffffff;
+  --popover-foreground: #0f1419;
+  --primary: #1d9bf0;
+  --primary-foreground: #ffffff;
+  --secondary: #eff3f4;
+  --secondary-foreground: #0f1419;
+  --muted: #f7f9f9;
+  --muted-foreground: #536471;
+  --accent: #e8f5fd;
+  --accent-foreground: #1a8cd8;
+  --destructive: #f4212e;
+  --destructive-foreground: #ffffff;
+  --border: #eff3f4;
+  --input: #cfd9de;
+  --ring: #1d9bf0;
+  --chart-1: #1d9bf0;
+  --chart-2: #ffd400;
+  --chart-3: #f91880;
+  --chart-4: #00ba7c;
+  --chart-5: #7856ff;
+  --sidebar: var(--desk);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --confidence-need-practice: #f4212e;
+  --confidence-getting-there: #ffad1f;
+  --confidence-confident: #00ba7c;
+  --nav-active: var(--accent);
+  --nav-active-foreground: var(--accent-foreground);
+  /* Hairline outline + soft lift, X-style (popovers/sheets). */
+  --sheet-shadow: 0 0 0 1px var(--border), 0 8px 24px -12px rgb(101 119 134 / 0.25);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.78 0.11 257);
-  --primary-foreground: oklch(0.2 0.03 260);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --destructive-foreground: oklch(0.205 0 0);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.809 0.105 251.813);
-  --chart-2: oklch(0.623 0.214 259.815);
-  --chart-3: oklch(0.546 0.245 262.881);
-  --chart-4: oklch(0.488 0.243 264.376);
-  --chart-5: oklch(0.424 0.199 265.638);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
-  --nav-active: oklch(0.38 0.06 75);
-  --nav-active-foreground: oklch(0.95 0.03 85);
+  --desk: #000000;
+  --background: #000000;
+  --foreground: #e7e9ea;
+  --card: #000000;
+  --card-foreground: #e7e9ea;
+  --popover: #000000;
+  --popover-foreground: #e7e9ea;
+  --primary: #1d9bf0;
+  --primary-foreground: #ffffff;
+  --secondary: #202327;
+  --secondary-foreground: #e7e9ea;
+  --muted: #16181c;
+  --muted-foreground: #71767b;
+  --accent: #031018;
+  --accent-foreground: #1d9bf0;
+  --destructive: #f4212e;
+  --destructive-foreground: #ffffff;
+  --border: #2f3336;
+  --input: #333639;
+  --ring: #1d9bf0;
+  --chart-1: #1d9bf0;
+  --chart-2: #ffd400;
+  --chart-3: #f91880;
+  --chart-4: #00ba7c;
+  --chart-5: #7856ff;
+  --sidebar: var(--desk);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+  --confidence-need-practice: #f4212e;
+  --confidence-getting-there: #ffd400;
+  --confidence-confident: #00ba7c;
+  --nav-active: var(--muted);
+  --nav-active-foreground: var(--foreground);
+  /* X dark popovers: faint white glow outline. */
+  --sheet-shadow: 0 0 0 1px var(--border), 0 0 15px rgb(255 255 255 / 0.08);
 }
 
 
 @theme inline {
-  --font-sans: 'Roboto', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-sans: 'Google Sans', 'Roboto', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
+  --color-desk: var(--desk);
+  --shadow-sheet: var(--sheet-shadow);
   --color-confidence-need-practice: var(--confidence-need-practice);
   --color-confidence-getting-there: var(--confidence-getting-there);
   --color-confidence-confident: var(--confidence-confident);

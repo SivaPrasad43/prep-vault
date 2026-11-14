@@ -1,32 +1,35 @@
-import { Component, OnInit, inject, signal, ElementRef, viewChild, effect } from '@angular/core';
-import { RouterLink } from '@angular/router';
-import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucidePlus, lucideFlame, lucidePencilLine } from '@ng-icons/lucide';
-import { ZardButtonComponent } from '@/shared/ui/button';
-import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
-import { DatePipe } from '@angular/common';
-import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
+import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { debounceTime, switchMap } from 'rxjs';
+import { debounceTime, filter, switchMap } from 'rxjs';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { lucideFlame, lucideSearch, lucideX, lucideChevronDown } from '@ng-icons/lucide';
+import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
+import { NoteCard } from '../../shared/components/note-card/note-card';
+import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { NotesService } from '../../core/services/notes.service';
 import { CategoriesService } from '../../core/services/categories.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
+import type { Category, ConfidenceLevel, Note, NoteFilters, NoteStats } from '../../core/models';
 
-import { NoteCard } from '../../shared/components/note-card/note-card';
-import { EmptyState } from '../../shared/components/empty-state/empty-state';
-import type { Note, Category, NoteStats, NoteFilters } from '../../core/models';
-
+/**
+ * Gmail-style notes workspace.
+ * Desktop (lg+): note list on the left, selected note (child route) on the right.
+ * Below lg: the list alone, or the open note alone.
+ */
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, DatePipe, NgIcon, ZardButtonComponent, ZardSkeletonComponent, NoteCard, EmptyState, CategoryIcon],
+  imports: [RouterOutlet, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState],
   templateUrl: './dashboard.html',
-  viewProviders: [provideIcons({ lucidePlus, lucideFlame, lucidePencilLine })],
+  viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideChevronDown })],
+  host: { class: 'block' },
 })
 export class Dashboard implements OnInit {
   private notesService = inject(NotesService);
   private categoriesService = inject(CategoriesService);
+  private router = inject(Router);
   protected filterState = inject(FilterStateService);
-  private readonly PAGE_SIZE = 10;
+  private readonly PAGE_SIZE = 20;
 
   protected displayedNotes = signal<Note[]>([]);
   protected categories = signal<Map<string, Category>>(new Map());
@@ -35,7 +38,12 @@ export class Dashboard implements OnInit {
   protected loading = signal(true);
   protected loadingMore = signal(false);
   protected allLoaded = signal(false);
+  protected totalCount = signal(0);
   protected error = '';
+
+  /** id of the note open in the reading pane ('new' while composing), or null. */
+  protected readonly selectedId = signal<string | null>(this.idFromUrl(this.router.url));
+  protected readonly noteOpen = computed(() => this.selectedId() !== null);
 
   private currentFilters?: NoteFilters;
   private loadMoreEpoch = 0;
@@ -43,9 +51,25 @@ export class Dashboard implements OnInit {
   protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   protected greeting = this.getGreeting();
-  protected today = new Date();
+
+  protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; dot: string }[] = [
+    { value: 'need_practice', label: 'Practice', dot: 'bg-confidence-need-practice' },
+    { value: 'getting_there', label: 'Getting there', dot: 'bg-confidence-getting-there' },
+    { value: 'confident', label: 'Confident', dot: 'bg-confidence-confident' },
+  ];
+
+  protected readonly heading = computed(() =>
+    this.filterState.smartFilter() === 'bookmarks' ? 'Saved notes' : 'Your notes',
+  );
 
   constructor() {
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(),
+      )
+      .subscribe((e) => this.selectedId.set(this.idFromUrl(e.urlAfterRedirects)));
+
     toObservable(this.filterState.filters)
       .pipe(
         debounceTime(300),
@@ -64,6 +88,7 @@ export class Dashboard implements OnInit {
         next: (result) => {
           this.error = '';
           this.displayedNotes.set(result.data);
+          this.totalCount.set(result.count);
           this.allLoaded.set(result.count <= this.PAGE_SIZE);
           this.loading.set(false);
         },
@@ -72,9 +97,26 @@ export class Dashboard implements OnInit {
           this.loading.set(false);
         },
       });
+
+    // Keep the list in sync with edits made in the reading pane (autosave, delete, bookmark).
+    this.notesService.changes$.pipe(takeUntilDestroyed()).subscribe((change) => {
+      if (change.type === 'delete') {
+        this.displayedNotes.update((ns) => ns.filter((n) => n.id !== change.id));
+        this.totalCount.update((c) => Math.max(0, c - 1));
+        return;
+      }
+      const note = change.note;
+      this.displayedNotes.update((ns) => {
+        if (ns.some((n) => n.id === note.id)) {
+          return ns.map((n) => (n.id === note.id ? note : n));
+        }
+        this.totalCount.update((c) => c + 1);
+        return [note, ...ns];
+      });
+    });
   }
 
-  /** Infinite scroll: load the next page when the sentinel below the grid nears the viewport. */
+  /** Infinite scroll: load the next page when the sentinel below the list nears view. */
   private readonly infiniteScroll = effect((onCleanup) => {
     const el = this.sentinel()?.nativeElement;
     if (!el || typeof IntersectionObserver === 'undefined') return;
@@ -91,23 +133,24 @@ export class Dashboard implements OnInit {
   ngOnInit(): void {
     this.categoriesService.seedDefaults().subscribe({
       next: (cats) => {
-        setTimeout(() => {
-          const map = new Map<string, Category>();
-          cats.forEach((c) => map.set(c.id, c));
-          this.categories.set(map);
-          this.categoriesList.set(cats);
-        });
+        this.categories.set(new Map(cats.map((c) => [c.id, c])));
+        this.categoriesList.set(cats);
       },
     });
 
     this.notesService.getStats().subscribe({
-      next: (s) => setTimeout(() => this.stats.set(s)),
+      next: (s) => this.stats.set(s),
     });
   }
 
-  protected selectCategory(id: string | null): void {
-    const current = this.filterState.categoryId();
-    this.filterState.setCategoryId(current === id ? null : id);
+  protected onCategoryChange(event: Event): void {
+    const value = (event.target as HTMLSelectElement).value;
+    this.filterState.setCategoryId(value || null);
+  }
+
+  protected toggleConfidence(level: ConfidenceLevel): void {
+    const on = this.filterState.confidenceLevel() === level;
+    this.filterState.setConfidenceLevel(on ? null : level);
   }
 
   protected getCategory(note: Note): Category | null {
@@ -115,11 +158,8 @@ export class Dashboard implements OnInit {
   }
 
   protected toggleFavorite(note: Note): void {
-    this.notesService.update(note.id, { is_favorite: !note.is_favorite }).subscribe({
-      next: (updated) => {
-        this.displayedNotes.update((ns) => ns.map((n) => (n.id === updated.id ? updated : n)));
-      },
-    });
+    // List patches itself via NotesService.changes$.
+    this.notesService.update(note.id, { is_favorite: !note.is_favorite }).subscribe();
   }
 
   protected loadMore(): void {
@@ -132,7 +172,10 @@ export class Dashboard implements OnInit {
     this.notesService.getAll(this.currentFilters, nextPage, this.PAGE_SIZE).subscribe({
       next: (result) => {
         if (epoch !== this.loadMoreEpoch) return;
-        this.displayedNotes.update((ns) => [...ns, ...result.data]);
+        this.displayedNotes.update((ns) => {
+          const seen = new Set(ns.map((n) => n.id));
+          return [...ns, ...result.data.filter((n) => !seen.has(n.id))];
+        });
         this.allLoaded.set(this.displayedNotes().length >= result.count);
         this.loadingMore.set(false);
       },
@@ -140,6 +183,11 @@ export class Dashboard implements OnInit {
         if (epoch === this.loadMoreEpoch) this.loadingMore.set(false);
       },
     });
+  }
+
+  private idFromUrl(url: string): string | null {
+    const m = /^\/notes\/([^/?#]+)/.exec(url);
+    return m ? decodeURIComponent(m[1]) : null;
   }
 
   private getGreeting(): string {

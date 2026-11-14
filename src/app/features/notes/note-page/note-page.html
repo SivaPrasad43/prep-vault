@@ -1,9 +1,9 @@
-<div class="min-h-dvh bg-background">
+<div class="min-h-dvh bg-card lg:min-h-full lg:rounded-2xl lg:shadow-sheet">
   <!-- Top bar -->
-  <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-background/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-background/70 sm:px-4">
-    <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()">
+  <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-card/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-card/75 sm:px-4 lg:rounded-t-2xl">
+    <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()" title="Back to notes">
       <ng-icon name="lucideArrowLeft" class="text-lg" />
-      <span>Notes</span>
+      <span class="lg:sr-only">Notes</span>
     </button>
 
     <div class="ml-auto flex items-center gap-1">
@@ -29,7 +29,7 @@
     </div>
   </header>
 
-  <article class="mx-auto w-full max-w-3xl px-5 pt-6 pb-10 sm:px-12 sm:pt-12">
+  <article class="mx-auto w-full max-w-3xl px-5 pt-4 pb-10 sm:px-12 sm:pt-8">
     @if (loading()) {
       <div class="space-y-4">
         <z-skeleton class="h-10 w-3/5" />
@@ -41,7 +41,7 @@
     } @else {
       <textarea
         #titleInput
-        class="w-full resize-none overflow-hidden bg-transparent text-3xl leading-tight font-bold tracking-tight outline-none placeholder:text-muted-foreground/60 sm:text-4xl"
+        class="w-full resize-none overflow-hidden bg-transparent font-serif text-3xl leading-tight font-semibold tracking-tight outline-none placeholder:text-muted-foreground/60 sm:text-4xl"
         rows="1"
         placeholder="Untitled"
         aria-label="Title"
@@ -51,7 +51,7 @@
       ></textarea>
 
       <!-- Properties -->
-      <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b pb-4 text-sm text-muted-foreground">
+      <div class="mt-3 mb-6 flex flex-wrap items-center gap-1.5 border-b border-dashed pb-4 text-sm text-muted-foreground">
         <label class="flex h-8 items-center gap-1.5 rounded-md px-2 hover:bg-muted" title="Category">
           @if (category(); as cat) {
             <app-category-icon [icon]="cat.icon" [style.color]="cat.color" />
@@ -75,7 +75,7 @@
         <button
           type="button"
           class="grid size-8 place-items-center rounded-md hover:bg-muted"
-          [class.text-amber-500]="favorite()"
+          [class.text-primary]="favorite()"
           (click)="toggleFavorite()"
           [attr.aria-pressed]="favorite()"
           [attr.aria-label]="favorite() ? 'Remove from bookmarks' : 'Add to bookmarks'"

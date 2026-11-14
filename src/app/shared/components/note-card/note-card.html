@@ -1,37 +1,48 @@
 <article
-  class="group relative flex cursor-pointer flex-col gap-2 rounded-xl border bg-card p-4 text-card-foreground transition-shadow hover:shadow-md focus-within:shadow-md"
-  (click)="openNote()"
+  class="group relative rounded-2xl border p-4 transition-colors"
+  [class]="active() ? 'border-primary/60 bg-accent' : 'bg-card hover:bg-muted'"
 >
-  <div class="flex items-start gap-2">
-    <a
-      [routerLink]="['/notes', note().id]"
-      class="min-w-0 flex-1 text-base leading-snug font-medium outline-none after:absolute after:inset-0 after:rounded-xl focus-visible:after:ring-3 focus-visible:after:ring-ring/50"
-      (click)="$event.stopPropagation()"
-    >
-      {{ note().title || 'Untitled' }}
-    </a>
-    <button
-      type="button"
-      class="relative z-10 -m-1 grid size-8 shrink-0 place-items-center rounded-full transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover:opacity-100"
-      [class.opacity-0]="!note().is_favorite"
-      [class.text-primary]="note().is_favorite"
-      [attr.aria-pressed]="note().is_favorite"
-      [attr.aria-label]="note().is_favorite ? 'Remove bookmark' : 'Bookmark'"
-      (click)="toggleFavorite.emit(note()); $event.stopPropagation()"
-    >
-      <ng-icon [name]="note().is_favorite ? 'heroBookmarkSolid' : 'lucideBookmark'" class="text-lg" />
-    </button>
+  <!-- Top: category chip + date -->
+  <div class="flex items-center gap-2 text-xs">
+    @if (category(); as cat) {
+      <span
+        class="inline-flex min-w-0 items-center gap-1 rounded-full px-2 py-0.5 font-medium"
+        [style.color]="cat.color"
+        [style.background]="'color-mix(in oklab, ' + cat.color + ' 13%, transparent)'"
+      >
+        <app-category-icon [icon]="cat.icon" class="shrink-0 text-[0.8rem]" />
+        <span class="truncate">{{ cat.name }}</span>
+      </span>
+    }
+    <span class="ml-auto shrink-0 text-muted-foreground tabular-nums">{{ note().updated_at | date: dateFormat() }}</span>
   </div>
 
+  <!-- Title + preview -->
+  <a
+    [routerLink]="['/notes', note().id]"
+    class="mt-2.5 block font-serif text-base leading-snug font-semibold outline-none after:absolute after:inset-0 after:rounded-2xl focus-visible:after:ring-2 focus-visible:after:ring-ring"
+    [attr.aria-current]="active() ? 'page' : null"
+  >
+    <span class="line-clamp-2">{{ note().title || 'Untitled' }}</span>
+  </a>
   @if (preview(); as text) {
-    <p class="line-clamp-6 text-sm whitespace-pre-line text-muted-foreground">{{ text }}</p>
+    <p class="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{{ text }}</p>
   }
 
-  <div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-    @if (category()) {
-      <app-category-badge [category]="category()!" />
-    }
-    <app-confidence-indicator [level]="note().confidence_level" />
-    <span class="ml-auto text-xs text-muted-foreground">{{ note().updated_at | date: 'MMM d' }}</span>
+  <!-- Bottom: confidence + save -->
+  <div class="mt-3 flex items-center gap-2">
+    <app-confidence-indicator variant="meter" [level]="note().confidence_level" />
+    <span class="text-xs text-muted-foreground">{{ confidenceLabel() }}</span>
+    <button
+      type="button"
+      class="relative z-10 -my-1.5 -mr-1.5 ml-auto grid size-8 shrink-0 place-items-center rounded-full transition-colors hover:bg-primary/10 hover:text-primary"
+      [class.text-primary]="note().is_favorite"
+      [class.text-muted-foreground]="!note().is_favorite"
+      [attr.aria-pressed]="note().is_favorite"
+      [attr.aria-label]="note().is_favorite ? 'Remove from saved' : 'Save'"
+      (click)="toggleFavorite.emit(note())"
+    >
+      <ng-icon [name]="note().is_favorite ? 'heroBookmarkSolid' : 'lucideBookmark'" class="text-[1.05rem]" />
+    </button>
   </div>
 </article>
