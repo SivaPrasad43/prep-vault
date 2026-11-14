@@ -19,7 +19,7 @@
   </div>
 
   <span class="card__title">
-    {{ note().title }}
+    {{ note().title || 'Untitled' }}
   </span>
 
   @if (note().description) {

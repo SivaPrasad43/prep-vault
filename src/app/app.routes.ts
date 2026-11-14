@@ -22,20 +22,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/analytics/analytics').then((m) => m.Analytics),
       },
+      // Edit and read are the same page now.
+      { path: 'notes/:id/edit', redirectTo: 'notes/:id' },
       {
-        path: 'notes/new',
-        loadComponent: () =>
-          import('./features/notes/note-form/note-form').then((m) => m.NoteForm),
-      },
-      {
+        // Also serves `notes/new`: one route so the component (and editor focus) survives the
+        // redirect from /notes/new to /notes/:id after the note is first saved.
         path: 'notes/:id',
         loadComponent: () =>
-          import('./features/notes/note-detail/note-detail').then((m) => m.NoteDetail),
-      },
-      {
-        path: 'notes/:id/edit',
-        loadComponent: () =>
-          import('./features/notes/note-form/note-form').then((m) => m.NoteForm),
+          import('./features/notes/note-page/note-page').then((m) => m.NotePage),
       },
     ],
   },
