@@ -12,6 +12,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { Editor, Extension, type Range } from '@tiptap/core';
+import { Plugin, PluginKey, type EditorState } from '@tiptap/pm/state';
+import { Decoration, DecorationSet } from '@tiptap/pm/view';
+import type { Node as PMNode } from '@tiptap/pm/model';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Link from '@tiptap/extension-link';
@@ -146,6 +149,95 @@ const SLASH_ITEMS: SlashItem[] = [
     run: (e, r) => e.chain().focus().deleteRange(r).setHorizontalRule().run(),
   },
 ];
+
+// ---------- In-note find ----------
+
+interface FindMatch {
+  from: number;
+  to: number;
+}
+
+interface FindState {
+  query: string;
+  matches: FindMatch[];
+  index: number;
+  decorations: DecorationSet;
+}
+
+const findKey = new PluginKey<FindState>('noteFind');
+
+/** Case-insensitive matches of `query` inside every text block (marks don't split matches). */
+function findMatches(doc: PMNode, query: string): FindMatch[] {
+  const q = query.toLowerCase();
+  if (!q) return [];
+  const out: FindMatch[] = [];
+  doc.descendants((node, pos) => {
+    if (!node.isTextblock) return true;
+    let text = '';
+    const map: number[] = [];
+    node.forEach((child, offset) => {
+      if (child.isText) {
+        const t = child.text ?? '';
+        for (let i = 0; i < t.length; i++) map.push(pos + 1 + offset + i);
+        text += t;
+      } else {
+        map.push(pos + 1 + offset);
+        text += '\ufffc';
+      }
+    });
+    const hay = text.toLowerCase();
+    for (let i = hay.indexOf(q); i !== -1; i = hay.indexOf(q, i + q.length)) {
+      out.push({ from: map[i], to: map[i + q.length - 1] + 1 });
+    }
+    return false;
+  });
+  return out;
+}
+
+function findDecorations(doc: PMNode, matches: FindMatch[], index: number): DecorationSet {
+  return DecorationSet.create(
+    doc,
+    matches.map((m, i) =>
+      Decoration.inline(m.from, m.to, { class: i === index ? 'be-find be-find--current' : 'be-find' }),
+    ),
+  );
+}
+
+function findState(doc: PMNode, query: string, index: number): FindState {
+  const matches = findMatches(doc, query);
+  const i = matches.length ? Math.min(Math.max(index, 0), matches.length - 1) : -1;
+  return { query, matches, index: i, decorations: findDecorations(doc, matches, i) };
+}
+
+/** Highlights find matches as decorations; never touches the document or selection. */
+const NoteFind = Extension.create({
+  name: 'noteFind',
+  addProseMirrorPlugins() {
+    return [
+      new Plugin<FindState>({
+        key: findKey,
+        state: {
+          init: (_, state) => findState(state.doc, '', -1),
+          apply: (tr, prev) => {
+            const meta = tr.getMeta(findKey) as { query?: string; index?: number } | undefined;
+            if (meta) return findState(tr.doc, meta.query ?? prev.query, meta.index ?? 0);
+            if (tr.docChanged && prev.query) return findState(tr.doc, prev.query, prev.index);
+            return prev;
+          },
+        },
+        props: {
+          decorations: (state: EditorState) => findKey.getState(state)?.decorations,
+        },
+      }),
+    ];
+  },
+});
+
+/** Result of a find operation, for the find bar's "3 of 7" label. */
+export interface FindResult {
+  index: number;
+  count: number;
+}
 
 function filterSlashItems(query: string): SlashItem[] {
   const q = query.toLowerCase().trim();
@@ -440,6 +532,7 @@ export class BlockEditor implements OnDestroy {
           transformCopiedText: true,
         }),
         slashExtension,
+        NoteFind,
       ],
       content: initial,
       editable: this.editable(),
@@ -499,6 +592,55 @@ export class BlockEditor implements OnDestroy {
   }
 
   /** Scroll a heading into view (just below the sticky top bar) and put the cursor on it. */
+  // ---------- In-note find ----------
+
+  private findResult(): FindResult {
+    const st = this.editor ? findKey.getState(this.editor.state) : undefined;
+    return { index: st?.index ?? -1, count: st?.matches.length ?? 0 };
+  }
+
+  private scrollToCurrentMatch(): void {
+    queueMicrotask(() => {
+      const el = this.host().nativeElement.querySelector('.be-find--current');
+      el?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+
+  /** Highlight all matches of `query` (case-insensitive) and jump to the first. */
+  find(query: string): FindResult {
+    const editor = this.editor;
+    if (!editor) return { index: -1, count: 0 };
+    editor.view.dispatch(editor.state.tr.setMeta(findKey, { query, index: 0 }));
+    this.scrollToCurrentMatch();
+    return this.findResult();
+  }
+
+  /** Move to the next (+1) or previous (-1) match, wrapping around. */
+  findStep(dir: 1 | -1): FindResult {
+    const editor = this.editor;
+    const st = editor ? findKey.getState(editor.state) : undefined;
+    if (!editor || !st || !st.matches.length) return this.findResult();
+    const n = st.matches.length;
+    editor.view.dispatch(editor.state.tr.setMeta(findKey, { index: (st.index + dir + n) % n }));
+    this.scrollToCurrentMatch();
+    return this.findResult();
+  }
+
+  clearFind(): void {
+    const editor = this.editor;
+    if (editor) editor.view.dispatch(editor.state.tr.setMeta(findKey, { query: '', index: -1 }));
+  }
+
+  /** Currently selected text (single line), to prefill the find bar. */
+  selectedText(): string {
+    const editor = this.editor;
+    if (!editor) return '';
+    const { from, to, empty } = editor.state.selection;
+    if (empty) return '';
+    const text = editor.state.doc.textBetween(from, to, ' ');
+    return text.includes('\n') ? '' : text.slice(0, 100);
+  }
+
   scrollToHeading(pos: number): void {
     const editor = this.editor;
     if (!editor) return;

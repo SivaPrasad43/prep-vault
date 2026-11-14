@@ -340,3 +340,18 @@
 .dark .neon-swatch {
   box-shadow: 0 0 8px color-mix(in srgb, var(--neon) 80%, transparent);
 }
+
+/* ---------- In-note find ---------- */
+.block-editor__content .be-prose .be-find {
+  background: color-mix(in srgb, #ffd400 45%, transparent);
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, #ffd400 60%, transparent);
+}
+.block-editor__content .be-prose .be-find--current {
+  background: #ff9632;
+  color: #0f1419;
+  box-shadow: 0 0 0 2px #ff9632;
+}
+.dark .block-editor__content .be-prose .be-find {
+  background: color-mix(in srgb, #ffd400 30%, transparent);
+}
