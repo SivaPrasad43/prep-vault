@@ -2,7 +2,7 @@
   <!-- Notes column -->
   <section
     aria-label="Notes"
-    class="w-full shrink-0 bg-background lg:scrollbar-thin lg:w-[22rem] lg:overflow-y-auto lg:border-r xl:w-[25rem]"
+    class="flex w-full shrink-0 flex-col bg-background lg:scrollbar-thin lg:w-[22rem] lg:overflow-y-auto lg:border-r xl:w-[25rem]"
     [class.max-lg:hidden]="noteOpen()"
     (scroll)="onListScroll($any($event.target).scrollTop)"
   >
@@ -91,7 +91,7 @@
       </p>
     </header>
 
-    <div class="px-3 pb-6">
+    <div class="flex-1 px-3 pb-6">
       <!-- Built-in read-only guide (same for everyone, not a note); hidden in the Saved view -->
       @if (filterState.smartFilter() !== 'bookmarks') {
         <a
@@ -151,6 +151,28 @@
         }
       }
     </div>
+    <!-- Footer: brand + info pages (open in the right pane like a note) -->
+    <footer class="flex flex-col items-center border-t px-4 pt-4 pb-5 text-center text-xs text-muted-foreground">
+      <a routerLink="/notes/guide" class="inline-block" aria-label="PrepDay">
+        <img src="assets/logo/logo-horizontal-on-light.svg" alt="PrepDay" class="h-6 w-auto dark:hidden" />
+        <img src="assets/logo/logo-horizontal-on-dark.svg" alt="PrepDay" class="hidden h-6 w-auto dark:block" />
+      </a>
+      <nav aria-label="About PrepDay" class="mt-3 flex flex-wrap items-center justify-center gap-x-1 gap-y-1">
+        @for (link of footerLinks; track link.path; let last = $last) {
+          <a
+            [routerLink]="['/notes', link.path]"
+            class="rounded px-1 py-0.5 transition-colors hover:text-foreground hover:underline"
+            [class.font-semibold]="selectedId() === link.path"
+            [class.text-foreground]="selectedId() === link.path"
+            [attr.aria-current]="selectedId() === link.path ? 'page' : null"
+          >{{ link.label }}</a>
+          @if (!last) {
+            <span aria-hidden="true">·</span>
+          }
+        }
+      </nav>
+      <p class="mt-2">© {{ year }} PrepDay · Interview prep, one day at a time.</p>
+    </footer>
   </section>
 
   <!-- Open note: a sheet on the desk -->

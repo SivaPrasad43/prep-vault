@@ -30,7 +30,15 @@ export const routes: Routes = [
             path: 'guide',
             loadComponent: () =>
               import('./features/notes/guide/guide-page').then((m) => m.GuidePage),
+            data: { page: 'guide' },
           },
+          // Footer pages: same read-only page component, different content.
+          ...(['support', 'privacy', 'terms'] as const).map((page) => ({
+            path: page,
+            loadComponent: () =>
+              import('./features/notes/guide/guide-page').then((m) => m.GuidePage),
+            data: { page },
+          })),
           // Absolute redirects: relative ones resolve wrongly in SSR on full page loads
           // (e.g. /notes/abc/edit -> /notes/abc/:id).
           { path: 'guide/edit', redirectTo: '/notes/guide' },

@@ -79,6 +79,12 @@ export class Dashboard implements OnInit {
   protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   protected greeting = this.getGreeting();
+  protected readonly year = new Date().getFullYear();
+  protected readonly footerLinks = [
+    { path: 'support', label: 'Support' },
+    { path: 'privacy', label: 'Privacy' },
+    { path: 'terms', label: 'Terms' },
+  ];
 
   protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; dot: string; color: string }[] = [
     { value: 'need_practice', label: 'Need practice', dot: 'bg-confidence-need-practice', color: 'var(--confidence-need-practice)' },
