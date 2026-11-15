@@ -4,8 +4,14 @@
     aria-label="Notes"
     class="w-full shrink-0 bg-background lg:scrollbar-thin lg:w-[22rem] lg:overflow-y-auto lg:border-r xl:w-[25rem]"
     [class.max-lg:hidden]="noteOpen()"
+    (scroll)="onListScroll($any($event.target).scrollTop)"
   >
-    <header class="sticky top-0 z-20 bg-background/95 px-4 pt-5 pb-3 backdrop-blur">
+    <!-- Whole top section hides while scrolling down through notes; slides back on scroll up -->
+    <header
+      class="sticky top-0 z-20 bg-background/95 px-4 pt-5 pb-3 backdrop-blur transition-transform duration-200 ease-out"
+      [class.-translate-y-full]="headerHidden()"
+      [attr.inert]="headerHidden() ? '' : null"
+    >
       <div class="flex items-end justify-between gap-3">
         <div class="min-w-0">
           <p class="text-xs text-muted-foreground">{{ greeting }}</p>
@@ -23,64 +29,64 @@
       <label class="mt-3 flex h-10 items-center gap-2 rounded-lg border bg-card px-3 shadow-xs focus-within:ring-2 focus-within:ring-ring/40">
         <ng-icon name="lucideSearch" class="shrink-0 text-muted-foreground" />
         <input
-          #search
-          type="search"
-          class="h-full w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
-          placeholder="Search notes"
-          aria-label="Search notes"
-          [value]="filterState.searchQuery()"
-          (input)="filterState.setSearchQuery(search.value)"
+      #search
+      type="search"
+      class="h-full w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground [&::-webkit-search-cancel-button]:hidden"
+      placeholder="Search notes"
+      aria-label="Search notes"
+      [value]="filterState.searchQuery()"
+      (input)="filterState.setSearchQuery(search.value)"
         />
         @if (filterState.searchQuery()) {
-          <button type="button" class="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted" aria-label="Clear search" (click)="search.value = ''; filterState.setSearchQuery('')">
-            <ng-icon name="lucideX" />
-          </button>
+      <button type="button" class="grid size-6 place-items-center rounded text-muted-foreground hover:bg-muted" aria-label="Clear search" (click)="search.value = ''; filterState.setSearchQuery('')">
+        <ng-icon name="lucideX" />
+      </button>
         }
       </label>
 
       <!-- Filters: category + confidence -->
       <div class="mt-2 flex items-center gap-2">
         <app-select
-          class="h-8 min-w-0 flex-1 [&_button]:h-8 [&_button]:text-xs"
-          ariaLabel="Filter by category"
-          searchPlaceholder="Find a category…"
-          [options]="categoryOptions()"
-          [value]="filterState.categoryId() ?? ''"
-          (valueChange)="filterState.setCategoryId($event || null)"
+      class="h-8 min-w-0 flex-1 [&_button]:h-8 [&_button]:text-xs"
+      ariaLabel="Filter by category"
+      searchPlaceholder="Find a category…"
+      [options]="categoryOptions()"
+      [value]="filterState.categoryId() ?? ''"
+      (valueChange)="filterState.setCategoryId($event || null)"
         />
         <!-- Confidence filter: active dot is tinted + ringed in its own color, others fade -->
         <div class="flex shrink-0 items-center gap-0.5 rounded-md border bg-card p-0.5" role="group" aria-label="Filter by confidence">
-          @for (level of confidenceLevels; track level.value) {
-            @let on = filterState.confidenceLevel() === level.value;
-            @let dimmed = !!filterState.confidenceLevel() && !on;
-            <button
-              type="button"
-              class="grid size-7 place-items-center rounded transition-all hover:bg-muted"
-              [class.opacity-40]="dimmed"
-              [class.hover:opacity-100]="dimmed"
-              [style.background]="on ? 'color-mix(in srgb, ' + level.color + ' 18%, transparent)' : null"
-              [style.box-shadow]="on ? 'inset 0 0 0 1.5px ' + level.color : null"
-              [attr.aria-pressed]="on"
-              [attr.aria-label]="'Show only ' + level.label + ' notes'"
-              [title]="on ? level.label + ' (click to show all)' : 'Show only ' + level.label"
-              (click)="toggleConfidence(level.value)"
-            >
-              @if (on) {
-                <span class="grid size-4 place-items-center rounded-full text-white" [style.background]="level.color">
-                  <ng-icon name="lucideCheck" class="text-[0.6rem]" />
-                </span>
-              } @else {
-                <span class="size-2.5 rounded-full" [class]="level.dot"></span>
-              }
-            </button>
+      @for (level of confidenceLevels; track level.value) {
+        @let on = filterState.confidenceLevel() === level.value;
+        @let dimmed = !!filterState.confidenceLevel() && !on;
+        <button
+          type="button"
+          class="grid size-7 place-items-center rounded transition-all hover:bg-muted"
+          [class.opacity-40]="dimmed"
+          [class.hover:opacity-100]="dimmed"
+          [style.background]="on ? 'color-mix(in srgb, ' + level.color + ' 18%, transparent)' : null"
+          [style.box-shadow]="on ? 'inset 0 0 0 1.5px ' + level.color : null"
+          [attr.aria-pressed]="on"
+          [attr.aria-label]="'Show only ' + level.label + ' notes'"
+          [title]="on ? level.label + ' (click to show all)' : 'Show only ' + level.label"
+          (click)="toggleConfidence(level.value)"
+        >
+          @if (on) {
+            <span class="grid size-4 place-items-center rounded-full text-white" [style.background]="level.color">
+              <ng-icon name="lucideCheck" class="text-[0.6rem]" />
+            </span>
+          } @else {
+            <span class="size-2.5 rounded-full" [class]="level.dot"></span>
           }
+        </button>
+      }
         </div>
       </div>
       <p class="mt-2 text-[0.6875rem] text-muted-foreground">
         @if (!loading()) {
-          {{ totalCount() }} {{ totalCount() === 1 ? 'note' : 'notes' }}
+      {{ totalCount() }} {{ totalCount() === 1 ? 'note' : 'notes' }}
         } @else {
-          Loading…
+      Loading…
         }
       </p>
     </header>
