@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { filter, first } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCircleAlert, lucideLoaderCircle, lucideVault } from '@ng-icons/lucide';
+import { lucideCircleAlert, lucideLoaderCircle } from '@ng-icons/lucide';
 import { ZardCardImports } from '@/shared/ui/card';
 import { AuthService } from '../../core/services/auth.service';
 
@@ -11,7 +11,7 @@ import { AuthService } from '../../core/services/auth.service';
   selector: 'app-auth',
   imports: [NgIcon, ...ZardCardImports],
   templateUrl: './auth.html',
-  viewProviders: [provideIcons({ lucideCircleAlert, lucideLoaderCircle, lucideVault })],
+  viewProviders: [provideIcons({ lucideCircleAlert, lucideLoaderCircle })],
 })
 export class Auth implements OnInit {
   private authService = inject(AuthService);

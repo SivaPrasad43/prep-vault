@@ -21,24 +21,24 @@
   --card-foreground: #0f1419;
   --popover: #ffffff;
   --popover-foreground: #0f1419;
-  --primary: #1d9bf0;
+  --primary: #120a3d;
   --primary-foreground: #ffffff;
   --secondary: #eff3f4;
   --secondary-foreground: #0f1419;
   --muted: #f7f9f9;
   --muted-foreground: #536471;
-  --accent: #e8f5fd;
-  --accent-foreground: #1a8cd8;
+  --accent: #effbe6;
+  --accent-foreground: #120a3d;
   --destructive: #f4212e;
   --destructive-foreground: #ffffff;
   --border: #eff3f4;
   --input: #cfd9de;
-  --ring: #1d9bf0;
-  --chart-1: #1d9bf0;
-  --chart-2: #ffd400;
-  --chart-3: #f91880;
-  --chart-4: #00ba7c;
-  --chart-5: #7856ff;
+  --ring: #68da23;
+  --chart-1: #120a3d;
+  --chart-2: #68da23;
+  --chart-3: #412854;
+  --chart-4: #4cc35b;
+  --chart-5: #8b7fd1;
   --sidebar: var(--desk);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -49,7 +49,7 @@
   --sidebar-ring: var(--ring);
   --confidence-need-practice: #f4212e;
   --confidence-getting-there: #ffad1f;
-  --confidence-confident: #00ba7c;
+  --confidence-confident: #4cc35b;
   --nav-active: var(--accent);
   --nav-active-foreground: var(--accent-foreground);
   /* Hairline outline + soft lift, X-style (popovers/sheets). */
@@ -63,35 +63,39 @@
     6px 6px 0 0 rgb(15 20 25 / 0.09),
     12px 12px 0 -2px var(--page),
     12px 12px 0 -1px rgb(15 20 25 / 0.06);
+  /* PrepDay brand */
+  --brand-indigo: #120a3d;
+  --brand-lime: #68da23;
+  --brand-plum: #412854;
 }
 
 .dark {
-  --desk: #000000;
-  --page: #0f1113;
-  --background: #000000;
+  --desk: #050305;
+  --page: #0d0b11;
+  --background: #050305;
   --foreground: #e7e9ea;
-  --card: #000000;
+  --card: #050305;
   --card-foreground: #e7e9ea;
-  --popover: #000000;
+  --popover: #0d0a12;
   --popover-foreground: #e7e9ea;
-  --primary: #1d9bf0;
-  --primary-foreground: #ffffff;
+  --primary: #68da23;
+  --primary-foreground: #050305;
   --secondary: #202327;
   --secondary-foreground: #e7e9ea;
   --muted: #16181c;
   --muted-foreground: #71767b;
-  --accent: #031018;
-  --accent-foreground: #1d9bf0;
+  --accent: #16251a;
+  --accent-foreground: #8fe85a;
   --destructive: #f4212e;
   --destructive-foreground: #ffffff;
   --border: #2f3336;
   --input: #333639;
-  --ring: #1d9bf0;
-  --chart-1: #1d9bf0;
-  --chart-2: #ffd400;
-  --chart-3: #f91880;
-  --chart-4: #00ba7c;
-  --chart-5: #7856ff;
+  --ring: #68da23;
+  --chart-1: #68da23;
+  --chart-2: #8b7fd1;
+  --chart-3: #c79bd8;
+  --chart-4: #4cc35b;
+  --chart-5: #ffd400;
   --sidebar: var(--desk);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);
@@ -102,7 +106,7 @@
   --sidebar-ring: var(--ring);
   --confidence-need-practice: #f4212e;
   --confidence-getting-there: #ffd400;
-  --confidence-confident: #00ba7c;
+  --confidence-confident: #4cc35b;
   --nav-active: var(--muted);
   --nav-active-foreground: var(--foreground);
   /* X dark popovers: faint white glow outline. */
@@ -197,10 +201,10 @@
 
 /* Progress page activity heatmap: 0 = no activity … 4 = busiest day. */
 .heat-cell[data-level='0'] { background: var(--muted); box-shadow: inset 0 0 0 1px var(--border); }
-.heat-cell[data-level='1'] { background: color-mix(in srgb, var(--primary) 25%, var(--muted)); }
-.heat-cell[data-level='2'] { background: color-mix(in srgb, var(--primary) 48%, var(--muted)); }
-.heat-cell[data-level='3'] { background: color-mix(in srgb, var(--primary) 72%, var(--muted)); }
-.heat-cell[data-level='4'] { background: var(--primary); }
+.heat-cell[data-level='1'] { background: color-mix(in srgb, #68da23 28%, var(--muted)); }
+.heat-cell[data-level='2'] { background: color-mix(in srgb, #68da23 52%, var(--muted)); }
+.heat-cell[data-level='3'] { background: color-mix(in srgb, #68da23 76%, var(--muted)); }
+.heat-cell[data-level='4'] { background: #68da23; }
 
 /* Bento tile: white card that reads clearly on the grey desk in light mode;
    in dark mode a hairline border on black, like the rest of the app. */

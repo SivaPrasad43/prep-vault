@@ -7,7 +7,7 @@ import { BlockEditor } from '../../../shared/components/block-editor/block-edito
 import { GUIDE_MARKDOWN, GUIDE_TITLE } from './guide-content';
 
 /**
- * Built-in "How to use PrepVault" guide. Same paper page as a note, but read-only:
+ * Built-in "How to use PrepDay" guide. Same paper page as a note, but read-only:
  * no editing, saving, category/confidence/revision controls, bookmark or delete.
  */
 @Component({
@@ -37,7 +37,7 @@ import { GUIDE_MARKDOWN, GUIDE_TITLE } from './guide-content';
           </span>
           <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs">
             <ng-icon name="lucideLock" />
-            Read-only · built into PrepVault
+            Read-only · built into PrepDay
           </span>
         </div>
 
