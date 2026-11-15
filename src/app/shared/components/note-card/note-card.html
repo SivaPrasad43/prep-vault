@@ -7,7 +7,7 @@
     @if (category(); as cat) {
       <span
         class="inline-flex min-w-0 items-center gap-1 rounded-full px-2 py-0.5 font-medium"
-        [style.color]="cat.color"
+        [style.color]="'color-mix(in oklab, ' + cat.color + ' var(--cat-strength), var(--foreground))'"
         [style.background]="'color-mix(in oklab, ' + cat.color + ' 13%, transparent)'"
       >
         <app-category-icon [icon]="cat.icon" class="shrink-0 text-[0.8rem]" />

@@ -63,6 +63,9 @@
     6px 6px 0 0 rgb(15 20 25 / 0.09),
     12px 12px 0 -2px var(--page),
     12px 12px 0 -1px rgb(15 20 25 / 0.06);
+  /* Category colours as text/icon "ink": deepened toward the text colour so pastel
+     category colours stay readable on white. */
+  --cat-strength: 65%;
   /* PrepDay brand */
   --brand-indigo: #120a3d;
   --brand-lime: #68da23;
@@ -70,6 +73,7 @@
 }
 
 .dark {
+  --cat-strength: 90%;
   --desk: #050305;
   --page: #0d0b11;
   --background: #050305;

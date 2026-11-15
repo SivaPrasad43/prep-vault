@@ -24,6 +24,7 @@ import { ZardButtonComponent } from '@/shared/ui/button';
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { ZardDropdownImports } from '@/shared/ui/dropdown';
 import { AppSelect } from '../../../shared/components/select/select';
+import { CategoryDialog } from '../../../shared/components/category-dialog/category-dialog';
 import type { SelectOption } from '../../../shared/components/select/select-option';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -57,6 +58,7 @@ const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
     ZardSkeletonComponent,
     ...ZardDropdownImports,
     AppSelect,
+    CategoryDialog,
     NoteToc,
     BlockEditor,
     Modal,
@@ -147,7 +149,9 @@ export class NotePage implements OnDestroy {
 
   protected readonly noteId = signal<string | null>(null);
   protected readonly loading = signal(true);
-  protected readonly categories = signal<Category[]>([]);
+  protected readonly categories = this.categoriesService.list;
+  /** Custom category open in the edit dialog (from the ⋯ in the category dropdown). */
+  protected readonly editingCategory = signal<string | null>(null);
 
   protected readonly title = signal('');
   /** Markdown handed to the editor on load; the editor owns the body afterwards. */
@@ -167,7 +171,14 @@ export class NotePage implements OnDestroy {
   protected readonly deleting = signal(false);
 
   protected readonly categoryOptions = computed<SelectOption[]>(() =>
-    this.categories().map((c) => ({ value: c.id, label: c.name, icon: c.icon, color: c.color })),
+    this.categories().map((c) => ({
+      value: c.id,
+      label: c.name,
+      icon: c.icon,
+      color: c.color,
+      editable: !this.categoriesService.isDefault(c),
+      locked: this.categoriesService.isDefault(c),
+    })),
   );
 
   protected readonly confidenceOptions: SelectOption[] = [
@@ -230,12 +241,11 @@ export class NotePage implements OnDestroy {
   private loadCategories(): void {
     this.categoriesService.seedDefaults().subscribe({
       next: (cats) => {
-        this.categories.set(cats);
         if (!this.categoryId()) this.categoryId.set(this.defaultCategoryId());
         // A new note typed before categories arrived is waiting for a category.
         if (this.isNew() && this.isDirty()) this.scheduleSave();
       },
-      error: () => this.categories.set([]),
+      error: () => undefined,
     });
   }
 
@@ -354,6 +364,21 @@ export class NotePage implements OnDestroy {
   protected onBodyChange(markdown: string): void {
     this.body = markdown;
     this.scheduleSave();
+  }
+
+  /** "+ Create" in the category dropdown: make it and put this note in it. */
+  protected createCategory(name: string): void {
+    this.categoriesService.create(name).subscribe({
+      next: (cat) => this.onCategoryChange(cat.id),
+      error: (err: Error) => alert(err.message),
+    });
+  }
+
+  /** A category was deleted; if this note was in it, it now lives in `movedTo` (already saved). */
+  protected onCategoryDeleted(e: { id: string; movedTo: string }): void {
+    if (this.categoryId() !== e.id) return;
+    this.categoryId.set(e.movedTo);
+    if (this.saved) this.saved = { ...this.saved, category_id: e.movedTo };
   }
 
   protected onCategoryChange(id: string | null): void {

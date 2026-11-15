@@ -9,7 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideCheck, lucideSearch } from '@ng-icons/lucide';
+import { lucideCheck, lucideSearch, lucidePlus, lucideEllipsis, lucideLock } from '@ng-icons/lucide';
 import { CategoryIcon } from '../category-icon/category-icon';
 import type { SelectOption } from './select-option';
 
@@ -23,7 +23,7 @@ let nextId = 0;
 @Component({
   selector: 'app-select-menu',
   imports: [NgIcon, CategoryIcon],
-  viewProviders: [provideIcons({ lucideCheck, lucideSearch })],
+  viewProviders: [provideIcons({ lucideCheck, lucideSearch, lucidePlus, lucideEllipsis, lucideLock })],
   host: {
     // Width comes from the `width` input and is always capped to the viewport,
     // so the menu can never stretch across the page whatever its container is.
@@ -65,7 +65,7 @@ let nextId = 0;
           role="option"
           [id]="listId + '-' + i"
           [attr.aria-selected]="opt.value === value()"
-          class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm select-none"
+          class="group flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm select-none"
           [class.bg-muted]="i === active()"
           (mouseenter)="active.set(i)"
           (mousedown)="$event.preventDefault()"
@@ -74,11 +74,26 @@ let nextId = 0;
           @if (opt.dot) {
             <span class="size-2.5 shrink-0 rounded-full" [style.background]="opt.color"></span>
           } @else if (opt.icon) {
-            <app-category-icon [icon]="opt.icon" class="shrink-0 text-base" [style.color]="opt.color" />
+            <app-category-icon [icon]="opt.icon" class="shrink-0 text-base" [style.color]="opt.color ? 'color-mix(in oklab, ' + opt.color + ' var(--cat-strength), var(--foreground))' : null" />
           }
           <span class="min-w-0 flex-1 truncate">{{ opt.label }}</span>
           @if (opt.hint) {
             <span class="shrink-0 text-xs text-muted-foreground">{{ opt.hint }}</span>
+          }
+          @if (opt.editable) {
+            <button
+              type="button"
+              class="grid size-6 shrink-0 place-items-center rounded text-muted-foreground opacity-0 group-hover:opacity-100 hover:bg-background hover:text-foreground focus-visible:opacity-100"
+              [class.opacity-100]="i === active()"
+              [attr.aria-label]="'Edit ' + opt.label"
+              title="Rename, change icon or delete"
+              (mousedown)="$event.preventDefault()"
+              (click)="$event.stopPropagation(); edit.emit(opt.value)"
+            >
+              <ng-icon name="lucideEllipsis" />
+            </button>
+          } @else if (opt.locked) {
+            <ng-icon name="lucideLock" class="shrink-0 text-xs text-muted-foreground/50" title="Built-in category" />
           }
           <ng-icon
             name="lucideCheck"
@@ -87,7 +102,26 @@ let nextId = 0;
           />
         </li>
       } @empty {
-        <li class="px-2.5 py-6 text-center text-sm text-muted-foreground">No matches</li>
+        @if (!showCreate()) {
+          <li class="px-2.5 py-6 text-center text-sm text-muted-foreground">No matches</li>
+        }
+      }
+      @if (showCreate()) {
+        <li
+          role="option"
+          [id]="listId + '-' + filtered().length"
+          [attr.aria-selected]="false"
+          class="flex cursor-pointer items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm select-none"
+          [class.bg-muted]="active() === filtered().length"
+          (mouseenter)="active.set(filtered().length)"
+          (mousedown)="$event.preventDefault()"
+          (click)="createNew()"
+        >
+          <span class="grid size-5 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+            <ng-icon name="lucidePlus" class="text-xs" />
+          </span>
+          <span class="min-w-0 flex-1 truncate">{{ createLabel() }} “<span class="font-semibold">{{ query().trim() }}</span>”</span>
+        </li>
       }
     </ul>
   `,
@@ -101,8 +135,16 @@ export class SelectMenu {
   /** CSS width of the menu (default 15rem). app-select passes 100% of its overlay pane. */
   readonly width = input('15rem');
 
+  /** Offer "+ Create “query”" when the typed text doesn't match an existing option. */
+  readonly creatable = input(false);
+  readonly createLabel = input('Create');
+
   readonly picked = output<string>();
   readonly closed = output<void>();
+  /** User chose to create a new option with this (trimmed) name. */
+  readonly create = output<string>();
+  /** User clicked ⋯ on an editable option. */
+  readonly edit = output<string>();
 
   protected readonly listId = `app-select-menu-${nextId++}`;
   protected readonly query = signal('');
@@ -117,9 +159,22 @@ export class SelectMenu {
     return q ? opts.filter((o) => o.label.toLowerCase().includes(q)) : opts;
   });
 
+  protected readonly showCreate = computed(() => {
+    const q = this.query().trim().toLowerCase();
+    return this.creatable() && !!q && !this.options().some((o) => o.label.toLowerCase() === q);
+  });
+
+  /** Rows navigable with the keyboard: options, plus the create row when shown. */
+  private readonly rowCount = computed(() => this.filtered().length + (this.showCreate() ? 1 : 0));
+
   protected readonly activeId = computed(() =>
-    this.filtered().length ? `${this.listId}-${this.active()}` : null,
+    this.rowCount() ? `${this.listId}-${this.active()}` : null,
   );
+
+  protected createNew(): void {
+    const name = this.query().trim();
+    if (name) this.create.emit(name);
+  }
 
   constructor() {
     afterNextRender(() => {
@@ -140,7 +195,7 @@ export class SelectMenu {
   }
 
   protected onKeydown(event: KeyboardEvent): void {
-    const count = this.filtered().length;
+    const count = this.rowCount();
     switch (event.key) {
       case 'ArrowDown':
         event.preventDefault();
@@ -166,6 +221,7 @@ export class SelectMenu {
         event.preventDefault();
         const opt = this.filtered()[this.active()];
         if (opt) this.pick(opt);
+        else if (this.showCreate()) this.createNew();
         break;
       }
       case 'Escape':

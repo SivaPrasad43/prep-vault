@@ -153,10 +153,15 @@
             class="max-w-56 min-w-0 shrink text-foreground"
             ariaLabel="Category"
             placeholder="Category"
-            searchPlaceholder="Find a category…"
+            searchPlaceholder="Find or create a category…"
+            [searchable]="true"
+            [creatable]="true"
+            createLabel="Create category"
             [options]="categoryOptions()"
             [value]="categoryId()"
             (valueChange)="onCategoryChange($event)"
+            (create)="createCategory($event)"
+            (edit)="editingCategory.set($event)"
           />
 
           <app-select
@@ -197,6 +202,12 @@
       }
     }
   </article>
+
+  <app-category-dialog
+    [categoryId]="editingCategory()"
+    (closed)="editingCategory.set(null)"
+    (deleted)="onCategoryDeleted($event)"
+  />
 
   <app-modal [open]="showDeleteConfirm()" title="Delete this note?" (close)="showDeleteConfirm.set(false)">
     <p>This can't be undone.</p>

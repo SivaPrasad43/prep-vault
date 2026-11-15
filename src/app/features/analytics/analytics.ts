@@ -48,7 +48,7 @@ export class Analytics {
   protected readonly loading = signal(true);
   protected readonly error = signal(false);
   protected readonly data = signal<ProgressData>({ notes: [], revisions: [] });
-  protected readonly categories = signal<Map<string, Category>>(new Map());
+  protected readonly categories = this.categoriesService.byId;
   protected readonly confidence = CONFIDENCE_META;
   protected readonly weekdays = ['Mon', '', 'Wed', '', 'Fri', '', ''];
 
@@ -93,9 +93,7 @@ export class Analytics {
 
   constructor() {
     this.load();
-    this.categoriesService.seedDefaults().subscribe({
-      next: (cats) => this.categories.set(new Map(cats.map((c) => [c.id, c]))),
-    });
+    this.categoriesService.seedDefaults().subscribe();
   }
 
   protected load(): void {

@@ -49,10 +49,15 @@
         <app-select
       class="h-8 min-w-0 flex-1 [&_button]:h-8 [&_button]:text-xs"
       ariaLabel="Filter by category"
-      searchPlaceholder="Find a category…"
+      searchPlaceholder="Find or create a category…"
+      [searchable]="true"
+      [creatable]="true"
+      createLabel="Create category"
       [options]="categoryOptions()"
       [value]="filterState.categoryId() ?? ''"
       (valueChange)="filterState.setCategoryId($event || null)"
+      (create)="createCategory($event)"
+      (edit)="editingCategory.set($event)"
         />
         <!-- Confidence filter: active dot is tinted + ringed in its own color, others fade -->
         <div class="flex shrink-0 items-center gap-0.5 rounded-md border bg-card p-0.5" role="group" aria-label="Filter by confidence">
@@ -184,3 +189,9 @@
     <router-outlet />
   </section>
 </div>
+
+<app-category-dialog
+  [categoryId]="editingCategory()"
+  (closed)="editingCategory.set(null)"
+  (deleted)="onCategoryDeleted($event)"
+/>
