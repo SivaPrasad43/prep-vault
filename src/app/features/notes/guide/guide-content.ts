@@ -71,6 +71,7 @@ In light mode they look like a highlighter pen. In dark mode they glow. Press **
 - **Category:** pick one from the menu under the title. Use the category filter above your notes to narrow the list.
 - **Confidence:** <mark data-color="pink">Need practice</mark> → <mark data-color="yellow">Getting there</mark> → <mark data-color="lime">Confident</mark>. Set it from the menu under the title. Click a coloured dot above your notes to show only that level, and click it again to show everything.
 - **Bookmark** a note with the bookmark icon in its top-right corner to find it under **Saved**.
+- **Share** a note with the share icon in its top bar. It creates a read-only link anyone can open without signing in. They always see the latest version, and you can reset the link or stop sharing at any time.
 - **Mark revised** each time you review a topic. It counts your revisions and keeps your day streak going.
 
 ## Track your progress

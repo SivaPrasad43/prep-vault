@@ -16,7 +16,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowLeft, lucideBookmark, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
-  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX, lucideSearch, lucideChevronUp, lucideChevronDown,
+  lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX, lucideSearch, lucideChevronUp, lucideChevronDown, lucideShare2,
 } from '@ng-icons/lucide';
 import { NoteToc } from '../../../shared/components/note-toc/note-toc';
 import type { EditorHeading } from '../../../shared/components/block-editor/block-editor';
@@ -25,6 +25,7 @@ import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { ZardDropdownImports } from '@/shared/ui/dropdown';
 import { AppSelect } from '../../../shared/components/select/select';
 import { CategoryDialog } from '../../../shared/components/category-dialog/category-dialog';
+import { ShareDialog } from '../../../shared/components/share-dialog/share-dialog';
 import type { SelectOption } from '../../../shared/components/select/select-option';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -59,6 +60,7 @@ const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
     ...ZardDropdownImports,
     AppSelect,
     CategoryDialog,
+    ShareDialog,
     NoteToc,
     BlockEditor,
     Modal,
@@ -67,7 +69,7 @@ const LAST_CATEGORY_KEY = 'prepvault:lastCategory';
   viewProviders: [
     provideIcons({
       lucideArrowLeft, lucideBookmark, lucideEllipsis, lucideTrash2, lucideHistory, lucideClock,
-      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX, lucideSearch, lucideChevronUp, lucideChevronDown,
+      lucideCircleCheck, lucideCloudOff, lucideLoaderCircle, lucideListTree, lucideX, lucideSearch, lucideChevronUp, lucideChevronDown, lucideShare2,
       bookmarkSolid:
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>',
     }),
@@ -152,6 +154,9 @@ export class NotePage implements OnDestroy {
   protected readonly categories = this.categoriesService.list;
   /** Custom category open in the edit dialog (from the ⋯ in the category dropdown). */
   protected readonly editingCategory = signal<string | null>(null);
+  /** Public read-only link token for this note (null = not shared). */
+  protected readonly shareToken = signal<string | null>(null);
+  protected readonly shareOpen = signal(false);
 
   protected readonly title = signal('');
   /** Markdown handed to the editor on load; the editor owns the body afterwards. */
@@ -304,6 +309,8 @@ export class NotePage implements OnDestroy {
     this.categoryId.set(this.defaultCategoryId());
     this.confidence.set('need_practice');
     this.favorite.set(false);
+    this.shareToken.set(null);
+    this.shareOpen.set(false);
     this.updatedAt.set(null);
     this.revisionCount.set(null);
     this.saveStatus.set('idle');
@@ -336,6 +343,8 @@ export class NotePage implements OnDestroy {
     this.categoryId.set(note.category_id);
     this.confidence.set(note.confidence_level);
     this.favorite.set(note.is_favorite);
+    this.shareToken.set(note.share_token ?? null);
+    this.shareOpen.set(false);
     this.updatedAt.set(note.updated_at);
     this.saved = this.current();
     this.saveStatus.set('idle');

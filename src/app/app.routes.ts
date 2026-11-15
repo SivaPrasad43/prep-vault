@@ -1,7 +1,30 @@
 import { Routes } from '@angular/router';
 import { AuthGuard } from './core/guards/auth.guard';
+import { landingGuard } from './core/guards/landing.guard';
 
 export const routes: Routes = [
+  {
+    // Public landing page for visitors; signed-in users are sent to their notes.
+    path: '',
+    pathMatch: 'full',
+    loadComponent: () => import('./features/landing/landing').then((m) => m.Landing),
+    canActivate: [landingGuard],
+  },
+  {
+    // Public Support / Privacy / Terms (linked from the landing page), no sign-in.
+    path: '',
+    loadComponent: () => import('./features/public-info/public-info').then((m) => m.PublicInfo),
+    children: (['support', 'privacy', 'terms'] as const).map((page) => ({
+      path: page,
+      loadComponent: () => import('./features/notes/guide/guide-page').then((m) => m.GuidePage),
+      data: { page, backTo: '/' },
+    })),
+  },
+  {
+    // Public, read-only shared note — no sign-in required.
+    path: 's/:token',
+    loadComponent: () => import('./features/public-note/public-note').then((m) => m.PublicNote),
+  },
   {
     path: 'auth',
     loadComponent: () => import('./features/auth/auth').then((m) => m.Auth),
@@ -11,7 +34,6 @@ export const routes: Routes = [
     loadComponent: () => import('./layout/layout').then((m) => m.Layout),
     canActivate: [AuthGuard],
     children: [
-      { path: '', redirectTo: 'notes', pathMatch: 'full' },
       // Old URL; the notes list now lives at /notes.
       { path: 'my-notes', redirectTo: 'notes', pathMatch: 'full' },
       {

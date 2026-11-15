@@ -71,8 +71,13 @@ export class GuidePage {
     { initialValue: 'guide' as InfoPageKind },
   );
   protected readonly page = computed(() => PAGES[this.kind()]);
+  /** Where the back arrow goes: the notes list in-app, the landing page when public. */
+  private readonly backTo = toSignal(
+    this.route.data.pipe(map((d) => (d['backTo'] as string | undefined) ?? '/notes')),
+    { initialValue: '/notes' },
+  );
 
   protected goBack(): void {
-    this.router.navigate(['/notes']);
+    this.router.navigateByUrl(this.backTo());
   }
 }

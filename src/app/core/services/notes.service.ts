@@ -5,7 +5,7 @@ import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import { RevisionsService } from './revisions.service';
 import { currentStreak, studyDays } from '../../shared/study-stats';
-import type { Note, CreateNotePayload, UpdateNotePayload, NoteFilters, NoteStats } from '../models';
+import type { Note, CreateNotePayload, UpdateNotePayload, NoteFilters, NoteStats, SharedNote } from '../models';
 
 export type NoteChange = { type: 'upsert'; note: Note } | { type: 'delete'; id: string };
 
@@ -117,6 +117,51 @@ export class NotesService {
         if (error) throw error;
       }),
       tap(() => this._changes.next({ type: 'delete', id })),
+    );
+  }
+
+  // ---------- Public share links ----------
+
+  /** ~190-bit url-safe random token (32 chars). */
+  private newShareToken(): string {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+    const bytes = crypto.getRandomValues(new Uint8Array(32));
+    return Array.from(bytes, (b) => alphabet[b & 63]).join('');
+  }
+
+  shareUrl(token: string): string {
+    return `${window.location.origin}/s/${token}`;
+  }
+
+  /** Turn on the public link (or replace it with a new one — the old link stops working). */
+  enableShare(id: string): Observable<Note> {
+    return this.patchShare(id, { share_token: this.newShareToken(), shared_at: new Date().toISOString() });
+  }
+
+  /** Stop sharing: the link stops working immediately. */
+  disableShare(id: string): Observable<Note> {
+    return this.patchShare(id, { share_token: null, shared_at: null });
+  }
+
+  /** Like update(), but sharing isn't an edit: leaves `updated_at` (and list order) alone. */
+  private patchShare(id: string, payload: Pick<UpdateNotePayload, 'share_token' | 'shared_at'>): Observable<Note> {
+    return from(this.supabase.client.from('notes').update(payload).eq('id', id).select().single()).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        return data as Note;
+      }),
+      tap((note) => this._changes.next({ type: 'upsert', note })),
+    );
+  }
+
+  /** Public page: read one shared note by its token (works signed out). */
+  getSharedNote(token: string): Observable<SharedNote | null> {
+    return from(this.supabase.client.rpc('get_shared_note', { p_token: token })).pipe(
+      map(({ data, error }) => {
+        if (error) throw error;
+        const rows = (data ?? []) as SharedNote[];
+        return rows[0] ?? null;
+      }),
     );
   }
 
