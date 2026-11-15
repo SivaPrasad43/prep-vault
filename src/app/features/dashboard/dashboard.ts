@@ -7,6 +7,7 @@ import { lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRi
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { NoteCard } from '../../shared/components/note-card/note-card';
 import { AppSelect } from '../../shared/components/select/select';
+import { CategoryDialog } from '../../shared/components/category-dialog/category-dialog';
 import type { SelectOption } from '../../shared/components/select/select-option';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
 import { NotesService } from '../../core/services/notes.service';
@@ -21,7 +22,7 @@ import type { Category, ConfidenceLevel, Note, NoteFilters, NoteStats } from '..
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, RouterLink, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect],
+  imports: [RouterOutlet, RouterLink, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect, CategoryDialog],
   templateUrl: './dashboard.html',
   viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight, lucideCheck })],
   host: { class: 'block' },
@@ -34,8 +35,11 @@ export class Dashboard implements OnInit {
   private readonly PAGE_SIZE = 20;
 
   protected displayedNotes = signal<Note[]>([]);
-  protected categories = signal<Map<string, Category>>(new Map());
-  protected categoriesList = signal<Category[]>([]);
+  /** Live from the shared store, so new/renamed/deleted categories show up everywhere. */
+  protected readonly categories = this.categoriesService.byId;
+  protected readonly categoriesList = this.categoriesService.list;
+  /** Custom category open in the edit dialog (from the ⋯ in the filter dropdown). */
+  protected readonly editingCategory = signal<string | null>(null);
   protected stats = signal<NoteStats | null>(null);
   protected loading = signal(true);
   protected loadingMore = signal(false);
@@ -79,6 +83,12 @@ export class Dashboard implements OnInit {
   protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   protected greeting = this.getGreeting();
+  protected readonly year = new Date().getFullYear();
+  protected readonly footerLinks = [
+    { path: 'support', label: 'Support' },
+    { path: 'privacy', label: 'Privacy' },
+    { path: 'terms', label: 'Terms' },
+  ];
 
   protected readonly confidenceLevels: { value: ConfidenceLevel; label: string; dot: string; color: string }[] = [
     { value: 'need_practice', label: 'Need practice', dot: 'bg-confidence-need-practice', color: 'var(--confidence-need-practice)' },
@@ -88,7 +98,14 @@ export class Dashboard implements OnInit {
 
   protected readonly categoryOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'All categories', icon: 'folder' },
-    ...this.categoriesList().map((c) => ({ value: c.id, label: c.name, icon: c.icon, color: c.color })),
+    ...this.categoriesList().map((c) => ({
+      value: c.id,
+      label: c.name,
+      icon: c.icon,
+      color: c.color,
+      editable: !this.categoriesService.isDefault(c),
+      locked: this.categoriesService.isDefault(c),
+    })),
   ]);
 
   protected readonly heading = computed(() =>
@@ -164,12 +181,7 @@ export class Dashboard implements OnInit {
   });
 
   ngOnInit(): void {
-    this.categoriesService.seedDefaults().subscribe({
-      next: (cats) => {
-        this.categories.set(new Map(cats.map((c) => [c.id, c])));
-        this.categoriesList.set(cats);
-      },
-    });
+    this.categoriesService.seedDefaults().subscribe();
 
     this.notesService.getStats().subscribe({
       next: (s) => this.stats.set(s),
@@ -179,6 +191,20 @@ export class Dashboard implements OnInit {
   protected toggleConfidence(level: ConfidenceLevel): void {
     const on = this.filterState.confidenceLevel() === level;
     this.filterState.setConfidenceLevel(on ? null : level);
+  }
+
+  /** "+ Create" in the filter dropdown: make the category and filter by it. */
+  protected createCategory(name: string): void {
+    this.categoriesService.create(name).subscribe({
+      next: (cat) => this.filterState.setCategoryId(cat.id),
+      error: (err: Error) => alert(err.message),
+    });
+  }
+
+  /** A category was deleted: its notes now live in `movedTo`. */
+  protected onCategoryDeleted(e: { id: string; movedTo: string }): void {
+    this.displayedNotes.update((ns) => ns.map((n) => (n.category_id === e.id ? { ...n, category_id: e.movedTo } : n)));
+    if (this.filterState.categoryId() === e.id) this.filterState.setCategoryId(null);
   }
 
   protected getCategory(note: Note): Category | null {

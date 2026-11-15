@@ -2,7 +2,7 @@ import { Component, computed, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { lucideBookmark } from '@ng-icons/lucide';
+import { lucideBookmark, lucideLink2 } from '@ng-icons/lucide';
 import { ConfidenceIndicator } from '../confidence-indicator/confidence-indicator';
 import { CategoryIcon } from '../category-icon/category-icon';
 import type { Note, Category } from '../../../core/models';
@@ -29,7 +29,7 @@ function toPlainText(md: string): string {
   selector: 'app-note-card',
   imports: [DatePipe, RouterLink, NgIcon, ConfidenceIndicator, CategoryIcon],
   templateUrl: './note-card.html',
-  viewProviders: [provideIcons({ lucideBookmark, heroBookmarkSolid: BOOKMARK_SOLID })],
+  viewProviders: [provideIcons({ lucideBookmark, lucideLink2, heroBookmarkSolid: BOOKMARK_SOLID })],
 })
 export class NoteCard {
   readonly note = input.required<Note>();

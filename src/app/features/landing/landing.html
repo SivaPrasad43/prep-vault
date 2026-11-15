@@ -1,0 +1,356 @@
+<div class="min-h-dvh bg-background text-foreground">
+  <!-- ============ Header ============ -->
+  <header
+    class="fixed inset-x-0 top-0 z-50 transition-[background,box-shadow,border-color] duration-300"
+    [class]="scrolled() ? 'border-b bg-background/85 shadow-sm backdrop-blur' : 'border-b border-transparent bg-transparent'"
+  >
+    <div class="mx-auto flex h-16 max-w-6xl items-center gap-3 px-4 sm:px-6">
+      <a routerLink="/" aria-label="PrepDay home" class="shrink-0">
+        @if (scrolled()) {
+          <img src="assets/logo/logo-horizontal-on-light.svg" alt="PrepDay" class="h-8 w-auto dark:hidden" />
+          <img src="assets/logo/logo-horizontal-on-dark.svg" alt="PrepDay" class="hidden h-8 w-auto dark:block" />
+        } @else {
+          <img src="assets/logo/logo-horizontal-on-dark.svg" alt="PrepDay" class="h-8 w-auto" />
+        }
+      </a>
+
+      <nav aria-label="Sections" class="ml-6 hidden items-center gap-1 text-sm md:flex" [class]="scrolled() ? 'text-muted-foreground' : 'text-white/70'">
+        <button type="button" class="rounded-full px-3 py-1.5 transition-colors hover:text-current" [class]="scrolled() ? 'hover:bg-muted hover:text-foreground' : 'hover:bg-white/10 hover:text-white'" (click)="scrollTo('how')">How it works</button>
+        <button type="button" class="rounded-full px-3 py-1.5 transition-colors" [class]="scrolled() ? 'hover:bg-muted hover:text-foreground' : 'hover:bg-white/10 hover:text-white'" (click)="scrollTo('features')">Features</button>
+        <button type="button" class="rounded-full px-3 py-1.5 transition-colors" [class]="scrolled() ? 'hover:bg-muted hover:text-foreground' : 'hover:bg-white/10 hover:text-white'" (click)="scrollTo('faq')">FAQ</button>
+      </nav>
+
+      <div class="ml-auto flex items-center gap-2">
+        <a
+          routerLink="/auth"
+          class="inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-transform hover:-translate-y-px"
+          [class]="scrolled() ? 'bg-primary text-primary-foreground' : 'bg-[#68da23] text-[#120a3d]'"
+        >
+          Start free
+          <ng-icon name="lucideArrowRight" class="hidden sm:inline" />
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- ============ Hero ============ -->
+    <section class="landing-hero relative overflow-hidden bg-[#120a3d] pt-28 pb-20 text-white sm:pt-32 lg:pb-28" aria-labelledby="hero-title">
+      <div class="landing-grid pointer-events-none absolute inset-0" aria-hidden="true"></div>
+      <div class="pointer-events-none absolute -top-40 left-1/2 size-[42rem] -translate-x-1/2 rounded-full bg-[#68da23]/20 blur-3xl" aria-hidden="true"></div>
+
+      <div class="relative mx-auto grid max-w-6xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1.05fr_1fr]">
+        <div>
+          <span class="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-medium text-white/80">
+            <span class="size-1.5 rounded-full bg-[#68da23] shadow-[0_0_10px_#68da23]"></span>
+            Interview prep, one day at a time
+          </span>
+          <h1 id="hero-title" class="mt-6 font-serif text-4xl leading-[1.05] font-semibold tracking-tight sm:text-5xl lg:text-6xl">
+            Your interview prep, organised.
+            <span class="landing-underline text-[#68da23]">And actually revised.</span>
+          </h1>
+          <p class="mt-6 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
+            PrepDay is a notes app built for interviews. Write topics the way you think, rate how confident you are, and let
+            PrepDay tell you what to revise next, every day until the offer.
+          </p>
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <a
+              routerLink="/auth"
+              class="inline-flex h-12 items-center gap-3 rounded-full bg-white px-6 text-base font-semibold text-[#1f1f1f] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform hover:-translate-y-0.5"
+            >
+              <svg class="size-5" viewBox="0 0 48 48" aria-hidden="true">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+              </svg>
+              Start free with Google
+            </a>
+            <button
+              type="button"
+              class="inline-flex h-12 items-center gap-2 rounded-full border border-white/20 px-5 text-sm font-medium text-white/90 transition-colors hover:bg-white/10"
+              (click)="scrollTo('how')"
+            >
+              See how it works
+              <ng-icon name="lucideChevronDown" />
+            </button>
+          </div>
+          <ul class="mt-6 flex flex-wrap gap-x-5 gap-y-2 text-sm text-white/60">
+            @for (t of ['Free', 'Private by default', 'No credit card']; track t) {
+              <li class="flex items-center gap-1.5"><ng-icon name="lucideCheck" class="text-[#68da23]" /> {{ t }}</li>
+            }
+          </ul>
+        </div>
+
+        <!-- Live demo -->
+        <div class="relative" (mouseenter)="pauseDemo(true)" (mouseleave)="pauseDemo(false)">
+          <p class="sr-only">
+            Preview of PrepDay: a list of interview notes with categories and confidence levels, and an open note with a
+            highlighted sentence and a code block.
+          </p>
+          <div aria-hidden="true" class="landing-float relative rounded-2xl border border-white/10 bg-white text-[#0f1419] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.6)]">
+            <!-- window chrome -->
+            <div class="flex items-center gap-1.5 border-b border-[#eff3f4] px-4 py-3">
+              <span class="size-2.5 rounded-full bg-[#ff5f57]"></span>
+              <span class="size-2.5 rounded-full bg-[#febc2e]"></span>
+              <span class="size-2.5 rounded-full bg-[#28c840]"></span>
+              <span class="ml-3 rounded-md bg-[#f3f5f6] px-2 py-0.5 text-[0.65rem] text-[#536471]">prepday.app/notes</span>
+            </div>
+            <div class="grid grid-cols-[minmax(0,0.95fr)_minmax(0,1.2fr)]">
+              <!-- list -->
+              <div class="space-y-2 border-r border-[#eff3f4] bg-[#f7f9f9] p-3">
+                @for (n of demoNotes; track n.title; let i = $index) {
+                  <div
+                    class="rounded-xl border bg-white p-2.5 transition-all duration-500"
+                    [class]="active() === i ? 'border-[#120a3d]/40 shadow-md ring-1 ring-[#68da23]/60 -translate-y-0.5' : 'border-[#eff3f4] opacity-80'"
+                  >
+                    <span class="inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[0.6rem] font-medium" [style.color]="n.color" [style.background]="n.color + '1f'">
+                      <app-category-icon [icon]="n.icon" class="text-[0.65rem]" /> {{ n.category }}
+                    </span>
+                    <p class="mt-1.5 truncate text-[0.78rem] font-bold">{{ n.title }}</p>
+                    <p class="mt-0.5 line-clamp-1 text-[0.65rem] text-[#536471]">{{ n.preview }}</p>
+                    <div class="mt-1.5 flex gap-0.5">
+                      @for (s of [1, 2, 3]; track s) {
+                        <span class="h-1 w-3 rounded-full" [style.background]="s <= n.level ? levelColor[n.level] : '#e5e7eb'"></span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+              <!-- open note -->
+              <div class="min-w-0 p-4">
+                @let n = demoNotes[active()];
+                <p class="font-serif text-lg leading-tight font-semibold">{{ n.title }}</p>
+                <div class="mt-2 flex items-center gap-2 border-b border-dashed border-[#e5e7eb] pb-2 text-[0.62rem] text-[#536471]">
+                  <span class="size-1.5 rounded-full" [style.background]="levelColor[n.level]"></span>
+                  {{ n.level === 1 ? 'Need practice' : n.level === 2 ? 'Getting there' : 'Confident' }}
+                  <span class="ml-auto rounded-full border border-[#e5e7eb] px-1.5 py-0.5">Mark revised</span>
+                </div>
+                <p class="mt-3 font-serif text-[0.8rem] font-semibold">Key idea</p>
+                <p class="mt-1 text-[0.72rem] leading-relaxed text-[#2a2f35]">
+                  {{ n.preview.replace('…', '') }}
+                  <mark class="rounded-sm bg-[#39ff14]/60 px-0.5 text-[#0f1419]">remember this one</mark>.
+                </p>
+                <div class="mt-3 overflow-hidden rounded-lg border border-[#e1e4e8] bg-[#f6f8fa] font-mono text-[0.62rem]">
+                  <div class="flex items-center justify-between border-b border-[#e1e4e8] bg-[#eff2f5] px-2 py-1 text-[#6e7781]">
+                    <span>Go</span>
+                    <span class="flex items-center gap-1"><ng-icon name="lucideCopy" class="text-[0.6rem]" /> Copy</span>
+                  </div>
+                  <pre class="overflow-hidden px-2.5 py-2 leading-relaxed"><span class="text-[#cf222e]">func</span> <span class="text-[#8250df]">solve</span>(nums []<span class="text-[#cf222e]">int</span>) <span class="text-[#cf222e]">int</span> {{ '{' }}
+  l, r := <span class="text-[#0550ae]">0</span>, <span class="text-[#8250df]">len</span>(nums)-<span class="text-[#0550ae]">1</span>
+  <span class="text-[#6e7781] italic">// shrink from both ends</span>
+{{ '}' }}</pre>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- floating chips -->
+          <div aria-hidden="true" class="landing-float-slow absolute -top-5 -left-3 flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#120a3d] shadow-xl sm:-left-8">
+            <span class="grid size-7 place-items-center rounded-full bg-orange-100 text-orange-500"><ng-icon name="lucideFlame" /></span>
+            12-day streak
+          </div>
+          <div aria-hidden="true" class="landing-float absolute -right-2 -bottom-6 flex items-center gap-2 rounded-2xl bg-[#68da23] px-3 py-2 text-xs font-semibold text-[#120a3d] shadow-xl sm:-right-6">
+            <ng-icon name="lucideRepeat" />
+            Review next: CAP theorem
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Topics marquee ============ -->
+    <section class="border-b bg-background py-8" aria-label="Topics people prep with PrepDay">
+      <p class="mb-5 text-center text-xs font-medium tracking-widest text-muted-foreground uppercase">Built for every topic you're prepping</p>
+      <div class="landing-marquee relative overflow-hidden">
+        <div class="landing-marquee-track flex w-max gap-3">
+          @for (t of [topics, topics]; track $index) {
+            @for (topic of t; track topic) {
+              <span class="rounded-full border bg-card px-4 py-1.5 text-sm whitespace-nowrap text-muted-foreground">{{ topic }}</span>
+            }
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ How it works ============ -->
+    <section id="how" class="scroll-mt-20 bg-background py-20 sm:py-28" aria-labelledby="how-title">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="mx-auto max-w-2xl text-center" appReveal>
+          <p class="text-sm font-semibold text-primary dark:text-[#68da23]">How it works</p>
+          <h2 id="how-title" class="mt-2 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">From scattered notes to a daily plan</h2>
+          <p class="mt-4 text-muted-foreground">Three habits, one app. PrepDay turns what you write into what you should revise.</p>
+        </div>
+        <ol class="relative mt-14 grid gap-6 md:grid-cols-3">
+          <div class="pointer-events-none absolute top-10 right-[16%] left-[16%] hidden h-px border-t border-dashed border-primary/30 md:block" aria-hidden="true"></div>
+          @for (step of steps; track step.title; let i = $index) {
+            <li class="bento relative p-6" [appReveal]="i * 120">
+              <div class="flex items-center gap-3">
+                <span class="grid size-12 place-items-center rounded-2xl bg-[#120a3d] text-xl text-[#68da23] dark:bg-[#68da23] dark:text-[#120a3d]">
+                  <ng-icon [name]="step.icon" />
+                </span>
+                <span class="font-serif text-4xl font-semibold text-muted-foreground/30">0{{ i + 1 }}</span>
+              </div>
+              <h3 class="mt-5 text-lg font-bold">{{ step.title }}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-muted-foreground">{{ step.text }}</p>
+            </li>
+          }
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============ Features bento ============ -->
+    <section id="features" class="scroll-mt-20 bg-desk py-20 sm:py-28" aria-labelledby="features-title">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="mx-auto max-w-2xl text-center" appReveal>
+          <p class="text-sm font-semibold text-primary dark:text-[#68da23]">Features</p>
+          <h2 id="features-title" class="mt-2 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Everything a prep notebook should do</h2>
+          <p class="mt-4 text-muted-foreground">A fast, focused editor plus the study tools generic note apps don't have.</p>
+        </div>
+
+        <div class="mt-14 grid gap-4 md:grid-cols-6">
+          <!-- Editor -->
+          <article class="bento overflow-hidden p-6 md:col-span-4" appReveal>
+            <div class="flex items-center gap-2 text-sm font-semibold text-primary dark:text-[#68da23]"><ng-icon name="lucidePenLine" /> Notion-style editor</div>
+            <h3 class="mt-2 text-xl font-bold">Type <kbd class="rounded-md border bg-muted px-1.5 font-mono text-base">/</kbd> and keep thinking</h3>
+            <p class="mt-2 max-w-md text-sm text-muted-foreground">Headings, lists, to-dos, quotes, tables and code blocks without leaving the keyboard. Markdown shortcuts just work, and every change autosaves.</p>
+            <div class="mt-6 grid gap-3 sm:grid-cols-2">
+              <div class="rounded-xl border bg-background p-2 shadow-sm">
+                <p class="px-2 pt-1 pb-2 text-xs text-muted-foreground">Basic blocks</p>
+                @for (b of [['H1','Heading 1'],['•','Bulleted list'],['☐','To-do list'],['{ }','Code block']]; track b[1]; let i = $index) {
+                  <div class="flex items-center gap-2.5 rounded-lg px-2 py-1.5 text-sm" [class.bg-muted]="i === 3">
+                    <span class="grid size-7 place-items-center rounded-md border bg-card font-mono text-xs">{{ b[0] }}</span>{{ b[1] }}
+                  </div>
+                }
+              </div>
+              <div class="space-y-2 rounded-xl border bg-background p-4 text-sm shadow-sm">
+                <p class="font-serif text-base font-semibold">Rate limiter</p>
+                <p class="text-muted-foreground">Token bucket refills at <mark class="rounded-sm bg-[#00f0ff]/40 px-0.5 text-foreground">r tokens/sec</mark>.</p>
+                <p class="flex items-center gap-2 text-muted-foreground"><span class="grid size-4 place-items-center rounded border border-primary bg-primary text-[0.6rem] text-primary-foreground">✓</span> Sliding window log</p>
+                <p class="flex items-center gap-2 text-muted-foreground"><span class="size-4 rounded border"></span> Distributed counters</p>
+              </div>
+            </div>
+          </article>
+
+          <!-- Review next & streak -->
+          <article class="bento p-6 md:col-span-2" appReveal="80">
+            <div class="flex items-center gap-2 text-sm font-semibold text-primary dark:text-[#68da23]"><ng-icon name="lucideFlame" /> Review next &amp; streak</div>
+            <h3 class="mt-2 text-xl font-bold">Know exactly what to study today</h3>
+            <p class="mt-2 text-sm text-muted-foreground">Weak, long-untouched topics rise to the top. Every revision keeps your streak alive.</p>
+            <div class="mt-5 grid grid-cols-7 gap-1" aria-hidden="true">
+              @for (l of [0,1,0,2,3,1,0, 2,4,3,0,1,2,3, 1,0,2,4,4,3,2, 0,3,2,1,4,4,4]; track $index) {
+                <span class="heat-cell aspect-square rounded-[4px]" [attr.data-level]="l"></span>
+              }
+            </div>
+          </article>
+
+          <!-- Neon highlights -->
+          <article class="bento overflow-hidden p-6 md:col-span-3" appReveal>
+            <div class="flex items-center gap-2 text-sm font-semibold text-primary dark:text-[#68da23]"><ng-icon name="lucideHighlighter" /> Neon highlights</div>
+            <h3 class="mt-2 text-xl font-bold">Make the important bits glow</h3>
+            <p class="mt-2 text-sm text-muted-foreground">Six neon colours that look like a highlighter pen in light mode and glow in dark mode.</p>
+            <div class="mt-5 grid grid-cols-2 gap-3 text-sm" aria-hidden="true">
+              <div class="rounded-xl border bg-white p-3 text-[#0f1419]">
+                <mark class="rounded-sm bg-[#39ff14]/55 px-0.5">Idempotent</mark> requests can be <mark class="rounded-sm bg-[#ff2bd6]/35 px-0.5">retried safely</mark>.
+              </div>
+              <div class="rounded-xl border border-white/10 bg-[#050305] p-3 text-[#e7e9ea]">
+                <span class="landing-glow text-[#39ff14]">Idempotent</span> requests can be <span class="landing-glow text-[#ff2bd6]">retried safely</span>.
+              </div>
+            </div>
+          </article>
+
+          <!-- Small features -->
+          <div class="grid gap-4 sm:grid-cols-2 md:col-span-3">
+            @for (f of smallFeatures; track f.title; let i = $index) {
+              <article class="bento p-5" [appReveal]="i * 60">
+                <span class="grid size-9 place-items-center rounded-xl bg-accent text-accent-foreground"><ng-icon [name]="f.icon" /></span>
+                <h3 class="mt-3 font-bold">{{ f.title }}</h3>
+                <p class="mt-1 text-sm text-muted-foreground">{{ f.text }}</p>
+              </article>
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Who it's for ============ -->
+    <section class="bg-background py-20 sm:py-28" aria-labelledby="who-title">
+      <div class="mx-auto max-w-6xl px-4 sm:px-6">
+        <div class="mx-auto max-w-2xl text-center" appReveal>
+          <p class="text-sm font-semibold text-primary dark:text-[#68da23]">Who it's for</p>
+          <h2 id="who-title" class="mt-2 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Made for people with an interview on the calendar</h2>
+        </div>
+        <div class="mt-14 grid gap-5 md:grid-cols-3">
+          @for (p of personas; track p.title; let i = $index) {
+            <article class="group bento relative overflow-hidden p-6 transition-transform hover:-translate-y-1" [appReveal]="i * 100">
+              <div class="pointer-events-none absolute -top-16 -right-16 size-40 rounded-full bg-[#68da23]/10 transition-transform group-hover:scale-125" aria-hidden="true"></div>
+              <span class="relative grid size-11 place-items-center rounded-2xl bg-[#120a3d] text-lg text-white dark:bg-[#68da23] dark:text-[#120a3d]"><ng-icon [name]="p.icon" /></span>
+              <h3 class="relative mt-4 text-lg font-bold">{{ p.title }}</h3>
+              <p class="relative mt-2 text-sm leading-relaxed text-muted-foreground">{{ p.text }}</p>
+              <p class="relative mt-4 inline-flex rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">{{ p.example }}</p>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ FAQ ============ -->
+    <section id="faq" class="scroll-mt-20 bg-desk py-20 sm:py-28" aria-labelledby="faq-title">
+      <div class="mx-auto max-w-3xl px-4 sm:px-6">
+        <div class="text-center" appReveal>
+          <p class="text-sm font-semibold text-primary dark:text-[#68da23]">FAQ</p>
+          <h2 id="faq-title" class="mt-2 font-serif text-3xl font-semibold tracking-tight sm:text-4xl">Questions, answered</h2>
+        </div>
+        <div class="mt-10 space-y-3">
+          @for (f of faqs; track f.q) {
+            <details class="landing-faq bento group px-5 open:pb-4">
+              <summary class="flex cursor-pointer list-none items-center justify-between gap-4 py-4 text-left font-semibold">
+                {{ f.q }}
+                <span class="grid size-7 shrink-0 place-items-center rounded-full bg-muted transition-transform group-open:rotate-45">
+                  <ng-icon name="lucidePlus" />
+                </span>
+              </summary>
+              <p class="text-sm leading-relaxed text-muted-foreground">{{ f.a }}</p>
+            </details>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ Final CTA ============ -->
+    <section class="relative overflow-hidden bg-[#120a3d] py-20 text-white sm:py-24" aria-labelledby="cta-title">
+      <div class="landing-grid pointer-events-none absolute inset-0 opacity-60" aria-hidden="true"></div>
+      <div class="relative mx-auto flex max-w-3xl flex-col items-center px-4 text-center" appReveal>
+        <img src="assets/icons/icon.svg" alt="" class="size-14 rounded-2xl shadow-[0_0_40px_-5px_#68da23]" />
+        <h2 id="cta-title" class="mt-6 font-serif text-3xl font-semibold tracking-tight sm:text-5xl">Start your first prep day</h2>
+        <p class="mt-4 max-w-xl text-white/70">Sign in with Google and write your first note in under a minute. Your future self, sitting in the interview, will thank you.</p>
+        <a
+          routerLink="/auth"
+          class="mt-8 inline-flex h-12 items-center gap-3 rounded-full bg-white px-7 text-base font-semibold text-[#1f1f1f] shadow-[0_10px_30px_-12px_rgba(0,0,0,0.6)] ring-1 ring-black/5 transition-transform hover:-translate-y-0.5"
+        >
+          <svg class="size-5" viewBox="0 0 48 48" aria-hidden="true">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Start free with Google
+        </a>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ Footer ============ -->
+  <footer class="border-t bg-background">
+    <div class="mx-auto flex max-w-6xl flex-col items-center gap-4 px-4 py-10 text-center sm:px-6">
+      <img src="assets/logo/logo-horizontal-on-light.svg" alt="PrepDay" class="h-8 w-auto dark:hidden" />
+      <img src="assets/logo/logo-horizontal-on-dark.svg" alt="PrepDay" class="hidden h-8 w-auto dark:block" />
+      <p class="text-sm text-muted-foreground">Interview prep, one day at a time.</p>
+      <nav aria-label="Legal" class="flex flex-wrap justify-center gap-x-5 gap-y-2 text-sm text-muted-foreground">
+        <a routerLink="/support" class="hover:text-foreground">Support</a>
+        <a routerLink="/privacy" class="hover:text-foreground">Privacy</a>
+        <a routerLink="/terms" class="hover:text-foreground">Terms</a>
+      </nav>
+      <p class="text-xs text-muted-foreground">© {{ year }} PrepDay</p>
+    </div>
+  </footer>
+</div>

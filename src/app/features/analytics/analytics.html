@@ -133,7 +133,7 @@
                           }
                         </span>
                         @if (cat) {
-                          <span class="truncate" [style.color]="cat.color">{{ cat.name }}</span>
+                          <span class="truncate" [style.color]="'color-mix(in oklab, ' + cat.color + ' var(--cat-strength), var(--foreground))'">{{ cat.name }}</span>
                           <span aria-hidden="true">·</span>
                         }
                         <span class="shrink-0">{{ revisedLabel(item.lastRevised, item.daysSince) }}</span>
@@ -246,7 +246,7 @@
                   (click)="openNotes({ categoryId: row.categoryId })"
                 >
                   @if (row.category) {
-                    <app-category-icon [icon]="row.category.icon" class="shrink-0" [style.color]="row.category.color" />
+                    <app-category-icon [icon]="row.category.icon" class="shrink-0" [style.color]="'color-mix(in oklab, ' + row.category.color + ' var(--cat-strength), var(--foreground))'" />
                   }
                   <span class="truncate font-medium">{{ row.category?.name ?? 'Uncategorised' }}</span>
                 </button>

@@ -4,13 +4,13 @@
   <header class="sticky top-0 z-30 flex h-14 items-center gap-2 bg-page/90 px-2 backdrop-blur supports-[backdrop-filter]:bg-page/75 sm:px-4 lg:rounded-t-md">
     <button z-button zType="ghost" class="gap-2 rounded-full" (click)="goBack()" title="Back to notes">
       <ng-icon name="lucideArrowLeft" class="text-lg" />
-      <span class="lg:sr-only">Notes</span>
+      <span class="sr-only">Notes</span>
     </button>
 
     <div class="ml-auto flex items-center gap-1">
       @if (updatedAt()) {
         <span
-          class="flex items-center gap-1 text-xs whitespace-nowrap text-muted-foreground"
+          class="hidden items-center gap-1 text-xs whitespace-nowrap text-muted-foreground sm:flex"
           [title]="'Last edited ' + (updatedAt() | date: 'medium')"
         >
           <ng-icon name="lucideClock" class="max-sm:hidden" />
@@ -18,7 +18,7 @@
           {{ updatedAt() | date: 'MMM d, h:mm a' }}
         </span>
         @if (saveStatus() !== 'idle') {
-          <span class="text-muted-foreground/50" aria-hidden="true">·</span>
+          <span class="hidden text-muted-foreground/50 sm:inline" aria-hidden="true">·</span>
         }
       }
       <span class="flex items-center gap-1.5 px-2 text-xs whitespace-nowrap text-muted-foreground" aria-live="polite">
@@ -28,6 +28,20 @@
           @case ('error') { <span class="flex items-center gap-1.5 text-destructive"><ng-icon name="lucideCloudOff" /> Not saved — retrying</span> }
         }
       </span>
+
+      <button
+        z-button
+        zType="ghost"
+        zSize="icon-lg"
+        zShape="circle"
+        [class.text-primary]="!!shareToken()"
+        [zDisabled]="isNew()"
+        (click)="shareOpen.set(true)"
+        aria-label="Share note"
+        [title]="isNew() ? 'Write something first to share' : shareToken() ? 'Shared via link' : 'Share a read-only link'"
+      >
+        <ng-icon name="lucideShare2" class="text-lg" />
+      </button>
 
       <button
         z-button
@@ -153,10 +167,15 @@
             class="max-w-56 min-w-0 shrink text-foreground"
             ariaLabel="Category"
             placeholder="Category"
-            searchPlaceholder="Find a category…"
+            searchPlaceholder="Find or create a category…"
+            [searchable]="true"
+            [creatable]="true"
+            createLabel="Create category"
             [options]="categoryOptions()"
             [value]="categoryId()"
             (valueChange)="onCategoryChange($event)"
+            (create)="createCategory($event)"
+            (edit)="editingCategory.set($event)"
           />
 
           <app-select
@@ -197,6 +216,20 @@
       }
     }
   </article>
+
+  <app-share-dialog
+    [open]="shareOpen()"
+    [noteId]="noteId()"
+    [token]="shareToken()"
+    (closed)="shareOpen.set(false)"
+    (tokenChange)="shareToken.set($event)"
+  />
+
+  <app-category-dialog
+    [categoryId]="editingCategory()"
+    (closed)="editingCategory.set(null)"
+    (deleted)="onCategoryDeleted($event)"
+  />
 
   <app-modal [open]="showDeleteConfirm()" title="Delete this note?" (close)="showDeleteConfirm.set(false)">
     <p>This can't be undone.</p>

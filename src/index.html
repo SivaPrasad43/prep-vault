@@ -24,7 +24,8 @@
     // Apply saved theme before first paint (no flash). Mirrors ThemeService.
     try {
       // Light by default; dark only when the user chose it (key matches ThemeService).
-      if (localStorage.getItem('prep-vault-theme-v2') === 'dark') document.documentElement.classList.add('dark');
+      // The landing page (/) is always light.
+      if (location.pathname !== '/' && localStorage.getItem('prep-vault-theme-v2') === 'dark') document.documentElement.classList.add('dark');
     } catch (e) {}
   </script>
 </head>

@@ -1,4 +1,4 @@
-import { Component, ElementRef, computed, input, model, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, computed, input, model, output, signal, viewChild } from '@angular/core';
 import { CdkConnectedOverlay, CdkOverlayOrigin, type ConnectedPosition } from '@angular/cdk/overlay';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronDown } from '@ng-icons/lucide';
@@ -43,7 +43,7 @@ const POSITIONS: ConnectedPosition[] = [
         @if (opt.dot) {
           <span class="size-2.5 shrink-0 rounded-full" [style.background]="opt.color"></span>
         } @else if (opt.icon) {
-          <app-category-icon [icon]="opt.icon" class="shrink-0" [style.color]="opt.color" />
+          <app-category-icon [icon]="opt.icon" class="shrink-0" [style.color]="opt.color ? 'color-mix(in oklab, ' + opt.color + ' var(--cat-strength), var(--foreground))' : null" />
         }
         <span class="min-w-0 flex-1 truncate">{{ opt.label }}</span>
       } @else {
@@ -75,8 +75,12 @@ const POSITIONS: ConnectedPosition[] = [
         [searchable]="isSearchable()"
         [searchPlaceholder]="searchPlaceholder()"
         [label]="ariaLabel()"
+        [creatable]="creatable()"
+        [createLabel]="createLabel()"
         (picked)="choose($event)"
         (closed)="close(true)"
+        (create)="close(false); create.emit($event)"
+        (edit)="close(false); edit.emit($event)"
       />
     </ng-template>
   `,
@@ -91,6 +95,13 @@ export class AppSelect {
   readonly searchable = input<boolean | undefined>(undefined);
   readonly disabled = input(false);
   readonly variant = input<'field' | 'ghost'>('field');
+  /** Offer "+ Create “…”" for unknown typed text (emits `create`). */
+  readonly creatable = input(false);
+  readonly createLabel = input('Create');
+  readonly create = output<string>();
+  /** ⋯ clicked on an editable option. */
+  readonly edit = output<string>();
+
   /** Popover width in px; defaults to at least the trigger width. */
   readonly menuWidth = input<number | undefined>(undefined);
 

@@ -38,6 +38,14 @@ Run `migrations/000_init.sql` in the Supabase SQL Editor. This creates all table
 
 Each table has RLS policies enforcing user isolation (`user_id = auth.uid()`).
 
+## Sharing (public read-only links)
+
+Run `migrations/001_note_sharing.sql` after `000_init.sql`. It adds `notes.share_token` / `notes.shared_at` and a `get_shared_note(token)` function.
+
+- Sharing a note stores a long random token on it; the public page `/s/<token>` calls `get_shared_note` (allowed for anonymous users) to read **only** that note's title, content, last-updated time and the author's display name.
+- Anonymous users still can't query the `notes` table directly, so shared notes can't be listed or guessed.
+- Stopping or resetting a share clears or replaces the token, so the old link stops working immediately.
+
 ## RLS Policies
 
 Every table has Row Level Security enabled. Policies ensure users can only access their own data (`user_id = auth.uid()`).
@@ -70,6 +78,6 @@ Every table has Row Level Security enabled. Policies ensure users can only acces
 
 1. Create a Supabase project
 2. Copy URL + anon key to `src/environments/environment.ts`
-3. Run `migrations/000_init.sql` in Supabase SQL Editor (creates all tables)
+3. Run `migrations/000_init.sql`, then `migrations/001_note_sharing.sql`, in the Supabase SQL Editor
 4. Set up the Google provider (see **Google provider setup** above)
 5. Run `ng serve` and click **Continue with Google**

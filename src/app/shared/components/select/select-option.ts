@@ -9,4 +9,8 @@ export interface SelectOption {
   dot?: boolean;
   /** Small muted text after the label. */
   hint?: string;
+  /** Show a ⋯ action on the row (emits `edit`). */
+  editable?: boolean;
+  /** Show a lock on the row (e.g. built-in categories that can't be edited). */
+  locked?: boolean;
 }

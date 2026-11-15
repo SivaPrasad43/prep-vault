@@ -7,14 +7,17 @@
     @if (category(); as cat) {
       <span
         class="inline-flex min-w-0 items-center gap-1 rounded-full px-2 py-0.5 font-medium"
-        [style.color]="cat.color"
+        [style.color]="'color-mix(in oklab, ' + cat.color + ' var(--cat-strength), var(--foreground))'"
         [style.background]="'color-mix(in oklab, ' + cat.color + ' 13%, transparent)'"
       >
         <app-category-icon [icon]="cat.icon" class="shrink-0 text-[0.8rem]" />
         <span class="truncate">{{ cat.name }}</span>
       </span>
     }
-    <span class="ml-auto shrink-0 text-muted-foreground tabular-nums">{{ note().updated_at | date: dateFormat() }}</span>
+    @if (note().share_token) {
+      <ng-icon name="lucideLink2" class="ml-auto shrink-0 text-primary" title="Shared via public link" aria-label="Shared via public link" />
+    }
+    <span class="shrink-0 text-muted-foreground tabular-nums" [class.ml-auto]="!note().share_token">{{ note().updated_at | date: dateFormat() }}</span>
   </div>
 
   <!-- Title + preview -->
