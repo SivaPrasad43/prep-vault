@@ -91,6 +91,69 @@
         </div>
       </section>
 
+      <!-- Level + achievements -->
+      <section class="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3" aria-label="Level and achievements">
+        @let lv = game.level();
+        <div class="relative min-w-0 overflow-hidden rounded-2xl bg-[#120a3d] p-5 text-white">
+          <div class="pointer-events-none absolute -top-20 -right-16 size-48 rounded-full bg-[#68da23]/25 blur-3xl" aria-hidden="true"></div>
+          <p class="relative text-xs font-semibold tracking-widest text-white/60 uppercase">Your level</p>
+          <div class="relative mt-3 flex items-center gap-4">
+            <div class="relative grid size-20 shrink-0 place-items-center">
+              <svg class="absolute inset-0 -rotate-90" viewBox="0 0 36 36" aria-hidden="true">
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3" stroke="rgb(255 255 255 / 0.15)" />
+                <circle cx="18" cy="18" r="15.5" fill="none" stroke-width="3" stroke-linecap="round" stroke="#68da23"
+                  class="goal-ring transition-[stroke-dashoffset] duration-1000 ease-out"
+                  stroke-dasharray="97.4" [attr.stroke-dashoffset]="97.4 - (97.4 * lv.pct) / 100" />
+              </svg>
+              <span class="text-2xl font-bold">{{ lv.level }}</span>
+            </div>
+            <div class="min-w-0">
+              <p class="font-serif text-xl font-semibold">{{ lv.name }}</p>
+              <p class="text-sm text-white/70 tabular-nums">{{ lv.xp }} XP</p>
+              @if (lv.next) {
+                <p class="mt-1 text-xs text-white/60">{{ lv.next - lv.xp }} XP to <span class="font-semibold text-[#68da23]">{{ lv.nextName }}</span></p>
+              } @else {
+                <p class="mt-1 text-xs text-[#68da23]">Max level reached</p>
+              }
+            </div>
+          </div>
+          <ul class="relative mt-4 grid grid-cols-2 gap-x-3 gap-y-1 text-[0.7rem] text-white/60">
+            <li>✍️ Note written <span class="text-white">+10</span></li>
+            <li>🔁 Revision <span class="text-white">+5</span></li>
+            <li>🎯 Daily goal <span class="text-white">+20</span></li>
+            <li>✅ Confident note <span class="text-white">+15</span></li>
+          </ul>
+        </div>
+
+        <div id="achievements" class="bento min-w-0 scroll-mt-6 p-4 sm:p-5 lg:col-span-2">
+          <div class="mb-3 flex items-baseline justify-between gap-2">
+            <h2 class="font-serif text-lg font-semibold">Achievements</h2>
+            <span class="text-xs text-muted-foreground tabular-nums">{{ game.unlockedCount() }} / {{ game.achievements().length }} unlocked</span>
+          </div>
+          <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+            @for (a of game.achievements(); track a.id) {
+              <li
+                class="relative flex flex-col items-center rounded-xl border p-3 text-center transition-transform"
+                [class]="a.unlocked ? 'badge-unlocked border-[#68da23]/50 bg-[#68da23]/8 hover:-translate-y-0.5' : 'bg-muted/40'"
+                [title]="a.description"
+              >
+                <span class="text-2xl" [class.grayscale]="!a.unlocked" [class.opacity-40]="!a.unlocked" aria-hidden="true">{{ a.emoji }}</span>
+                <span class="mt-1.5 text-xs leading-tight font-semibold" [class.text-muted-foreground]="!a.unlocked">{{ a.title }}</span>
+                <span class="sr-only">{{ a.unlocked ? 'Unlocked' : 'Locked' }}: {{ a.description }}</span>
+                @if (!a.unlocked) {
+                  <span class="mt-2 h-1 w-full overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                    <span class="block h-full rounded-full bg-muted-foreground/40" [style.width.%]="(a.progress / a.target) * 100"></span>
+                  </span>
+                  <span class="mt-1 text-[0.6rem] text-muted-foreground tabular-nums">{{ a.progress }}/{{ a.target }}</span>
+                } @else {
+                  <span class="mt-1 text-[0.6rem] font-medium text-[#2f9a3d] dark:text-[#68da23]">Unlocked</span>
+                }
+              </li>
+            }
+          </ul>
+        </div>
+      </section>
+
       <ng-template #trendTpl let-t>
         @if (t === null) {
           <p class="mt-1 text-xs text-muted-foreground">in the last {{ range() }} days</p>

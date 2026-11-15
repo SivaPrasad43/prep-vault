@@ -9,6 +9,7 @@ import {
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { ProgressService, type ProgressData } from '../../core/services/progress.service';
 import { CategoriesService } from '../../core/services/categories.service';
+import { GamificationService } from '../../core/services/gamification.service';
 import { FilterStateService } from '../../core/services/filter-state.service';
 import { CategoryIcon } from '../../shared/components/category-icon/category-icon';
 import {
@@ -40,6 +41,7 @@ const CONFIDENCE_META: { value: ConfidenceLevel; label: string; color: string }[
 export class Analytics {
   private progress = inject(ProgressService);
   private categoriesService = inject(CategoriesService);
+  protected readonly game = inject(GamificationService);
   private filterState = inject(FilterStateService);
   private router = inject(Router);
 
@@ -67,8 +69,9 @@ export class Analytics {
     const total = notes.length;
     const count = (l: ConfidenceLevel) => notes.filter((n) => n.confidence_level === l).length;
     return {
-      streak: currentStreak(this.days()),
-      best: bestStreak(this.days()),
+      // Same live source as the streak flame, so both always agree.
+      streak: this.game.loaded() ? this.game.streak() : currentStreak(this.days()),
+      best: this.game.loaded() ? this.game.best() : bestStreak(this.days()),
       revisions,
       revisionsTrend: trend(revisions, countBetween(this.revisedAt(), prevStart, start)),
       written,

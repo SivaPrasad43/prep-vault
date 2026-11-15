@@ -7,6 +7,9 @@ import { lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRi
 import { ZardSkeletonComponent } from '@/shared/ui/skeleton';
 import { NoteCard } from '../../shared/components/note-card/note-card';
 import { AppSelect } from '../../shared/components/select/select';
+import { StreakFlame } from '../../shared/components/streak-flame/streak-flame';
+import { StreakPanel } from '../../shared/components/streak-panel/streak-panel';
+import { GamificationService } from '../../core/services/gamification.service';
 import { CategoryDialog } from '../../shared/components/category-dialog/category-dialog';
 import type { SelectOption } from '../../shared/components/select/select-option';
 import { EmptyState } from '../../shared/components/empty-state/empty-state';
@@ -22,7 +25,7 @@ import type { Category, ConfidenceLevel, Note, NoteFilters, NoteStats } from '..
  */
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterOutlet, RouterLink, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect, CategoryDialog],
+  imports: [RouterOutlet, RouterLink, NgIcon, ZardSkeletonComponent, NoteCard, EmptyState, AppSelect, CategoryDialog, StreakFlame, StreakPanel],
   templateUrl: './dashboard.html',
   viewProviders: [provideIcons({ lucideFlame, lucideSearch, lucideX, lucideBookOpenText, lucideChevronRight, lucideCheck })],
   host: { class: 'block' },
@@ -40,6 +43,10 @@ export class Dashboard implements OnInit {
   protected readonly categoriesList = this.categoriesService.list;
   /** Custom category open in the edit dialog (from the ⋯ in the filter dropdown). */
   protected readonly editingCategory = signal<string | null>(null);
+  /** Streak / XP / goal state (live). */
+  protected readonly game = inject(GamificationService);
+  protected readonly streakOpen = signal(false);
+  protected readonly nudgeDismissed = signal(false);
   protected stats = signal<NoteStats | null>(null);
   protected loading = signal(true);
   protected loadingMore = signal(false);

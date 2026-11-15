@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
-import { from, Observable, map } from 'rxjs';
+import { from, Observable, Subject, map, tap } from 'rxjs';
 import { SupabaseService } from './supabase.service';
 import { AuthService } from './auth.service';
 import type { Revision } from '../models';
 
 @Injectable({ providedIn: 'root' })
 export class RevisionsService {
+  private readonly _logged = new Subject<Revision>();
+  /** Emits after a revision is saved (drives streaks / XP / celebrations). */
+  readonly logged$ = this._logged.asObservable();
+
   constructor(
     private supabase: SupabaseService,
     private auth: AuthService,
@@ -25,8 +29,9 @@ export class RevisionsService {
     ).pipe(
       map(({ data, error }) => {
         if (error) throw error;
-        return data;
+        return data as Revision;
       }),
+      tap((rev) => this._logged.next(rev)),
     );
   }
 
