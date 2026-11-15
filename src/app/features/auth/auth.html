@@ -1,11 +1,10 @@
 <div class="grid min-h-dvh place-items-center bg-desk px-4 py-10">
   <z-card class="w-full max-w-md gap-0 rounded-2xl px-6 py-10 shadow-sheet ring-0 sm:px-10">
     <div class="flex flex-col items-center text-center">
-      <span class="grid size-12 place-items-center rounded-xl bg-foreground text-background">
-        <ng-icon name="lucideVault" class="text-2xl" />
-      </span>
-      <h1 class="mt-5 font-serif text-3xl font-semibold">Welcome to PrepVault</h1>
-      <p class="mt-2 text-sm text-muted-foreground">Your desk for interview prep notes</p>
+      <img src="assets/logo/logo-stacked-on-light.svg" alt="PrepDay" class="h-28 w-auto dark:hidden" />
+      <img src="assets/logo/logo-stacked-on-dark.svg" alt="PrepDay" class="hidden h-28 w-auto dark:block" />
+      <h1 class="sr-only">Sign in to PrepDay</h1>
+      <p class="mt-4 text-sm text-muted-foreground">Interview prep, one day at a time.</p>
     </div>
 
     @if (error()) {

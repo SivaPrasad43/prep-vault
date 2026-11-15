@@ -1,4 +1,4 @@
-import { Component, ElementRef, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, filter, switchMap } from 'rxjs';
@@ -50,6 +50,32 @@ export class Dashboard implements OnInit {
   private currentFilters?: NoteFilters;
   private loadMoreEpoch = 0;
   private sentinel = viewChild<ElementRef<HTMLElement>>('sentinel');
+
+  // ---------- Hide-on-scroll list header ----------
+  /** true while scrolling down through the notes; scrolling up (or reaching the top) reveals it. */
+  protected readonly headerHidden = signal(false);
+  private lastScrollY = 0;
+
+  /** Desktop: the notes column scrolls on its own. */
+  protected onListScroll(y: number): void {
+    this.updateHeader(y);
+  }
+
+  /** Mobile: the page itself scrolls. */
+  @HostListener('window:scroll')
+  protected onWindowScroll(): void {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 1023px)').matches) {
+      this.updateHeader(window.scrollY);
+    }
+  }
+
+  private updateHeader(y: number): void {
+    const delta = y - this.lastScrollY;
+    if (y < 80) this.headerHidden.set(false); // near the top: always visible
+    else if (delta > 8) this.headerHidden.set(true); // scrolling down
+    else if (delta < -8) this.headerHidden.set(false); // scrolling up
+    if (Math.abs(delta) > 8 || y < 80) this.lastScrollY = y;
+  }
   protected readonly skeletons = [0, 1, 2, 3, 4, 5];
 
   protected greeting = this.getGreeting();

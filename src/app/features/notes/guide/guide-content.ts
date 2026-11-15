@@ -3,9 +3,9 @@
  * Shipped with the app (not stored in Supabase): edit this file and deploy to update it.
  * Written in the same markdown the note editor uses, so it renders exactly like a note.
  */
-export const GUIDE_TITLE = 'How to use PrepVault';
+export const GUIDE_TITLE = 'How to use PrepDay';
 
-export const GUIDE_MARKDOWN = `Welcome to **PrepVault**, your desk for interview prep notes. This guide is built in and read-only. It's always here if you need a refresher.
+export const GUIDE_MARKDOWN = `Welcome to **PrepDay**, your desk for interview prep notes. This guide is built in and read-only. It's always here if you need a refresher.
 
 ## Create a note
 
@@ -63,7 +63,7 @@ In light mode they look like a highlighter pen. In dark mode they glow. Press **
 
 - Everything **saves automatically** a moment after you stop typing. The top bar shows when the note was last edited and whether it's saved.
 - Press **Ctrl/Cmd + S** to save immediately.
-- If you're offline, PrepVault keeps retrying until the save goes through.
+- If you're offline, PrepDay keeps retrying until the save goes through.
 - Cleared a note completely (no title, no text)? It's deleted automatically when you leave it, so empty "Untitled" notes never pile up.
 
 ## Organise and revise

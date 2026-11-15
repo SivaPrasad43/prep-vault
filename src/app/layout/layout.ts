@@ -6,7 +6,7 @@ import { filter } from 'rxjs/operators';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideSun, lucideMoon, lucideLogOut, lucidePlus,
-  lucideLibrary, lucideChartColumn, lucideBookmark, lucideVault,
+  lucideLibrary, lucideChartColumn, lucideBookmark,
 } from '@ng-icons/lucide';
 
 import { ZardAvatarComponent } from '@/shared/ui/avatar';
@@ -32,7 +32,7 @@ type NavKey = 'notes' | 'bookmarks' | 'analytics';
   viewProviders: [
     provideIcons({
       lucideSun, lucideMoon, lucideLogOut, lucidePlus,
-      lucideLibrary, lucideChartColumn, lucideBookmark, lucideVault,
+      lucideLibrary, lucideChartColumn, lucideBookmark,
     }),
   ],
 })
