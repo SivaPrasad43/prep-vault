@@ -26,6 +26,8 @@ import { ZardDropdownImports } from '@/shared/ui/dropdown';
 import { AppSelect } from '../../../shared/components/select/select';
 import { CategoryDialog } from '../../../shared/components/category-dialog/category-dialog';
 import { ShareDialog } from '../../../shared/components/share-dialog/share-dialog';
+import { GamificationService } from '../../../core/services/gamification.service';
+import { XP } from '../../../shared/gamification';
 import type { SelectOption } from '../../../shared/components/select/select-option';
 import { NotesService } from '../../../core/services/notes.service';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -157,6 +159,9 @@ export class NotePage implements OnDestroy {
   /** Public read-only link token for this note (null = not shared). */
   protected readonly shareToken = signal<string | null>(null);
   protected readonly shareOpen = signal(false);
+  private readonly game = inject(GamificationService);
+  /** "+5 XP" float after Mark revised (key retriggers the animation). */
+  protected readonly xpBurst = signal<{ key: number; xp: number; goal: boolean } | null>(null);
 
   protected readonly title = signal('');
   /** Markdown handed to the editor on load; the editor owns the body afterwards. */
@@ -421,7 +426,11 @@ export class NotePage implements OnDestroy {
         this.revisionCount.update((c) => (c ?? 0) + 1);
         this.markingRevised.set(false);
         this.justRevised.set(true);
+        // GamificationService already counted this revision (RevisionsService.logged$).
+        const goalJustMet = this.game.goalMet() && this.game.todayCount() === this.game.goal();
+        this.xpBurst.set({ key: Date.now(), xp: XP.revision + (goalJustMet ? XP.goalDay : 0), goal: goalJustMet });
         setTimeout(() => this.justRevised.set(false), 2000);
+        setTimeout(() => this.xpBurst.set(null), 1600);
       },
       error: () => this.markingRevised.set(false),
     });

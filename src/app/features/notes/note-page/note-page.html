@@ -196,16 +196,29 @@
               <ng-icon name="lucideHistory" />
               {{ revisionCount() ?? '–' }}<span class="lg:max-xl:hidden">&nbsp;{{ revisionCount() === 1 ? 'revision' : 'revisions' }}</span>
             </span>
-            <button
-              z-button
-              zType="outline"
-              zSize="sm"
-              class="shrink-0 rounded-full"
-              (click)="markRevised()"
-              [zDisabled]="markingRevised()"
-            >
-              {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
-            </button>
+            <span class="relative inline-flex shrink-0">
+              <button
+                z-button
+                zType="outline"
+                zSize="sm"
+                class="rounded-full transition-colors"
+                [class.revise-pop]="justRevised()"
+                [class.!border-[#4cc35b]]="justRevised()"
+                [class.!text-[#2f9a3d]]="justRevised()"
+                (click)="markRevised()"
+                [zDisabled]="markingRevised()"
+              >
+                {{ justRevised() ? 'Revised ✓' : 'Mark revised' }}
+              </button>
+              @if (xpBurst(); as b) {
+                <!-- Floating reward: "+5 XP" (and goal bonus) -->
+                @for (k of [b.key]; track k) {
+                  <span class="xp-float pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-[#68da23] px-2 py-0.5 text-xs font-bold whitespace-nowrap text-[#120a3d] shadow-md" aria-hidden="true">
+                    +{{ b.xp }} XP{{ b.goal ? ' · Goal met! 🎯' : '' }}
+                  </span>
+                }
+              }
+            </span>
           }
 
         </div>

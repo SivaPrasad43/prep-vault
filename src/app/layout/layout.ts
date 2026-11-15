@@ -15,6 +15,8 @@ import { ZardDropdownImports } from '@/shared/ui/dropdown';
 import { ThemeService } from '../core/services/theme.service';
 import { AuthService } from '../core/services/auth.service';
 import { FilterStateService } from '../core/services/filter-state.service';
+import { GamificationService } from '../core/services/gamification.service';
+import { CelebrationHost } from '../shared/components/celebration/celebration';
 
 type NavKey = 'notes' | 'bookmarks' | 'analytics';
 
@@ -26,7 +28,7 @@ type NavKey = 'notes' | 'bookmarks' | 'analytics';
   selector: 'app-layout',
   imports: [
     RouterOutlet, RouterLink, NgTemplateOutlet, NgIcon,
-    ZardAvatarComponent, ...ZardTooltipImports, ...ZardDropdownImports,
+    ZardAvatarComponent, ...ZardTooltipImports, ...ZardDropdownImports, CelebrationHost,
   ],
   templateUrl: './layout.html',
   viewProviders: [
@@ -65,6 +67,8 @@ export class Layout {
   });
 
   constructor() {
+    // Load streak/XP state once the user is in the app.
+    inject(GamificationService).init();
     this.router.events
       .pipe(
         filter((e): e is NavigationEnd => e instanceof NavigationEnd),

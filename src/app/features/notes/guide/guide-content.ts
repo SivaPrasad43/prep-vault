@@ -74,6 +74,12 @@ In light mode they look like a highlighter pen. In dark mode they glow. Press **
 - **Share** a note with the share icon in its top bar. It creates a read-only link anyone can open without signing in. They always see the latest version, and you can reset the link or stop sharing at any time.
 - **Mark revised** each time you review a topic. It counts your revisions and keeps your day streak going.
 
+## Streaks, XP & badges
+
+- **Streak:** the flame in the top-right of your notes list. Write or revise at least one note a day to keep it burning. The ring around it fills as you work towards your **daily goal** (3 by default; change it in the streak panel).
+- **XP & levels:** earn XP for every note (+10), revision (+5), Confident note (+15) and daily goal met (+20). Climb from *Rookie* to *Legend*.
+- **Achievements:** unlock badges like *One week strong*, *Polyglot* and *Night owl*. Milestones get confetti 🎉
+
 ## Track your progress
 
 Open **Progress** from the side menu to see:
